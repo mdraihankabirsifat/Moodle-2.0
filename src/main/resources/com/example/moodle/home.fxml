@@ -49,7 +49,7 @@
         </HBox>
     </top>
 
-    <!-- ================= MAIN SCROLLABLE CONTENT ================= -->
+    <!-- ================= MAIN CONTENT ================= -->
     <center>
 
         <ScrollPane fitToWidth="true"
@@ -61,7 +61,7 @@
                     <Insets top="40" bottom="40"/>
                 </padding>
 
-                <!-- HERO SECTION -->
+                <!-- HERO -->
                 <VBox spacing="15" alignment="CENTER">
                     <Label text="Integrated University Platform"
                            style="-fx-font-size: 32px; -fx-font-weight: bold;" />
@@ -72,7 +72,7 @@
                            maxWidth="700"/>
                 </VBox>
 
-                <!-- ABOUT SECTION -->
+                <!-- ABOUT -->
                 <VBox spacing="15" maxWidth="800">
                     <Label text="About"
                            style="-fx-font-size: 24px; -fx-font-weight: bold;" />
@@ -82,7 +82,7 @@
                            style="-fx-font-size: 15px;"/>
                 </VBox>
 
-                <!-- LATEST NEWS SECTION -->
+                <!-- LATEST NEWS -->
                 <VBox spacing="15" maxWidth="800">
                     <Label text="Latest News"
                            style="-fx-font-size: 24px; -fx-font-weight: bold;" />
@@ -95,7 +95,7 @@
                     </VBox>
                 </VBox>
 
-                <!-- UPCOMING EVENTS SECTION -->
+                <!-- UPCOMING EVENTS -->
                 <VBox spacing="15" maxWidth="800">
                     <Label text="Upcoming Events"
                            style="-fx-font-size: 24px; -fx-font-weight: bold;" />

@@ -12,19 +12,14 @@ public class HomeController {
 
     @FXML
     private Button loginButton;
-
     @FXML
     private Button campusButton;
-
     @FXML
     private MenuButton profileMenu;
-
     @FXML
     private MenuItem nameItem;
-
     @FXML
     private MenuItem universityItem;
-
     @FXML
     private MenuItem emailItem;
 

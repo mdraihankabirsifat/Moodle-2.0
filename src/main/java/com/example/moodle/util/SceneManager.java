@@ -1,5 +1,7 @@
 package com.example.moodle.util;
 
+import java.net.URL;
+
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -13,19 +15,20 @@ public class SceneManager {
     }
 
     public static void switchScene(String fxml) {
+
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    SceneManager.class.getResource("/com/example/moodle/" + fxml)
-            );
 
+            String path = "/com/example/moodle/" + fxml;
+
+            URL resource = SceneManager.class.getResource(path);
+
+            if (resource == null) {
+                System.out.println("FXML NOT FOUND: " + path);
+                return;
+            }
+
+            FXMLLoader loader = new FXMLLoader(resource);
             Scene scene = new Scene(loader.load(), 1000, 650);
-
-            // ✅ Load CSS here
-            scene.getStylesheets().add(
-                    SceneManager.class
-                            .getResource("/com/example/moodle/style.css")
-                            .toExternalForm()
-            );
 
             primaryStage.setScene(scene);
 

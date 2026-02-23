@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.CampusDashboardController">
+
+    <!-- TOP BAR -->
+    <top>
+        <HBox style="-fx-background-color: #1e3c72; -fx-padding: 15;">
+            <Label text="Campus Dashboard"
+                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+
+    <!-- SIDEBAR -->
+    <left>
+        <VBox spacing="15"
+              prefWidth="220"
+              style="-fx-background-color: #2a5298; -fx-padding: 20;">
+
+            <Button text="Project Submission"
+                    onAction="#showProjects"
+                    maxWidth="Infinity"/>
+
+            <Button text="Hall Management"
+                    onAction="#showHall"
+                    maxWidth="Infinity"/>
+
+            <Button text="Schedule"
+                    onAction="#showSchedule"
+                    maxWidth="Infinity"/>
+
+            <Button text="Internal Notices"
+                    onAction="#showNotices"
+                    maxWidth="Infinity"/>
+
+            <Button text="Activities &amp; Games"
+                    onAction="#showActivities"
+                    maxWidth="Infinity"/>
+
+        </VBox>
+    </left>
+
+    <!-- DYNAMIC CONTENT AREA -->
+    <center>
+        <StackPane fx:id="contentArea"
+                   style="-fx-padding: 30;"/>
+    </center>
+
+</BorderPane>

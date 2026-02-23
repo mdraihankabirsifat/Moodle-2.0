@@ -30,11 +30,11 @@ public class CampusAccessController {
     @FXML
     private void verifyCampus() {
 
-        String id = campusIdField.getText();
-        String pass = campusPassField.getText();
+        String enteredId = campusIdField.getText().trim();
+        String enteredPass = campusPassField.getText().trim();
 
-        // Simple dummy validation
-        if (id.equals(Session.getStudentId()) && pass.equals("campus123")) {
+        // Accept any ID, password must be 1234
+        if (!enteredId.isEmpty() && enteredPass.equals("1234")) {
 
             SceneManager.switchScene("campus-dashboard.fxml");
 
