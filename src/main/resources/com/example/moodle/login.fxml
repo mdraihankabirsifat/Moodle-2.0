@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.LoginController">
+
+    <!-- ================= TOP NAVBAR ================= -->
+    <top>
+        <HBox spacing="20"
+              alignment="CENTER_LEFT"
+              style="-fx-background-color: #1e3c72; -fx-padding: 15;">
+
+            <Label text="MOODLE 2.0"
+                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Button text="Back to Home"
+                    onAction="#goHome"
+                    style="-fx-background-color: transparent; -fx-text-fill: white;"/>
+        </HBox>
+    </top>
+
+    <!-- ================= CENTER LOGIN CARD ================= -->
+    <center>
+        <StackPane>
+
+            <VBox spacing="15"
+                  alignment="CENTER"
+                  maxWidth="400"
+                  style="-fx-background-color: white;
+                         -fx-background-radius: 12;
+                         -fx-padding: 30;
+                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0, 0, 5);">
+
+                <Label text="Portal Login"
+                       style="-fx-font-size: 24px; -fx-font-weight: bold;" />
+
+                <TextField fx:id="nameField"
+                           promptText="Full Name"/>
+
+                <ComboBox fx:id="universityBox"
+                          promptText="Select University"/>
+
+                <TextField fx:id="idField"
+                           promptText="Student ID"/>
+
+                <TextField fx:id="emailField"
+                           promptText="Email Address"/>
+
+                <PasswordField fx:id="passwordField"
+                               promptText="Password"/>
+
+                <Button text="Login"
+                        prefWidth="200"
+                        onAction="#handleLogin"
+                        style="-fx-background-color: #2a5298;
+                               -fx-text-fill: white;
+                               -fx-background-radius: 8;" />
+
+                <Label fx:id="messageLabel"
+                       style="-fx-text-fill: red;"/>
+
+            </VBox>
+
+        </StackPane>
+    </center>
+
+</BorderPane>

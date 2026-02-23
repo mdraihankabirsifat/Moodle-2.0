@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.control.Label?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.example.moodle.controller.SplashController"
+           style="-fx-background-color: linear-gradient(to bottom right, #141e30, #243b55);">
+
+    <Label fx:id="titleLabel"
+           text="MOODLE 2.0"
+           style="-fx-text-fill: white; -fx-font-size: 48px; -fx-font-weight: bold;"/>
+
+</StackPane>

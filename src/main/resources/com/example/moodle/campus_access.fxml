@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.CampusAccessController">
+
+    <center>
+        <VBox spacing="15"
+              alignment="CENTER"
+              maxWidth="400"
+              style="-fx-background-color: white;
+                     -fx-background-radius: 12;
+                     -fx-padding: 30;
+                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0, 0, 5);">
+
+            <Label text="Campus Access"
+                   style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+
+            <Label text="University:"/>
+            <Label fx:id="universityLabel"/>
+
+            <TextField fx:id="campusIdField"
+                       promptText="Campus ID"/>
+
+            <PasswordField fx:id="campusPassField"
+                           promptText="Campus Password"/>
+
+            <Button text="Enter Campus"
+                    onAction="#verifyCampus"/>
+
+            <Label fx:id="messageLabel"
+                   style="-fx-text-fill: red;"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>
