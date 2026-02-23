@@ -6,34 +6,49 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.moodle.controller.CampusAccessController">
 
+    <!-- ================= TOP NAV ================= -->
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+        </HBox>
+    </top>
+
     <center>
-        <VBox spacing="15"
-              alignment="CENTER"
-              maxWidth="400"
-              style="-fx-background-color: white;
-                     -fx-background-radius: 12;
-                     -fx-padding: 30;
-                     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0, 0, 5);">
+        <StackPane>
 
-            <Label text="Campus Access"
-                   style="-fx-font-size: 22px; -fx-font-weight: bold;" />
+            <VBox spacing="15"
+                  alignment="CENTER"
+                  maxWidth="400"
+                  styleClass="card">
 
-            <Label text="University:"/>
-            <Label fx:id="universityLabel"/>
+                <Label text="Campus Access"
+                       styleClass="title-label"/>
 
-            <TextField fx:id="campusIdField"
-                       promptText="Campus ID"/>
+                <Label text="University:"/>
+                <Label fx:id="universityLabel"/>
 
-            <PasswordField fx:id="campusPassField"
-                           promptText="Campus Password"/>
+                <TextField fx:id="campusIdField"
+                           promptText="Campus ID"/>
 
-            <Button text="Enter Campus"
-                    onAction="#verifyCampus"/>
+                <PasswordField fx:id="campusPassField"
+                               promptText="Password"/>
 
-            <Label fx:id="messageLabel"
-                   style="-fx-text-fill: red;"/>
+                <Button text="Enter Campus"
+                        onAction="#verifyCampus"/>
 
-        </VBox>
+                <Label fx:id="messageLabel"/>
+
+            </VBox>
+
+        </StackPane>
     </center>
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </bottom>
 
 </BorderPane>

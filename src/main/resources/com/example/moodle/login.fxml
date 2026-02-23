@@ -7,37 +7,24 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.moodle.controller.LoginController">
 
-    <!-- ================= TOP NAVBAR ================= -->
+    <!-- ================= TOP NAV ================= -->
     <top>
-        <HBox spacing="20"
-              alignment="CENTER_LEFT"
-              style="-fx-background-color: #1e3c72; -fx-padding: 15;">
-
-            <Label text="MOODLE 2.0"
-                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
-
-            <Region HBox.hgrow="ALWAYS"/>
-
-            <Button text="Back to Home"
-                    onAction="#goHome"
-                    style="-fx-background-color: transparent; -fx-text-fill: white;"/>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
         </HBox>
     </top>
 
-    <!-- ================= CENTER LOGIN CARD ================= -->
     <center>
         <StackPane>
 
             <VBox spacing="15"
                   alignment="CENTER"
                   maxWidth="400"
-                  style="-fx-background-color: white;
-                         -fx-background-radius: 12;
-                         -fx-padding: 30;
-                         -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 15, 0, 0, 5);">
+                  styleClass="card">
 
                 <Label text="Portal Login"
-                       style="-fx-font-size: 24px; -fx-font-weight: bold;" />
+                       styleClass="title-label"/>
 
                 <TextField fx:id="nameField"
                            promptText="Full Name"/>
@@ -55,18 +42,21 @@
                                promptText="Password"/>
 
                 <Button text="Login"
-                        prefWidth="200"
                         onAction="#handleLogin"
-                        style="-fx-background-color: #2a5298;
-                               -fx-text-fill: white;
-                               -fx-background-radius: 8;" />
+                        prefWidth="200"/>
 
-                <Label fx:id="messageLabel"
-                       style="-fx-text-fill: red;"/>
+                <Label fx:id="messageLabel"/>
 
             </VBox>
 
         </StackPane>
     </center>
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </bottom>
 
 </BorderPane>

@@ -8,29 +8,30 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.moodle.controller.HomeController">
 
-    <!-- ================= TOP NAVIGATION BAR ================= -->
+    <!-- ================= NAVBAR ================= -->
     <top>
         <HBox spacing="20"
               alignment="CENTER_LEFT"
-              style="-fx-background-color: #1e3c72; -fx-padding: 15;">
+              style="-fx-padding: 15;">
 
             <Label text="MOODLE 2.0"
-                   style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;" />
+                   styleClass="title-label"/>
+
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
-            <!-- Your Campus Button -->
+            <!-- Your Campus -->
             <Button fx:id="campusButton"
                     text="Your Campus"
                     visible="false"
-                    onAction="#goToCampus"
-                    style="-fx-background-color: #2a5298; -fx-text-fill: white;" />
+                    onAction="#goToCampus"/>
 
             <!-- Profile Dropdown -->
             <MenuButton fx:id="profileMenu"
                         text="My Profile"
-                        visible="false"
-                        style="-fx-background-color: white;">
+                        visible="false">
 
                 <MenuItem fx:id="nameItem"/>
                 <MenuItem fx:id="universityItem"/>
@@ -43,75 +44,70 @@
             <!-- Login Button -->
             <Button fx:id="loginButton"
                     text="Login"
-                    onAction="#goToLogin"
-                    style="-fx-background-color: white;" />
+                    onAction="#goToLogin"/>
 
         </HBox>
     </top>
 
-    <!-- ================= MAIN CONTENT ================= -->
-    <center>
+    <!-- ================= CENTER ================= -->
+   <center>
 
-        <ScrollPane fitToWidth="true"
-                    style="-fx-background-color: transparent;">
+    <ScrollPane fitToWidth="true">
 
-            <VBox spacing="50" alignment="TOP_CENTER">
+        <VBox spacing="60"
+              alignment="TOP_CENTER">
 
-                <padding>
-                    <Insets top="40" bottom="40"/>
-                </padding>
+            <padding>
+                <Insets top="60" bottom="60"/>
+            </padding>
 
-                <!-- HERO -->
-                <VBox spacing="15" alignment="CENTER">
-                    <Label text="Integrated University Platform"
-                           style="-fx-font-size: 32px; -fx-font-weight: bold;" />
+            <!-- HERO -->
+            <VBox spacing="15" alignment="CENTER">
+                <Label text="Integrated University Platform"
+                       styleClass="title-label"/>
 
-                    <Label text="Connecting Engineering, Medical, Agricultural and All Universities in One Smart System"
-                           style="-fx-font-size: 16px; -fx-text-fill: #555;"
-                           wrapText="true"
-                           maxWidth="700"/>
-                </VBox>
-
-                <!-- ABOUT -->
-                <VBox spacing="15" maxWidth="800">
-                    <Label text="About"
-                           style="-fx-font-size: 24px; -fx-font-weight: bold;" />
-
-                    <Label text="Moodle 2.0 is a unified digital platform designed to manage and simulate university life across all institutions. It integrates public information, academic services, campus management, project submission, and student engagement in one ecosystem."
-                           wrapText="true"
-                           style="-fx-font-size: 15px;"/>
-                </VBox>
-
-                <!-- LATEST NEWS -->
-                <VBox spacing="15" maxWidth="800">
-                    <Label text="Latest News"
-                           style="-fx-font-size: 24px; -fx-font-weight: bold;" />
-
-                    <VBox spacing="8">
-                        <Label text="• BUET wins International Robotics Competition"/>
-                        <Label text="• Dhaka Medical publishes new research breakthrough"/>
-                        <Label text="• BAU launches smart agriculture initiative"/>
-                        <Label text="• DU announces innovation fund for startups"/>
-                    </VBox>
-                </VBox>
-
-                <!-- UPCOMING EVENTS -->
-                <VBox spacing="15" maxWidth="800">
-                    <Label text="Upcoming Events"
-                           style="-fx-font-size: 24px; -fx-font-weight: bold;" />
-
-                    <VBox spacing="8">
-                        <Label text="• Inter-University Hackathon 2026"/>
-                        <Label text="• National Medical Research Conference"/>
-                        <Label text="• Agricultural Technology Expo"/>
-                        <Label text="• Debate Championship Finals"/>
-                    </VBox>
-                </VBox>
-
+                <Label text="Connecting Engineering, Medical, Agricultural and All Universities in One Smart System"
+                       wrapText="true"
+                       maxWidth="700"/>
             </VBox>
 
-        </ScrollPane>
+            <!-- ABOUT -->
+            <VBox spacing="15" maxWidth="800">
+                <Label text="About"
+                       styleClass="section-title"/>
+                <Label wrapText="true"
+                       text="Moodle 2.0 is a unified digital platform designed to manage and simulate university life across all institutions."/>
+            </VBox>
 
-    </center>
+            <!-- LATEST NEWS -->
+            <VBox spacing="15" maxWidth="800">
+                <Label text="Latest News"
+                       styleClass="section-title"/>
+                <Label text="• BUET wins International Robotics Competition"/>
+                <Label text="• Medical Research Breakthrough"/>
+                <Label text="• Agricultural Fair 2026 Announced"/>
+            </VBox>
+
+            <!-- UPCOMING EVENTS -->
+            <VBox spacing="15" maxWidth="800">
+                <Label text="Upcoming Events"
+                       styleClass="section-title"/>
+                <Label text="• Inter University Hackathon"/>
+                <Label text="• National Conference"/>
+                <Label text="• Debate Championship"/>
+            </VBox>
+
+        </VBox>
+
+    </ScrollPane>
+
+</center>
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </bottom>
 
 </BorderPane>

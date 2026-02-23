@@ -1,18 +1,205 @@
+/* =====================================================
+   GLOBAL THEME
+===================================================== */
+
 .root {
-    -fx-font-family: "Segoe UI";
+    -fx-font-family: "Segoe UI", "Poppins", sans-serif;
     -fx-background-color: linear-gradient(to bottom right, #eef2f3, #8e9eab);
 }
 
-.label {
-    -fx-text-fill: #333;
+/* =====================================================
+   TYPOGRAPHY
+===================================================== */
+
+.title-label {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1e3c72;
 }
 
-.button {
-    -fx-background-radius: 8;
+.section-title {
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
+    -fx-text-fill: #2a5298;
+}
+
+.label {
+    -fx-text-fill: #333333;
+}
+
+/* =====================================================
+   CARD STYLE (Login / Campus Access / Panels)
+===================================================== */
+
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-padding: 30;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 25, 0, 0, 8);
+    -fx-transition: all 0.3s ease;
+}
+
+.card:hover {
+    -fx-translate-y: -5;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.button {
+    -fx-background-color: #2a5298;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-padding: 8 18 8 18;
 }
 
 .button:hover {
     -fx-background-color: #1e3c72;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.button:pressed {
+    -fx-scale-x: 0.97;
+    -fx-scale-y: 0.97;
+}
+
+/* =====================================================
+   SIDEBAR (ERP STYLE)
+===================================================== */
+
+.vbox {
+    -fx-background-color: linear-gradient(to bottom, #1e3c72, #2a5298);
+}
+
+.vbox .button {
+    -fx-background-color: transparent;
     -fx-text-fill: white;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.vbox .button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* =====================================================
+   NAVBAR
+===================================================== */
+
+.hbox {
+    -fx-background-color: linear-gradient(to right, #1e3c72, #2a5298);
+}
+
+.hbox .label {
+    -fx-text-fill: white;
+}
+
+/* =====================================================
+   INPUT FIELDS
+===================================================== */
+
+.text-field,
+.password-field,
+.combo-box {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 8;
+    -fx-background-color: #f9f9f9;
+    -fx-border-color: #cccccc;
+}
+
+.text-field:focused,
+.password-field:focused,
+.combo-box:focused {
+    -fx-border-color: #2a5298;
+    -fx-effect: dropshadow(gaussian, rgba(42, 82, 152, 0.3), 8, 0, 0, 0);
+}
+
+/* =====================================================
+   MENU BUTTON (Profile)
+===================================================== */
+
+.menu-button {
+    -fx-background-radius: 8;
+    -fx-background-color: white;
+}
+
+.menu-button:hover {
+    -fx-background-color: #f2f2f2;
+}
+
+/* =====================================================
+   SCROLL PANE CLEAN LOOK
+===================================================== */
+
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane>.viewport {
+    -fx-background-color: transparent;
+}
+
+/* =====================================================
+   SPLASH SCREEN
+===================================================== */
+
+.splash-title {
+    -fx-font-size: 48px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+/* =====================================================
+   SHADOW UTILITY
+===================================================== */
+
+.shadow-soft {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 20, 0, 0, 5);
+}
+
+/* =====================================================
+   CONTENT AREA
+===================================================== */
+
+#contentArea {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 30;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 20, 0, 0, 5);
+}
+
+/* =====================================================
+   FLOATING OBJECTS SUPPORT
+===================================================== */
+
+.pane {
+    -fx-background-color: transparent;
+}
+
+/* =====================================================
+   NAVIGATION BUTTONS (Home / My Campus / Back)
+===================================================== */
+
+.nav-btn {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+    -fx-cursor: hand;
+    -fx-padding: 5 14 5 14;
+}
+
+.nav-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.3);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
 }

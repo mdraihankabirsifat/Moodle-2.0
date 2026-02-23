@@ -46,7 +46,17 @@ public class LoginController {
     private void goHome() {
         SceneManager.switchScene("home.fxml");
     }
-    
+
+    @FXML
+    private void goToCampus() {
+        SceneManager.switchScene("campus-access.fxml");
+    }
+
+    @FXML
+    private void goBack() {
+        SceneManager.goBack();
+    }
+
     @FXML
     private void handleLogin() {
 

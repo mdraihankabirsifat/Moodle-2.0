@@ -1,5 +1,7 @@
 package com.example.moodle.controller;
 
+import com.example.moodle.util.SceneManager;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -9,6 +11,21 @@ public class CampusDashboardController {
 
     @FXML
     private StackPane contentArea;
+
+    @FXML
+    private void goHome() {
+        SceneManager.switchScene("home.fxml");
+    }
+
+    @FXML
+    private void goToCampus() {
+        SceneManager.switchScene("campus-access.fxml");
+    }
+
+    @FXML
+    private void goBack() {
+        SceneManager.goBack();
+    }
 
     private void setContent(String title, String description) {
 

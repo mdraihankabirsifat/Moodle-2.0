@@ -28,6 +28,21 @@ public class CampusAccessController {
     }
 
     @FXML
+    private void goHome() {
+        SceneManager.switchScene("home.fxml");
+    }
+
+    @FXML
+    private void goToCampus() {
+        SceneManager.switchScene("campus-access.fxml");
+    }
+
+    @FXML
+    private void goBack() {
+        SceneManager.goBack();
+    }
+
+    @FXML
     private void verifyCampus() {
 
         String enteredId = campusIdField.getText().trim();

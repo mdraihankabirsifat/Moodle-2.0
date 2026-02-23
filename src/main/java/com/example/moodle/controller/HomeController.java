@@ -1,5 +1,6 @@
 package com.example.moodle.controller;
 
+//import com.example.moodle.util.BackgroundAnimator;
 import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
 
@@ -7,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.layout.Pane;
 
 public class HomeController {
 
@@ -22,10 +24,17 @@ public class HomeController {
     private MenuItem universityItem;
     @FXML
     private MenuItem emailItem;
+    @FXML
+    private Pane floatingLayer;
 
     @FXML
     public void initialize() {
 
+        // if (floatingLayer != null) {
+        //     javafx.application.Platform.runLater(()
+        //             -> BackgroundAnimator.addFloatingCircles(floatingLayer)
+        //     );
+        // }
         if (Session.isLoggedIn()) {
 
             loginButton.setVisible(false);
@@ -35,7 +44,18 @@ public class HomeController {
             nameItem.setText("Name: " + Session.getName());
             universityItem.setText("University: " + Session.getUniversity());
             emailItem.setText("Email: " + Session.getEmail());
+
+        } else {
+
+            loginButton.setVisible(true);
+            campusButton.setVisible(false);
+            profileMenu.setVisible(false);
         }
+    }
+
+    @FXML
+    private void goHome() {
+        SceneManager.switchScene("home.fxml");
     }
 
     @FXML
@@ -52,5 +72,10 @@ public class HomeController {
     private void logout() {
         Session.logout();
         SceneManager.switchScene("home.fxml");
+    }
+
+    @FXML
+    private void goBack() {
+        SceneManager.goBack();
     }
 }
