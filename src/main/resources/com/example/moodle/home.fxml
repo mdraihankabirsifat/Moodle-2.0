@@ -24,7 +24,6 @@
             <!-- Your Campus -->
             <Button fx:id="campusButton"
                     text="My Campus"
-                    visible="false"
                     onAction="#goToCampus"/>
 
             <!-- Profile Dropdown -->

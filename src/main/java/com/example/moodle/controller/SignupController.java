@@ -51,7 +51,7 @@ public class SignupController {
     @FXML
     private void goToCampus() {
         if (Session.isCampusVerified()) {
-            SceneManager.switchScene("campus-dashboard.fxml");
+            SceneManager.switchScene(Session.getCampusDashboardFxml());
         } else {
             SceneManager.switchScene("campus-access.fxml");
         }

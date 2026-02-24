@@ -31,10 +31,12 @@ public class HomeController {
     @FXML
     public void initialize() {
 
+        // Campus button always visible for all roles
+        campusButton.setVisible(true);
+
         if (Session.isLoggedIn()) {
             loginButton.setVisible(false);
             signupButton.setVisible(false);
-            campusButton.setVisible(true);
             profileMenu.setVisible(true);
 
             nameItem.setText("Name: " + Session.getName());
@@ -43,7 +45,6 @@ public class HomeController {
         } else {
             loginButton.setVisible(true);
             signupButton.setVisible(true);
-            campusButton.setVisible(false);
             profileMenu.setVisible(false);
         }
 
@@ -97,7 +98,7 @@ public class HomeController {
     @FXML
     private void goToCampus() {
         if (Session.isCampusVerified()) {
-            SceneManager.switchScene("campus-dashboard.fxml");
+            SceneManager.switchScene(Session.getCampusDashboardFxml());
         } else {
             SceneManager.switchScene("campus-access.fxml");
         }

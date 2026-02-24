@@ -19,20 +19,32 @@
 
             <VBox spacing="15"
                   alignment="CENTER"
-                  maxWidth="400"
+                  maxWidth="420"
                   styleClass="card">
 
                 <Label text="Campus Access"
                        styleClass="title-label"/>
 
-                <Label text="University:"/>
-                <Label fx:id="universityLabel"/>
+                <fx:define>
+                    <ToggleGroup fx:id="roleGroup"/>
+                </fx:define>
 
-                <TextField fx:id="campusIdField"
-                           promptText="Campus ID"/>
+                <HBox spacing="25" alignment="CENTER" style="-fx-padding: 10 0 10 0;">
+                    <RadioButton fx:id="studentRadio" text="Student" toggleGroup="$roleGroup"/>
+                    <RadioButton fx:id="teacherRadio" text="Teacher" toggleGroup="$roleGroup"/>
+                    <RadioButton fx:id="authorityRadio" text="Authority" toggleGroup="$roleGroup"/>
+                </HBox>
 
-                <PasswordField fx:id="campusPassField"
-                               promptText="Password"/>
+                <!-- Student fields -->
+                <VBox fx:id="studentFields" spacing="10">
+                    <TextField fx:id="campusIdField" promptText="Student ID"/>
+                    <PasswordField fx:id="campusPassField" promptText="Password"/>
+                </VBox>
+
+                <!-- Teacher / Authority field -->
+                <VBox fx:id="staffFields" spacing="10" visible="false" managed="false">
+                    <PasswordField fx:id="staffPassField" promptText="Access Password"/>
+                </VBox>
 
                 <Button text="Enter Campus"
                         onAction="#verifyCampus"/>

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.TeacherDashboardController">
+
+    <!-- TOP -->
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Teacher Dashboard"
+                   styleClass="title-label"/>
+        </HBox>
+    </top>
+
+    <!-- SIDEBAR -->
+    <left>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER"
+                    style="-fx-background-color: transparent;">
+            <VBox spacing="10"
+                  prefWidth="220"
+                  style="-fx-padding: 20;">
+
+                <Label text="COURSES" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold;"/>
+
+                <Button text="My Courses"
+                        onAction="#showMyCourses"
+                        maxWidth="Infinity"/>
+
+                <Button text="Upload Assignment"
+                        onAction="#showAssignments"
+                        maxWidth="Infinity"/>
+
+                <Button text="Upload Slides"
+                        onAction="#showSlides"
+                        maxWidth="Infinity"/>
+
+                <Button text="Post Notice"
+                        onAction="#showNotices"
+                        maxWidth="Infinity"/>
+
+                <Label text="EVALUATION" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+
+                <Button text="Evaluate Submissions"
+                        onAction="#showEvaluate"
+                        maxWidth="Infinity"/>
+
+                <Button text="Student List"
+                        onAction="#showStudentList"
+                        maxWidth="Infinity"/>
+
+                <Label text="COMMUNICATION" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+
+                <Button text="Messages"
+                        onAction="#showMessages"
+                        maxWidth="Infinity"/>
+
+            </VBox>
+        </ScrollPane>
+    </left>
+
+    <!-- DYNAMIC CONTENT -->
+    <center>
+        <StackPane fx:id="contentArea"
+                   style="-fx-padding: 30;"/>
+    </center>
+
+    <!-- BOTTOM NAV -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

@@ -6,6 +6,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import com.example.moodle.model.Assignment;
+import com.example.moodle.model.Course;
+import com.example.moodle.model.Message;
+import com.example.moodle.model.Payment;
+import com.example.moodle.service.DataStore;
 import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
 
@@ -63,7 +68,7 @@ public class CampusDashboardController {
     @FXML
     private void goToCampus() {
         if (Session.isCampusVerified()) {
-            SceneManager.switchScene("campus-dashboard.fxml");
+            SceneManager.switchScene(Session.getCampusDashboardFxml());
         } else {
             SceneManager.switchScene("campus-access.fxml");
         }
@@ -560,6 +565,290 @@ public class CampusDashboardController {
 
     // ===================== REMOVED OLD METHODS =====================
     // showActivities removed - replaced by showGames
+
+    // ===================== MY COURSES =====================
+
+    @FXML
+    private void showCourses() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("My Courses");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        box.getChildren().add(title);
+
+        List<Course> courses = DataStore.getAllCourses();
+        if (courses.isEmpty()) {
+            box.getChildren().add(new Label("No courses available."));
+        } else {
+            for (Course c : courses) {
+                VBox courseCard = new VBox(10);
+                courseCard.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; "
+                        + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
+
+                Label cName = new Label("\uD83D\uDCDA " + c.getCode() + " - " + c.getName());
+                cName.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+                Label cInfo = new Label("Semester: " + c.getSemester() + " | Teacher: " + c.getTeacherEmail());
+                cInfo.setStyle("-fx-text-fill: #666; -fx-font-size: 12px;");
+
+                HBox btnRow = new HBox(10);
+                Button assignBtn = new Button("Assignments");
+                Button slidesBtn = new Button("Slides");
+                Button noticesBtn = new Button("Notices");
+
+                VBox detailBox = new VBox(8);
+                detailBox.setStyle("-fx-padding: 10 0 0 0;");
+
+                final String courseCode = c.getCode();
+
+                assignBtn.setOnAction(e -> {
+                    detailBox.getChildren().clear();
+                    List<Assignment> assignments = DataStore.getAssignmentsForCourse(courseCode);
+                    if (assignments.isEmpty()) {
+                        detailBox.getChildren().add(new Label("No assignments yet."));
+                    } else {
+                        for (Assignment a : assignments) {
+                            VBox aBox = new VBox(5);
+                            aBox.setStyle("-fx-padding: 8; -fx-background-color: #f8f9ff; -fx-background-radius: 6;");
+                            Label aTitle = new Label("\uD83D\uDCDD " + a.getTitle());
+                            aTitle.setStyle("-fx-font-weight: bold;");
+                            Label aDesc = new Label(a.getDescription());
+                            aDesc.setWrapText(true);
+                            aDesc.setStyle("-fx-text-fill: #555;");
+
+                            // Check if already submitted
+                            List<String[]> mySubs = DataStore.getSubmissionsByStudent(Session.getStudentId());
+                            boolean submitted = false;
+                            String marks = "";
+                            for (String[] sub : mySubs) {
+                                if (sub[1].equals(courseCode) && sub[2].equals(a.getTitle())) {
+                                    submitted = true;
+                                    marks = sub[4];
+                                    break;
+                                }
+                            }
+
+                            if (submitted) {
+                                Label status = new Label("\u2705 Submitted | Marks: " + marks);
+                                status.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+                                aBox.getChildren().addAll(aTitle, aDesc, status);
+                            } else {
+                                TextArea subArea = new TextArea();
+                                subArea.setPromptText("Your submission...");
+                                subArea.setPrefRowCount(2);
+                                Button subBtn = new Button("Submit");
+                                Label subMsg = new Label();
+                                final String assignmentTitle = a.getTitle();
+                                subBtn.setOnAction(ev -> {
+                                    String content = subArea.getText().trim();
+                                    if (content.isEmpty()) {
+                                        subMsg.setStyle("-fx-text-fill: red;");
+                                        subMsg.setText("Enter your submission.");
+                                    } else {
+                                        DataStore.submitAssignment(Session.getStudentId(),
+                                                courseCode, assignmentTitle, content);
+                                        subMsg.setStyle("-fx-text-fill: green;");
+                                        subMsg.setText("Submitted!");
+                                        subArea.setDisable(true);
+                                        subBtn.setDisable(true);
+                                    }
+                                });
+                                aBox.getChildren().addAll(aTitle, aDesc, subArea, subBtn, subMsg);
+                            }
+                            detailBox.getChildren().add(aBox);
+                        }
+                    }
+                });
+
+                slidesBtn.setOnAction(e -> {
+                    detailBox.getChildren().clear();
+                    List<String[]> slides = DataStore.getSlidesForCourse(courseCode);
+                    if (slides.isEmpty()) {
+                        detailBox.getChildren().add(new Label("No slides uploaded yet."));
+                    } else {
+                        for (String[] s : slides) {
+                            VBox sBox = new VBox(3);
+                            sBox.setStyle("-fx-padding: 8; -fx-background-color: #e8f5e9; -fx-background-radius: 6;");
+                            Label sTitle = new Label("\uD83D\uDCCA " + s[1]);
+                            sTitle.setStyle("-fx-font-weight: bold;");
+                            Label sDesc = new Label(s[2]);
+                            sDesc.setWrapText(true);
+                            sDesc.setStyle("-fx-text-fill: #555;");
+                            sBox.getChildren().addAll(sTitle, sDesc);
+                            detailBox.getChildren().add(sBox);
+                        }
+                    }
+                });
+
+                noticesBtn.setOnAction(e -> {
+                    detailBox.getChildren().clear();
+                    List<String[]> courseNotices = DataStore.getNoticesForCourse(courseCode);
+                    if (courseNotices.isEmpty()) {
+                        detailBox.getChildren().add(new Label("No notices for this course."));
+                    } else {
+                        for (String[] n : courseNotices) {
+                            Label nLabel = new Label("\uD83D\uDCCC " + n[1] + " (" + n[3] + ")");
+                            nLabel.setStyle("-fx-padding: 6; -fx-background-color: #fff8e1; -fx-background-radius: 6;");
+                            nLabel.setWrapText(true);
+                            detailBox.getChildren().add(nLabel);
+                        }
+                    }
+                });
+
+                btnRow.getChildren().addAll(assignBtn, slidesBtn, noticesBtn);
+                courseCard.getChildren().addAll(cName, cInfo, btnRow, detailBox);
+                box.getChildren().add(courseCard);
+            }
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== PAYMENT =====================
+
+    @FXML
+    private void showPayment() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Payment");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        String studentEmail = Session.getIdentifier();
+        Label msgLabel = new Label();
+
+        String[][] fees = {
+                {"Hall Fees", "5000", "\uD83C\uDFE0"},
+                {"Exam Fees", "3000", "\uD83D\uDCDD"},
+                {"Semester Fees", "15000", "\uD83C\uDF93"},
+                {"Library Fees", "1000", "\uD83D\uDCDA"},
+                {"Lab Fees", "2000", "\uD83D\uDD2C"},
+        };
+
+        GridPane grid = new GridPane();
+        grid.setHgap(15);
+        grid.setVgap(15);
+
+        for (int i = 0; i < fees.length; i++) {
+            final String type = fees[i][0];
+            final int amount = Integer.parseInt(fees[i][1]);
+
+            VBox card = new VBox(8);
+            card.setAlignment(Pos.CENTER);
+            card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 18; "
+                    + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-min-width: 140;");
+
+            Label emoji = new Label(fees[i][2]);
+            emoji.setStyle("-fx-font-size: 28px;");
+            Label name = new Label(type);
+            name.setStyle("-fx-font-weight: bold;");
+            Label price = new Label("\u09F3" + amount);
+            price.setStyle("-fx-text-fill: #2a5298; -fx-font-size: 16px;");
+
+            Button payBtn = new Button("Pay Now");
+            payBtn.setOnAction(e -> {
+                DataStore.makePayment(studentEmail, type, amount);
+                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setText(type + " - \u09F3" + amount + " paid successfully! \u2705");
+                showPayment();
+            });
+
+            card.getChildren().addAll(emoji, name, price, payBtn);
+            grid.add(card, i % 3, i / 3);
+        }
+
+        box.getChildren().addAll(title, grid, msgLabel, new Separator());
+
+        // Payment history
+        Label histTitle = new Label("Payment History:");
+        histTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(histTitle);
+
+        List<Payment> payments = DataStore.getPayments(studentEmail);
+        if (payments.isEmpty()) {
+            box.getChildren().add(new Label("No payment records."));
+        } else {
+            int total = 0;
+            for (Payment p : payments) {
+                Label item = new Label("\u2705 " + p.getType() + " | \u09F3" + p.getAmount() + " | " + p.getDate());
+                item.setStyle("-fx-padding: 6; -fx-background-color: #e8f5e9; -fx-background-radius: 6;");
+                box.getChildren().add(item);
+                total += p.getAmount();
+            }
+            Label totalLabel = new Label("Total Paid: \u09F3" + total);
+            totalLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #1e3c72;");
+            box.getChildren().add(totalLabel);
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== MESSAGES =====================
+
+    @FXML
+    private void showMessages() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Messages");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        String myId = Session.getIdentifier();
+
+        Label composeTitle = new Label("Send Message");
+        composeTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        TextField toField = new TextField();
+        toField.setPromptText("Recipient (email or ID)");
+        TextArea msgArea = new TextArea();
+        msgArea.setPromptText("Your message...");
+        msgArea.setPrefRowCount(3);
+
+        Label msgLabel = new Label();
+        Button sendBtn = new Button("Send");
+        sendBtn.setOnAction(e -> {
+            String to = toField.getText().trim();
+            String content = msgArea.getText().trim();
+            if (to.isEmpty() || content.isEmpty()) {
+                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setText("Fill all fields.");
+            } else {
+                DataStore.sendMessage(myId, to, content);
+                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setText("Message sent!");
+                toField.clear();
+                msgArea.clear();
+                showMessages();
+            }
+        });
+
+        box.getChildren().addAll(title, composeTitle, toField, msgArea,
+                sendBtn, msgLabel, new Separator());
+
+        Label inboxTitle = new Label("Messages:");
+        inboxTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(inboxTitle);
+
+        List<Message> messages = DataStore.getMessagesFor(myId);
+        if (messages.isEmpty()) {
+            box.getChildren().add(new Label("No messages."));
+        } else {
+            for (int i = messages.size() - 1; i >= 0; i--) {
+                Message m = messages.get(i);
+                String direction = m.getFrom().equals(myId)
+                        ? "\u27A1 To: " + m.getTo()
+                        : "\u2B05 From: " + m.getFrom();
+                VBox msgCard = new VBox(4);
+                msgCard.setStyle("-fx-padding: 10; -fx-background-color: #f0f8ff; -fx-background-radius: 8;");
+                Label dir = new Label(direction);
+                dir.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #555;");
+                Label content = new Label(m.getContent());
+                content.setWrapText(true);
+                Label ts = new Label(m.getTimestamp());
+                ts.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
+                msgCard.getChildren().addAll(dir, content, ts);
+                box.getChildren().add(msgCard);
+            }
+        }
+        setScrollContent(box);
+    }
 
     // ===================== UTILITY =====================
 

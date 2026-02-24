@@ -61,6 +61,22 @@
                         onAction="#showGames"
                         maxWidth="Infinity"/>
 
+                <Label text="COURSES" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+
+                <Button text="My Courses"
+                        onAction="#showCourses"
+                        maxWidth="Infinity"/>
+
+                <Label text="SERVICES" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+
+                <Button text="Payment"
+                        onAction="#showPayment"
+                        maxWidth="Infinity"/>
+
+                <Button text="Messages"
+                        onAction="#showMessages"
+                        maxWidth="Infinity"/>
+
             </VBox>
         </ScrollPane>
     </left>

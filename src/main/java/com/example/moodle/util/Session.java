@@ -9,6 +9,7 @@ public class Session {
     private static String studentId;
     private static String email;
     private static String selectedUniversity;
+    private static String role = "STUDENT";
 
     public static void login(String n, String u, String id, String e) {
         loggedIn = true;
@@ -54,9 +55,35 @@ public class Session {
         return selectedUniversity;
     }
 
+    public static void setRole(String r) {
+        role = r;
+    }
+
+    public static String getRole() {
+        return role;
+    }
+
+    public static String getCampusDashboardFxml() {
+        if ("TEACHER".equals(role)) return "teacher-dashboard.fxml";
+        if ("AUTHORITY".equals(role)) return "authority-dashboard.fxml";
+        return "campus-dashboard.fxml";
+    }
+
+    public static String getIdentifier() {
+        if (email != null && !email.isEmpty()) return email;
+        if ("TEACHER".equals(role)) return "faculty@campus";
+        if ("AUTHORITY".equals(role)) return "admin@campus";
+        return "unknown";
+    }
+
     public static void logout() {
         loggedIn = false;
         campusVerified = false;
         selectedUniversity = null;
+        role = "STUDENT";
+        name = null;
+        university = null;
+        studentId = null;
+        email = null;
     }
 }
