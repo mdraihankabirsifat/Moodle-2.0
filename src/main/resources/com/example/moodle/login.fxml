@@ -7,7 +7,6 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.moodle.controller.LoginController">
 
-    <!-- ================= TOP NAV ================= -->
     <top>
         <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
@@ -16,40 +15,18 @@
     </top>
 
     <center>
-        <StackPane>
+        <VBox spacing="15" alignment="CENTER" maxWidth="350">
 
-            <VBox spacing="15"
-                  alignment="CENTER"
-                  maxWidth="400"
-                  styleClass="card">
+            <Label text="Portal Login" styleClass="title-label"/>
 
-                <Label text="Portal Login"
-                       styleClass="title-label"/>
+            <TextField fx:id="emailField" promptText="Email"/>
+            <PasswordField fx:id="passwordField" promptText="Password"/>
 
-                <TextField fx:id="nameField"
-                           promptText="Full Name"/>
+            <Button text="Login" onAction="#handleLogin"/>
 
-                <ComboBox fx:id="universityBox"
-                          promptText="Select University"/>
+            <Label fx:id="messageLabel"/>
 
-                <TextField fx:id="idField"
-                           promptText="Student ID"/>
-
-                <TextField fx:id="emailField"
-                           promptText="Email Address"/>
-
-                <PasswordField fx:id="passwordField"
-                               promptText="Password"/>
-
-                <Button text="Login"
-                        onAction="#handleLogin"
-                        prefWidth="200"/>
-
-                <Label fx:id="messageLabel"/>
-
-            </VBox>
-
-        </StackPane>
+        </VBox>
     </center>
 
     <!-- ================= BOTTOM NAV ================= -->

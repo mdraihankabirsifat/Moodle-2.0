@@ -41,10 +41,15 @@
 
             </MenuButton>
 
-            <!-- Login Button -->
-            <Button fx:id="loginButton"
-                    text="Login"
-                    onAction="#goToLogin"/>
+            <!-- Sign Up Button -->
+<Button fx:id="signupButton"
+        text="Sign Up"
+        onAction="#goToSignup"/>
+
+<!-- Login Button -->
+<Button fx:id="loginButton"
+        text="Login"
+        onAction="#goToLogin"/>
 
         </HBox>
     </top>

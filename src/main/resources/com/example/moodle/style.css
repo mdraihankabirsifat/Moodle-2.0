@@ -3,7 +3,7 @@
 ===================================================== */
 
 .root {
-    -fx-font-family: "Segoe UI", "Poppins", sans-serif;
+    -fx-font-family: "Segoe UI", "Calibri", "Helvetica Neue", "Arial", sans-serif;
     -fx-background-color: linear-gradient(to bottom right, #eef2f3, #8e9eab);
 }
 
@@ -150,9 +150,14 @@
 ===================================================== */
 
 .splash-title {
-    -fx-font-size: 48px;
+    -fx-font-size: 56px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
+}
+
+.splash-subtitle {
+    -fx-font-size: 18px;
+    -fx-text-fill: rgba(255, 255, 255, 0.7);
 }
 
 /* =====================================================

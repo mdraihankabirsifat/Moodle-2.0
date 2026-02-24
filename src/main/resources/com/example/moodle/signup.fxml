@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.SignupController">
+
+    <!-- ================= TOP NAV ================= -->
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+        </HBox>
+    </top>
+
+    <center>
+        <StackPane>
+
+            <VBox spacing="15"
+                  alignment="CENTER"
+                  maxWidth="400"
+                  styleClass="card">
+
+                <Label text="Portal Signup"
+                       styleClass="title-label"/>
+
+                <TextField fx:id="nameField"
+                           promptText="Full Name"/>
+
+                <ComboBox fx:id="universityBox"
+                          promptText="Select University"/>
+
+                <TextField fx:id="idField"
+                           promptText="Student ID"/>
+
+                <TextField fx:id="emailField"
+                           promptText="Email Address"/>
+
+                <PasswordField fx:id="passwordField"
+                               promptText="Password"/>
+
+                <Button text="Sign Up"
+                        onAction="#handleSignup"
+                        prefWidth="200"/>
+
+                <Label fx:id="messageLabel"/>
+
+            </VBox>
+
+        </StackPane>
+    </center>
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

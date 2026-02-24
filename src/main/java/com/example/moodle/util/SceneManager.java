@@ -7,6 +7,8 @@ import javafx.animation.FadeTransition;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -55,6 +57,16 @@ public class SceneManager {
 
             FXMLLoader loader = new FXMLLoader(resource);
             Parent root = loader.load();
+
+            // Add floating background for non-splash pages
+            if (!fxml.equals("splash.fxml")) {
+                Pane floatingLayer = new Pane();
+                floatingLayer.setMouseTransparent(true);
+                floatingLayer.setPickOnBounds(false);
+                StackPane wrapper = new StackPane(floatingLayer, root);
+                BackgroundAnimator.addFloatingShapes(floatingLayer, 1000, 650);
+                root = wrapper;
+            }
 
             root.setOpacity(0);
 

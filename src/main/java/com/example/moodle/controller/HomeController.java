@@ -26,18 +26,16 @@ public class HomeController {
     private MenuItem emailItem;
     @FXML
     private Pane floatingLayer;
+    @FXML
+    private Button signupButton;
 
     @FXML
     public void initialize() {
 
-        // if (floatingLayer != null) {
-        //     javafx.application.Platform.runLater(()
-        //             -> BackgroundAnimator.addFloatingCircles(floatingLayer)
-        //     );
-        // }
         if (Session.isLoggedIn()) {
 
             loginButton.setVisible(false);
+            signupButton.setVisible(false);
             campusButton.setVisible(true);
             profileMenu.setVisible(true);
 
@@ -48,6 +46,7 @@ public class HomeController {
         } else {
 
             loginButton.setVisible(true);
+            signupButton.setVisible(true);
             campusButton.setVisible(false);
             profileMenu.setVisible(false);
         }
@@ -56,6 +55,12 @@ public class HomeController {
     @FXML
     private void goHome() {
         SceneManager.switchScene("home.fxml");
+    }
+
+    @FXML
+    private void goToSignup() {
+        //System.out.println("Signup clicked");
+        SceneManager.switchScene("signup.fxml");
     }
 
     @FXML
