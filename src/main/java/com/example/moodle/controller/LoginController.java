@@ -23,7 +23,11 @@ public class LoginController {
 
     @FXML
     private void goToCampus() {
-        SceneManager.switchScene("campus-access.fxml");
+        if (Session.isCampusVerified()) {
+            SceneManager.switchScene("campus-dashboard.fxml");
+        } else {
+            SceneManager.switchScene("campus-access.fxml");
+        }
     }
 
     @FXML

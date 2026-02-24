@@ -34,7 +34,11 @@ public class CampusAccessController {
 
     @FXML
     private void goToCampus() {
-        SceneManager.switchScene("campus-access.fxml");
+        if (Session.isCampusVerified()) {
+            SceneManager.switchScene("campus-dashboard.fxml");
+        } else {
+            SceneManager.switchScene("campus-access.fxml");
+        }
     }
 
     @FXML
@@ -50,7 +54,7 @@ public class CampusAccessController {
 
         // Accept any ID, password must be 1234
         if (!enteredId.isEmpty() && enteredPass.equals("1234")) {
-
+            Session.setCampusVerified(true);
             SceneManager.switchScene("campus-dashboard.fxml");
 
         } else {

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.UniversityPageController">
+
+    <!-- ================= TOP NAV ================= -->
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true">
+            <VBox fx:id="contentBox" spacing="30" alignment="TOP_CENTER">
+                <padding>
+                    <Insets top="40" bottom="40" left="60" right="60"/>
+                </padding>
+
+                <!-- University Name -->
+                <Label fx:id="uniNameLabel" styleClass="title-label" wrapText="true"/>
+
+                <!-- Notices Section -->
+                <VBox spacing="12" maxWidth="700" styleClass="card" alignment="TOP_LEFT">
+                    <Label text="📢  Global Notices" styleClass="section-title"/>
+                    <VBox fx:id="noticesBox" spacing="8"/>
+                </VBox>
+
+                <!-- Contact Section -->
+                <VBox spacing="12" maxWidth="700" styleClass="card" alignment="TOP_LEFT">
+                    <Label text="📞  Contact Information" styleClass="section-title"/>
+                    <Label fx:id="phoneLabel"/>
+                    <Label fx:id="emailLabel"/>
+                    <Label fx:id="websiteLabel"/>
+                </VBox>
+
+                <!-- Location Section -->
+                <VBox spacing="12" maxWidth="700" styleClass="card" alignment="TOP_LEFT">
+                    <Label text="📍  Location" styleClass="section-title"/>
+                    <Label fx:id="locationLabel" wrapText="true"/>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

@@ -19,31 +19,50 @@
 
     <!-- SIDEBAR -->
     <left>
-        <VBox spacing="15"
-              prefWidth="220"
-              style="-fx-padding: 20;">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER"
+                    style="-fx-background-color: transparent;">
+            <VBox spacing="10"
+                  prefWidth="220"
+                  style="-fx-padding: 20;">
 
-            <Button text="Project Submission"
-                    onAction="#showProjects"
-                    maxWidth="Infinity"/>
+                <Label text="ACADEMICS" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold;"/>
 
-            <Button text="Hall Management"
-                    onAction="#showHall"
-                    maxWidth="Infinity"/>
+                <Button text="Project Submission"
+                        onAction="#showProjects"
+                        maxWidth="Infinity"/>
 
-            <Button text="Schedule"
-                    onAction="#showSchedule"
-                    maxWidth="Infinity"/>
+                <Button text="Gradesheet"
+                        onAction="#showGradesheet"
+                        maxWidth="Infinity"/>
 
-            <Button text="Internal Notices"
-                    onAction="#showNotices"
-                    maxWidth="Infinity"/>
+                <Button text="Schedule"
+                        onAction="#showSchedule"
+                        maxWidth="Infinity"/>
 
-            <Button text="Activities &amp; Games"
-                    onAction="#showActivities"
-                    maxWidth="Infinity"/>
+                <Button text="Internal Notices"
+                        onAction="#showNotices"
+                        maxWidth="Infinity"/>
 
-        </VBox>
+                <Label text="CAMPUS LIFE" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+
+                <Button text="Hall Management"
+                        onAction="#showHall"
+                        maxWidth="Infinity"/>
+
+                <Button text="Vending Machine"
+                        onAction="#showVending"
+                        maxWidth="Infinity"/>
+
+                <Button text="Washing Machine"
+                        onAction="#showWashing"
+                        maxWidth="Infinity"/>
+
+                <Button text="Games &amp; Sports"
+                        onAction="#showGames"
+                        maxWidth="Infinity"/>
+
+            </VBox>
+        </ScrollPane>
     </left>
 
     <!-- DYNAMIC CONTENT -->

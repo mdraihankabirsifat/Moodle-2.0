@@ -11,7 +11,7 @@
     <top>
         <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
-            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+            <!-- <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/> -->
         </HBox>
     </top>
 

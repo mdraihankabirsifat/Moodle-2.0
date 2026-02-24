@@ -208,3 +208,32 @@
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
 }
+
+/* =====================================================
+   SEARCH FIELD
+===================================================== */
+
+.search-field {
+    -fx-font-size: 14px;
+    -fx-padding: 10 16 10 16;
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-background-color: white;
+    -fx-border-color: #ccc;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+}
+
+.search-field:focused {
+    -fx-border-color: #2a5298;
+    -fx-effect: dropshadow(gaussian, rgba(42, 82, 152, 0.25), 12, 0, 0, 0);
+}
+
+/* =====================================================
+   FIELD LABELS (Profile page)
+===================================================== */
+
+.field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #666;
+}

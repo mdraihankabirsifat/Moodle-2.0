@@ -1,9 +1,26 @@
 package com.example.moodle.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import com.example.moodle.util.SceneManager;
+import com.example.moodle.util.Session;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Separator;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -12,6 +29,32 @@ public class CampusDashboardController {
     @FXML
     private StackPane contentArea;
 
+    // Persistent data stores for simulation
+    private static final List<String> submittedProjects = new ArrayList<>();
+    private static final List<String> notices = new ArrayList<>();
+    private static String hallRoom = null;
+    private static final Map<String, Double> grades = new HashMap<>();
+    private static int vendingBalance = 500;
+    private static final List<String> washingSlots = new ArrayList<>();
+    private static final List<String> gameRegistrations = new ArrayList<>();
+
+    static {
+        // Seed some default data
+        if (notices.isEmpty()) {
+            notices.add("Welcome to your campus dashboard!");
+            notices.add("Mid-term exam schedule has been published.");
+            notices.add("Library will remain open 24/7 during exam week.");
+            notices.add("Campus maintenance scheduled for Saturday.");
+        }
+        if (grades.isEmpty()) {
+            grades.put("CSE 101 - Intro to Programming", 3.75);
+            grades.put("MATH 201 - Calculus II", 3.50);
+            grades.put("PHY 101 - Physics I", 3.25);
+            grades.put("ENG 102 - English Composition", 3.75);
+            grades.put("CSE 203 - Data Structures", 4.00);
+        }
+    }
+
     @FXML
     private void goHome() {
         SceneManager.switchScene("home.fxml");
@@ -19,7 +62,11 @@ public class CampusDashboardController {
 
     @FXML
     private void goToCampus() {
-        SceneManager.switchScene("campus-access.fxml");
+        if (Session.isCampusVerified()) {
+            SceneManager.switchScene("campus-dashboard.fxml");
+        } else {
+            SceneManager.switchScene("campus-access.fxml");
+        }
     }
 
     @FXML
@@ -27,45 +74,499 @@ public class CampusDashboardController {
         SceneManager.goBack();
     }
 
-    private void setContent(String title, String description) {
-
-        VBox box = new VBox(15);
-        box.getChildren().addAll(
-                new Label(title),
-                new Label(description)
-        );
-
-        box.setStyle("-fx-font-size: 16px;");
-        contentArea.getChildren().setAll(box);
-    }
+    // ===================== PROJECT SUBMISSION =====================
 
     @FXML
     private void showProjects() {
-        setContent("Project Submission",
-                "Submit and manage your academic projects here.");
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Project Submission");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        TextField projectName = new TextField();
+        projectName.setPromptText("Project Title");
+
+        ComboBox<String> courseBox = new ComboBox<>();
+        courseBox.setPromptText("Select Course");
+        courseBox.getItems().addAll("CSE 101", "CSE 203", "MATH 201", "PHY 101", "ENG 102");
+        courseBox.setMaxWidth(Double.MAX_VALUE);
+
+        TextArea descArea = new TextArea();
+        descArea.setPromptText("Project Description");
+        descArea.setPrefRowCount(3);
+
+        Label msgLabel = new Label();
+
+        Button submitBtn = new Button("Submit Project");
+        submitBtn.setOnAction(e -> {
+            String pName = projectName.getText().trim();
+            String course = courseBox.getValue();
+            if (pName.isEmpty() || course == null) {
+                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setText("Please fill project title and select course.");
+            } else {
+                submittedProjects.add(pName + " (" + course + ")");
+                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setText("Project \"" + pName + "\" submitted successfully!");
+                projectName.clear();
+                courseBox.setValue(null);
+                descArea.clear();
+                refreshProjectList(box);
+            }
+        });
+
+        box.getChildren().addAll(title, projectName, courseBox, descArea, submitBtn, msgLabel, new Separator());
+
+        // Show previously submitted projects
+        refreshProjectList(box);
+
+        setScrollContent(box);
     }
+
+    private void refreshProjectList(VBox parent) {
+        // Remove old list if present
+        parent.getChildren().removeIf(n -> "project-list".equals(n.getId()));
+
+        VBox listBox = new VBox(6);
+        listBox.setId("project-list");
+        Label listTitle = new Label("Submitted Projects:");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        listBox.getChildren().add(listTitle);
+
+        if (submittedProjects.isEmpty()) {
+            listBox.getChildren().add(new Label("No projects submitted yet."));
+        } else {
+            for (int i = 0; i < submittedProjects.size(); i++) {
+                Label item = new Label((i + 1) + ". " + submittedProjects.get(i));
+                item.setStyle("-fx-padding: 4 8 4 8; -fx-background-color: #f0f4ff; -fx-background-radius: 6;");
+                listBox.getChildren().add(item);
+            }
+        }
+        parent.getChildren().add(listBox);
+    }
+
+    // ===================== HALL MANAGEMENT =====================
 
     @FXML
     private void showHall() {
-        setContent("Hall Management",
-                "Manage room allocation and hall activities.");
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Hall Management");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        Label statusLabel = new Label();
+        if (hallRoom != null) {
+            statusLabel.setText("Current Room: " + hallRoom);
+            statusLabel.setStyle("-fx-text-fill: green; -fx-font-size: 14px;");
+        } else {
+            statusLabel.setText("No room allocated yet.");
+            statusLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 14px;");
+        }
+
+        Label subTitle = new Label("Available Halls:");
+        subTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+
+        String[] halls = {"Shahid Smriti Hall", "Titumir Hall", "Sher-e-Bangla Hall", "Kabi Nazrul Hall", "Bangamata Hall"};
+        String[] rooms = {"Room 101", "Room 205", "Room 312", "Room 408", "Room 503"};
+
+        VBox hallList = new VBox(10);
+        Label msgLabel = new Label();
+        Random rand = new Random();
+
+        for (int i = 0; i < halls.length; i++) {
+            final String hallName = halls[i];
+            final String roomNum = rooms[i];
+            int available = 5 + rand.nextInt(20);
+
+            HBox row = new HBox(15);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setStyle("-fx-padding: 10; -fx-background-color: #f8f9ff; -fx-background-radius: 8;");
+
+            VBox info = new VBox(3);
+            Label hName = new Label(hallName);
+            hName.setStyle("-fx-font-weight: bold;");
+            Label avail = new Label("Available: " + available + " rooms");
+            avail.setStyle("-fx-text-fill: #666;");
+            info.getChildren().addAll(hName, avail);
+
+            Button allocBtn = new Button("Request " + roomNum);
+            allocBtn.setOnAction(e -> {
+                hallRoom = hallName + " - " + roomNum;
+                statusLabel.setText("Current Room: " + hallRoom);
+                statusLabel.setStyle("-fx-text-fill: green; -fx-font-size: 14px;");
+                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setText("Room allocated: " + hallRoom);
+            });
+
+            row.getChildren().addAll(info, allocBtn);
+            hallList.getChildren().add(row);
+        }
+
+        box.getChildren().addAll(title, statusLabel, new Separator(), subTitle, hallList, msgLabel);
+        setScrollContent(box);
     }
+
+    // ===================== SCHEDULE =====================
 
     @FXML
     private void showSchedule() {
-        setContent("Class Schedule",
-                "View your semester class schedule.");
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Class Schedule");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(2);
+        grid.setVgap(2);
+        grid.setStyle("-fx-background-color: #ddd;");
+
+        String[] days = {"Time", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"};
+        String[][] schedule = {
+                {"08:00", "CSE 101", "MATH 201", "CSE 101", "MATH 201", "PHY 101"},
+                {"09:30", "PHY 101", "ENG 102", "PHY Lab", "ENG 102", "CSE 203"},
+                {"11:00", "CSE 203", "CSE 101", "MATH 201", "CSE 203", "ENG 102"},
+                {"02:00", "Free", "CSE Lab", "Free", "CSE Lab", "Free"},
+        };
+
+        // Header
+        for (int c = 0; c < days.length; c++) {
+            Label cell = new Label(days[c]);
+            cell.setStyle("-fx-font-weight: bold; -fx-padding: 8 12 8 12; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 100;");
+            cell.setMaxWidth(Double.MAX_VALUE);
+            grid.add(cell, c, 0);
+        }
+
+        // Data
+        for (int r = 0; r < schedule.length; r++) {
+            for (int c = 0; c < schedule[r].length; c++) {
+                Label cell = new Label(schedule[r][c]);
+                String bg = c == 0 ? "#e8ecf4" : (schedule[r][c].equals("Free") ? "#f5f5f5" : "white");
+                cell.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: " + bg + "; -fx-min-width: 100;");
+                cell.setMaxWidth(Double.MAX_VALUE);
+                grid.add(cell, c, r + 1);
+            }
+        }
+
+        box.getChildren().addAll(title, grid);
+        setScrollContent(box);
     }
+
+    // ===================== INTERNAL NOTICES =====================
 
     @FXML
     private void showNotices() {
-        setContent("Internal Notices",
-                "See university internal announcements.");
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Internal Notices");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        VBox noticeList = new VBox(8);
+        for (int i = 0; i < notices.size(); i++) {
+            Label notice = new Label("📌  " + notices.get(i));
+            notice.setWrapText(true);
+            notice.setStyle("-fx-padding: 10 14 10 14; -fx-background-color: #fff8e1; " +
+                    "-fx-background-radius: 8; -fx-border-color: #ffe082; -fx-border-radius: 8; -fx-font-size: 14px;");
+            noticeList.getChildren().add(notice);
+        }
+
+        box.getChildren().addAll(title, noticeList);
+        setScrollContent(box);
     }
 
+    // ===================== GRADESHEET =====================
+
     @FXML
-    private void showActivities() {
-        setContent("Activities & Games",
-                "Participate in campus competitions and activities.");
+    private void showGradesheet() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Gradesheet");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        Label studentInfo = new Label("Student: " + Session.getName() + "  |  ID: " + Session.getStudentId());
+        studentInfo.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(2);
+        grid.setVgap(2);
+        grid.setStyle("-fx-background-color: #ddd;");
+
+        // Header
+        String[] headers = {"Course", "Grade Point", "Letter Grade"};
+        for (int c = 0; c < headers.length; c++) {
+            Label cell = new Label(headers[c]);
+            cell.setStyle("-fx-font-weight: bold; -fx-padding: 10 16 10 16; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 180;");
+            cell.setMaxWidth(Double.MAX_VALUE);
+            grid.add(cell, c, 0);
+        }
+
+        int row = 1;
+        double totalPoints = 0;
+        for (Map.Entry<String, Double> entry : grades.entrySet()) {
+            Label courseCell = new Label(entry.getKey());
+            courseCell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: white; -fx-min-width: 180;");
+            courseCell.setMaxWidth(Double.MAX_VALUE);
+
+            Label gpCell = new Label(String.format("%.2f", entry.getValue()));
+            gpCell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: white; -fx-min-width: 180;");
+            gpCell.setMaxWidth(Double.MAX_VALUE);
+
+            Label lgCell = new Label(getLetterGrade(entry.getValue()));
+            lgCell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: white; -fx-min-width: 180;");
+            lgCell.setMaxWidth(Double.MAX_VALUE);
+
+            grid.add(courseCell, 0, row);
+            grid.add(gpCell, 1, row);
+            grid.add(lgCell, 2, row);
+            totalPoints += entry.getValue();
+            row++;
+        }
+
+        double cgpa = grades.isEmpty() ? 0 : totalPoints / grades.size();
+        Label cgpaLabel = new Label(String.format("CGPA: %.2f", cgpa));
+        cgpaLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72; -fx-padding: 10 0 0 0;");
+
+        box.getChildren().addAll(title, studentInfo, grid, cgpaLabel);
+        setScrollContent(box);
+    }
+
+    private String getLetterGrade(double gp) {
+        if (gp >= 4.0) return "A+";
+        if (gp >= 3.75) return "A";
+        if (gp >= 3.50) return "A-";
+        if (gp >= 3.25) return "B+";
+        if (gp >= 3.0) return "B";
+        if (gp >= 2.75) return "B-";
+        if (gp >= 2.50) return "C+";
+        if (gp >= 2.25) return "C";
+        return "F";
+    }
+
+    // ===================== VENDING MACHINE =====================
+
+    @FXML
+    private void showVending() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Vending Machine");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        Label balanceLabel = new Label("Balance: ৳" + vendingBalance);
+        balanceLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: green;");
+
+        String[] items = {"Coffee", "Tea", "Chips", "Chocolate", "Water", "Juice", "Sandwich", "Biscuits"};
+        int[] prices = {50, 30, 40, 60, 20, 45, 80, 25};
+        String[] emojis = {"☕", "🍵", "🍿", "🍫", "💧", "🧃", "🥪", "🍪"};
+
+        Label msgLabel = new Label();
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(12);
+
+        for (int i = 0; i < items.length; i++) {
+            final int price = prices[i];
+            final String item = items[i];
+
+            VBox itemBox = new VBox(5);
+            itemBox.setAlignment(Pos.CENTER);
+            itemBox.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-min-width: 110;");
+
+            Label emoji = new Label(emojis[i]);
+            emoji.setStyle("-fx-font-size: 28px;");
+            Label name = new Label(item);
+            name.setStyle("-fx-font-weight: bold;");
+            Label priceLabel = new Label("৳" + price);
+            priceLabel.setStyle("-fx-text-fill: #2a5298;");
+
+            Button buyBtn = new Button("Buy");
+            buyBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+            buyBtn.setOnAction(e -> {
+                if (vendingBalance >= price) {
+                    vendingBalance -= price;
+                    balanceLabel.setText("Balance: ৳" + vendingBalance);
+                    msgLabel.setStyle("-fx-text-fill: green;");
+                    msgLabel.setText("Purchased " + item + "! Enjoy! 🎉");
+                } else {
+                    msgLabel.setStyle("-fx-text-fill: red;");
+                    msgLabel.setText("Insufficient balance for " + item + ".");
+                }
+            });
+
+            itemBox.getChildren().addAll(emoji, name, priceLabel, buyBtn);
+            grid.add(itemBox, i % 4, i / 4);
+        }
+
+        // Recharge button
+        Button rechargeBtn = new Button("Recharge ৳500");
+        rechargeBtn.setOnAction(e -> {
+            vendingBalance += 500;
+            balanceLabel.setText("Balance: ৳" + vendingBalance);
+            msgLabel.setStyle("-fx-text-fill: green;");
+            msgLabel.setText("Recharged ৳500 successfully!");
+        });
+
+        box.getChildren().addAll(title, balanceLabel, grid, rechargeBtn, msgLabel);
+        setScrollContent(box);
+    }
+
+    // ===================== WASHING MACHINE =====================
+
+    @FXML
+    private void showWashing() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Washing Machine Booking");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        Label subTitle = new Label("Book a washing slot for today:");
+        subTitle.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
+
+        String[] slots = {"08:00 - 09:00 AM", "09:00 - 10:00 AM", "10:00 - 11:00 AM",
+                "11:00 - 12:00 PM", "02:00 - 03:00 PM", "03:00 - 04:00 PM",
+                "04:00 - 05:00 PM", "05:00 - 06:00 PM"};
+        String[] machines = {"Machine A", "Machine B", "Machine C"};
+
+        Label msgLabel = new Label();
+
+        ComboBox<String> machineBox = new ComboBox<>();
+        machineBox.setPromptText("Select Machine");
+        machineBox.getItems().addAll(machines);
+        machineBox.setMaxWidth(Double.MAX_VALUE);
+
+        VBox slotList = new VBox(8);
+        Label slotTitle = new Label("Available Slots:");
+        slotTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        slotList.getChildren().add(slotTitle);
+
+        for (String slot : slots) {
+            HBox row = new HBox(15);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: #f8f9ff; -fx-background-radius: 6;");
+
+            Label slotLabel = new Label("🕐  " + slot);
+            slotLabel.setStyle("-fx-min-width: 180;");
+
+            boolean booked = washingSlots.contains(slot);
+            if (booked) {
+                Label bookedLabel = new Label("✅ Booked");
+                bookedLabel.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
+                row.getChildren().addAll(slotLabel, bookedLabel);
+            } else {
+                Button bookBtn = new Button("Book");
+                bookBtn.setOnAction(e -> {
+                    if (machineBox.getValue() == null) {
+                        msgLabel.setStyle("-fx-text-fill: red;");
+                        msgLabel.setText("Please select a machine first.");
+                        return;
+                    }
+                    washingSlots.add(slot);
+                    msgLabel.setStyle("-fx-text-fill: green;");
+                    msgLabel.setText("Booked " + slot + " on " + machineBox.getValue() + "!");
+                    showWashing(); // Refresh view
+                });
+                row.getChildren().addAll(slotLabel, bookBtn);
+            }
+            slotList.getChildren().add(row);
+        }
+
+        // Show booked slots summary
+        VBox bookedBox = new VBox(6);
+        Label bookedTitle = new Label("Your Bookings:");
+        bookedTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 10 0 0 0;");
+        bookedBox.getChildren().add(bookedTitle);
+        if (washingSlots.isEmpty()) {
+            bookedBox.getChildren().add(new Label("No bookings yet."));
+        } else {
+            for (String s : washingSlots) {
+                Label bk = new Label("✅  " + s);
+                bk.setStyle("-fx-text-fill: #2a5298;");
+                bookedBox.getChildren().add(bk);
+            }
+        }
+
+        box.getChildren().addAll(title, subTitle, machineBox, slotList, bookedBox, msgLabel);
+        setScrollContent(box);
+    }
+
+    // ===================== GAMES & SPORTS =====================
+
+    @FXML
+    private void showGames() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Games & Sports");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        String[] sports = {"Cricket", "Football", "Badminton", "Table Tennis", "Chess", "Basketball"};
+        String[] sportEmojis = {"🏏", "⚽", "🏸", "🏓", "♟️", "🏀"};
+        String[] schedules = {"Sunday & Wednesday 4-6 PM", "Monday & Thursday 4-6 PM",
+                "Tuesday & Friday 5-7 PM", "Daily 3-5 PM",
+                "Daily Open Hours", "Saturday 9-11 AM"};
+        String[] venues = {"Main Ground", "Football Field", "Indoor Court", "Recreation Room",
+                "Common Room", "Basketball Court"};
+
+        Label msgLabel = new Label();
+
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(12);
+
+        for (int i = 0; i < sports.length; i++) {
+            final String sport = sports[i];
+
+            VBox card = new VBox(8);
+            card.setAlignment(Pos.CENTER);
+            card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 18; " +
+                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-min-width: 160;");
+
+            Label emoji = new Label(sportEmojis[i]);
+            emoji.setStyle("-fx-font-size: 32px;");
+            Label name = new Label(sport);
+            name.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+            Label sched = new Label(schedules[i]);
+            sched.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+            sched.setWrapText(true);
+            Label venue = new Label("📍 " + venues[i]);
+            venue.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
+
+            boolean registered = gameRegistrations.contains(sport);
+            Button regBtn = new Button(registered ? "✅ Registered" : "Register");
+            if (registered) {
+                regBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 6;");
+                regBtn.setDisable(true);
+            }
+            regBtn.setOnAction(e -> {
+                gameRegistrations.add(sport);
+                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setText("Registered for " + sport + "! 🎉");
+                showGames(); // Refresh
+            });
+
+            card.getChildren().addAll(emoji, name, sched, venue, regBtn);
+            grid.add(card, i % 3, i / 3);
+        }
+
+        box.getChildren().addAll(title, grid, msgLabel);
+        setScrollContent(box);
+    }
+
+    // ===================== REMOVED OLD METHODS =====================
+    // showActivities removed - replaced by showGames
+
+    // ===================== UTILITY =====================
+
+    private void setScrollContent(VBox content) {
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setStyle("-fx-background-color: transparent;");
+        contentArea.getChildren().setAll(scroll);
     }
 }

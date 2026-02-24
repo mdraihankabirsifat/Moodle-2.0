@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.ProfileController">
+
+    <!-- ================= TOP NAV ================= -->
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true">
+            <VBox spacing="25" alignment="TOP_CENTER">
+                <padding>
+                    <Insets top="40" bottom="40"/>
+                </padding>
+
+                <Label text="My Profile" styleClass="title-label"/>
+
+                <VBox spacing="15" maxWidth="500" styleClass="card" alignment="CENTER_LEFT">
+
+                    <Label text="Full Name" styleClass="field-label"/>
+                    <TextField fx:id="nameField" promptText="Full Name"/>
+
+                    <Label text="University" styleClass="field-label"/>
+                    <ComboBox fx:id="universityBox" promptText="Select University" maxWidth="Infinity"/>
+
+                    <Label text="Student ID" styleClass="field-label"/>
+                    <TextField fx:id="idField" promptText="Student ID"/>
+
+                    <Label text="Email" styleClass="field-label"/>
+                    <TextField fx:id="emailField" promptText="Email Address"/>
+
+                    <HBox spacing="15" alignment="CENTER">
+                        <Button text="Save Changes" onAction="#saveProfile" prefWidth="160"/>
+                        <Button text="Cancel" onAction="#goHome" prefWidth="120"
+                                style="-fx-background-color: #888;"/>
+                    </HBox>
+
+                    <Label fx:id="messageLabel"/>
+
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+    <!-- ================= BOTTOM NAV ================= -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

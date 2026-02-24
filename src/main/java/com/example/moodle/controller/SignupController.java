@@ -1,6 +1,7 @@
 package com.example.moodle.controller;
 
 import com.example.moodle.util.SceneManager;
+import com.example.moodle.util.Session;
 import com.example.moodle.util.UserStore;
 
 import javafx.fxml.FXML;
@@ -49,7 +50,11 @@ public class SignupController {
 
     @FXML
     private void goToCampus() {
-        SceneManager.switchScene("campus-access.fxml");
+        if (Session.isCampusVerified()) {
+            SceneManager.switchScene("campus-dashboard.fxml");
+        } else {
+            SceneManager.switchScene("campus-access.fxml");
+        }
     }
 
     @FXML

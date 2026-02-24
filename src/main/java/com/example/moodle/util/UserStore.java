@@ -19,4 +19,8 @@ public class UserStore {
     public static boolean emailExists(String email) {
         return users.containsKey(email);
     }
+
+    public static void removeUser(String email) {
+        users.remove(email);
+    }
 }

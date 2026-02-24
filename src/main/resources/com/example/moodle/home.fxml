@@ -18,13 +18,12 @@
                    styleClass="title-label"/>
 
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
-            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
             <!-- Your Campus -->
             <Button fx:id="campusButton"
-                    text="Your Campus"
+                    text="My Campus"
                     visible="false"
                     onAction="#goToCampus"/>
 
@@ -37,19 +36,20 @@
                 <MenuItem fx:id="universityItem"/>
                 <MenuItem fx:id="emailItem"/>
                 <SeparatorMenuItem/>
+                <MenuItem text="View / Edit Profile" onAction="#goToProfile"/>
                 <MenuItem text="Logout" onAction="#logout"/>
 
             </MenuButton>
 
             <!-- Sign Up Button -->
-<Button fx:id="signupButton"
-        text="Sign Up"
-        onAction="#goToSignup"/>
+            <Button fx:id="signupButton"
+                    text="Sign Up"
+                    onAction="#goToSignup"/>
 
-<!-- Login Button -->
-<Button fx:id="loginButton"
-        text="Login"
-        onAction="#goToLogin"/>
+            <!-- Login Button -->
+            <Button fx:id="loginButton"
+                    text="Login"
+                    onAction="#goToLogin"/>
 
         </HBox>
     </top>
@@ -74,6 +74,15 @@
                 <Label text="Connecting Engineering, Medical, Agricultural and All Universities in One Smart System"
                        wrapText="true"
                        maxWidth="700"/>
+            </VBox>
+
+            <!-- SEARCH BAR -->
+            <VBox spacing="8" alignment="CENTER" maxWidth="500">
+                <TextField fx:id="searchField"
+                           promptText="🔍  Search University (e.g. BUET, DU, BAU...)"
+                           styleClass="search-field"/>
+                <VBox fx:id="searchResults" spacing="4" visible="false"
+                      style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);"/>
             </VBox>
 
             <!-- ABOUT -->

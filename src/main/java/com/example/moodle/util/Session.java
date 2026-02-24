@@ -3,10 +3,12 @@ package com.example.moodle.util;
 public class Session {
 
     private static boolean loggedIn = false;
+    private static boolean campusVerified = false;
     private static String name;
     private static String university;
     private static String studentId;
     private static String email;
+    private static String selectedUniversity;
 
     public static void login(String n, String u, String id, String e) {
         loggedIn = true;
@@ -36,7 +38,25 @@ public class Session {
         return email;
     }
 
+    public static void setCampusVerified(boolean v) {
+        campusVerified = v;
+    }
+
+    public static boolean isCampusVerified() {
+        return campusVerified;
+    }
+
+    public static void setSelectedUniversity(String uni) {
+        selectedUniversity = uni;
+    }
+
+    public static String getSelectedUniversity() {
+        return selectedUniversity;
+    }
+
     public static void logout() {
         loggedIn = false;
+        campusVerified = false;
+        selectedUniversity = null;
     }
 }
