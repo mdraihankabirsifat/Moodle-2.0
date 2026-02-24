@@ -12,13 +12,13 @@
 ===================================================== */
 
 .title-label {
-    -fx-font-size: 28px;
+    -fx-font-size: 35px;
     -fx-font-weight: bold;
     -fx-text-fill: #1e3c72;
 }
 
 .section-title {
-    -fx-font-size: 22px;
+    -fx-font-size: 28px;
     -fx-font-weight: bold;
     -fx-text-fill: #2a5298;
 }
@@ -57,7 +57,7 @@
 }
 
 .button:hover {
-    -fx-background-color: #1e3c72;
+    -fx-background-color: #122a56;
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
 }
@@ -168,7 +168,7 @@
 ===================================================== */
 
 #contentArea {
-    -fx-background-color: white;
+    -fx-background-color: rgb(255, 255, 255);
     -fx-background-radius: 12;
     -fx-padding: 30;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 20, 0, 0, 5);
@@ -187,8 +187,8 @@
 ===================================================== */
 
 .nav-btn {
-    -fx-background-color: rgba(255, 255, 255, 0.15);
-    -fx-text-fill: white;
+    -fx-background-color: rgb(53, 206, 248);
+    -fx-text-fill: rgb(80, 80, 80);
     -fx-font-size: 12px;
     -fx-font-weight: bold;
     -fx-background-radius: 6;
