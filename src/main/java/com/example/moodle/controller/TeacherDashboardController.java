@@ -1,5 +1,6 @@
 package com.example.moodle.controller;
 
+import java.io.File;
 import java.util.List;
 
 import com.example.moodle.model.Assignment;
@@ -11,6 +12,8 @@ import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
 import com.example.moodle.util.UserStore;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -23,8 +26,12 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.util.Duration;
 
 public class TeacherDashboardController {
 
@@ -52,6 +59,12 @@ public class TeacherDashboardController {
         } else {
             SceneManager.switchScene("campus-access.fxml");
         }
+    }
+
+    @FXML
+    private void signOutCampus() {
+        Session.logout();
+        SceneManager.switchScene("home.fxml");
     }
 
     @FXML
@@ -151,6 +164,27 @@ public class TeacherDashboardController {
         descField.setPromptText("Assignment Description / Instructions");
         descField.setPrefRowCount(3);
 
+        // PDF upload
+        Label pdfLabel = new Label("No PDF selected");
+        pdfLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
+        final String[] pdfPath = {""};
+        Button pdfBtn = new Button("\uD83D\uDCC2 Attach PDF");
+        pdfBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6;");
+        pdfBtn.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Select PDF File");
+            fc.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fc.showOpenDialog(contentArea.getScene().getWindow());
+            if (file != null) {
+                pdfPath[0] = file.getAbsolutePath();
+                pdfLabel.setText("\u2705 " + file.getName());
+                pdfLabel.setStyle("-fx-text-fill: green; -fx-font-size: 12px;");
+            }
+        });
+        HBox pdfRow = new HBox(10, pdfBtn, pdfLabel);
+        pdfRow.setAlignment(Pos.CENTER_LEFT);
+
         Label msgLabel = new Label();
         Button uploadBtn = new Button("Upload Assignment");
         uploadBtn.setOnAction(e -> {
@@ -162,16 +196,20 @@ public class TeacherDashboardController {
                 msgLabel.setText("Select course and enter title.");
             } else {
                 String code = sel.split(" - ")[0];
-                DataStore.addAssignment(new Assignment(code, t, d, teacherEmail()));
+                String desc = d + (pdfPath[0].isEmpty() ? "" : " [PDF:" + pdfPath[0] + "]");
+                DataStore.addAssignment(new Assignment(code, t, desc, teacherEmail()));
                 msgLabel.setStyle("-fx-text-fill: green;");
-                msgLabel.setText("Assignment uploaded!");
+                msgLabel.setText("Assignment uploaded!" + (pdfPath[0].isEmpty() ? "" : " (with PDF)"));
                 titleField.clear();
                 descField.clear();
+                pdfPath[0] = "";
+                pdfLabel.setText("No PDF selected");
+                pdfLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
             }
         });
 
         box.getChildren().addAll(title, courseBox, titleField, descField,
-                uploadBtn, msgLabel, new Separator());
+                pdfRow, uploadBtn, msgLabel, new Separator());
 
         // Show existing assignments
         Label existTitle = new Label("Existing Assignments:");
@@ -305,6 +343,27 @@ public class TeacherDashboardController {
         descField.setPromptText("Slide Content / Description");
         descField.setPrefRowCount(4);
 
+        // PDF upload
+        Label pdfLabel = new Label("No PDF selected");
+        pdfLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
+        final String[] pdfPath = {""};
+        Button pdfBtn = new Button("\uD83D\uDCC2 Attach PDF");
+        pdfBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6;");
+        pdfBtn.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Select PDF File");
+            fc.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            File file = fc.showOpenDialog(contentArea.getScene().getWindow());
+            if (file != null) {
+                pdfPath[0] = file.getAbsolutePath();
+                pdfLabel.setText("\u2705 " + file.getName());
+                pdfLabel.setStyle("-fx-text-fill: green; -fx-font-size: 12px;");
+            }
+        });
+        HBox pdfRow = new HBox(10, pdfBtn, pdfLabel);
+        pdfRow.setAlignment(Pos.CENTER_LEFT);
+
         Label msgLabel = new Label();
         Button uploadBtn = new Button("Upload Slide");
         uploadBtn.setOnAction(e -> {
@@ -316,17 +375,21 @@ public class TeacherDashboardController {
                 msgLabel.setText("Select course and enter title.");
             } else {
                 String code = sel.split(" - ")[0];
-                DataStore.addSlide(code, t, d, teacherEmail());
+                String desc = d + (pdfPath[0].isEmpty() ? "" : " [PDF:" + pdfPath[0] + "]");
+                DataStore.addSlide(code, t, desc, teacherEmail());
                 msgLabel.setStyle("-fx-text-fill: green;");
-                msgLabel.setText("Slide uploaded!");
+                msgLabel.setText("Slide uploaded!" + (pdfPath[0].isEmpty() ? "" : " (with PDF)"));
                 titleField.clear();
                 descField.clear();
+                pdfPath[0] = "";
+                pdfLabel.setText("No PDF selected");
+                pdfLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
                 showSlides();
             }
         });
 
         box.getChildren().addAll(title, courseBox, titleField, descField,
-                uploadBtn, msgLabel, new Separator());
+                pdfRow, uploadBtn, msgLabel, new Separator());
 
         // Show existing slides
         Label listTitle = new Label("Uploaded Slides:");
@@ -521,6 +584,141 @@ public class TeacherDashboardController {
 
         box.getChildren().addAll(title, countLabel, grid);
         if (users.isEmpty()) box.getChildren().add(new Label("No students registered yet."));
+        setScrollContent(box);
+    }
+
+    // ===================== LIVE CHAT =====================
+
+    private Timeline chatRefreshTimeline;
+
+    @FXML
+    private void showLiveChat() {
+        if (chatRefreshTimeline != null) chatRefreshTimeline.stop();
+
+        VBox box = new VBox(10);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("\uD83D\uDCAC Live Chat");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        String myId = teacherEmail();
+
+        TextField recipientField = new TextField();
+        recipientField.setPromptText("Chat with (student email or ID)...");
+        recipientField.setStyle("-fx-padding: 8; -fx-background-radius: 20; -fx-border-radius: 20;");
+
+        VBox chatMessages = new VBox(8);
+        chatMessages.setStyle("-fx-padding: 10;");
+
+        ScrollPane chatScroll = new ScrollPane(chatMessages);
+        chatScroll.setFitToWidth(true);
+        chatScroll.setPrefHeight(350);
+        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        chatScroll.vvalueProperty().bind(chatMessages.heightProperty());
+
+        HBox inputRow = new HBox(10);
+        inputRow.setAlignment(Pos.CENTER_LEFT);
+        TextArea chatInput = new TextArea();
+        chatInput.setPromptText("Type a message...");
+        chatInput.setPrefRowCount(2);
+        chatInput.setPrefWidth(400);
+        HBox.setHgrow(chatInput, Priority.ALWAYS);
+
+        Button sendBtn = new Button("Send \u27A1");
+        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+
+        Label statusLabel = new Label();
+
+        Runnable refreshChat = () -> {
+            String recipient = recipientField.getText().trim();
+            if (recipient.isEmpty()) return;
+            chatMessages.getChildren().clear();
+
+            List<Message> messages = DataStore.getMessagesFor(myId);
+            for (Message m : messages) {
+                if (m.getFrom().equals(myId) && m.getTo().equals(recipient)
+                        || m.getFrom().equals(recipient) && m.getTo().equals(myId)) {
+                    boolean isMine = m.getFrom().equals(myId);
+                    HBox bubble = new HBox();
+                    bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+                    VBox msgBox = new VBox(2);
+                    msgBox.setMaxWidth(300);
+                    msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
+                            + (isMine
+                            ? "-fx-background-color: #2a5298;"
+                            : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+
+                    Label content = new Label(m.getContent());
+                    content.setWrapText(true);
+                    content.setStyle(isMine
+                            ? "-fx-text-fill: white; -fx-font-size: 13px;"
+                            : "-fx-text-fill: #333; -fx-font-size: 13px;");
+
+                    Label ts = new Label(m.getTimestamp());
+                    ts.setStyle("-fx-font-size: 10px; "
+                            + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+
+                    msgBox.getChildren().addAll(content, ts);
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                    if (isMine) {
+                        bubble.getChildren().addAll(spacer, msgBox);
+                    } else {
+                        bubble.getChildren().addAll(msgBox, spacer);
+                    }
+                    chatMessages.getChildren().add(bubble);
+                }
+            }
+
+            if (chatMessages.getChildren().isEmpty()) {
+                Label noMsg = new Label("No messages yet. Start the conversation!");
+                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                chatMessages.getChildren().add(noMsg);
+            }
+        };
+
+        sendBtn.setOnAction(e -> {
+            String recipient = recipientField.getText().trim();
+            String content = chatInput.getText().trim();
+            if (recipient.isEmpty()) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Enter a recipient first.");
+                return;
+            }
+            if (content.isEmpty()) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Type a message.");
+                return;
+            }
+            DataStore.sendMessage(myId, recipient, content);
+            chatInput.clear();
+            statusLabel.setText("");
+            refreshChat.run();
+        });
+
+        recipientField.setOnAction(e -> refreshChat.run());
+
+        Button loadChatBtn = new Button("Load Chat");
+        loadChatBtn.setOnAction(e -> refreshChat.run());
+
+        HBox recipientRow = new HBox(10, recipientField, loadChatBtn);
+        recipientRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(recipientField, Priority.ALWAYS);
+
+        inputRow.getChildren().addAll(chatInput, sendBtn);
+
+        chatRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshChat.run()));
+        chatRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        chatRefreshTimeline.play();
+
+        Label onlineHint = new Label("\uD83D\uDFE2 Auto-refreshes every 3 seconds");
+        onlineHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+
+        box.getChildren().addAll(title, recipientRow, onlineHint, chatScroll,
+                inputRow, statusLabel);
         setScrollContent(box);
     }
 

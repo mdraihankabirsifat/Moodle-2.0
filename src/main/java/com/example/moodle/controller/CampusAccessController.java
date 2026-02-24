@@ -25,6 +25,7 @@ public class CampusAccessController {
     @FXML private PasswordField campusPassField;
     @FXML private PasswordField staffPassField;
     @FXML private Label messageLabel;
+    @FXML private Label hintLabel;
 
     @FXML
     public void initialize() {
@@ -37,6 +38,12 @@ public class CampusAccessController {
             staffFields.setVisible(!isStudent);
             staffFields.setManaged(!isStudent);
             messageLabel.setText("");
+            //staffPassField.clear();
+            if (newVal == teacherRadio) {
+                hintLabel.setText("Hint: teacher2024");
+            } else if (newVal == authorityRadio) {
+                hintLabel.setText("Hint: admin2024");
+            }
         });
     }
 
@@ -96,6 +103,7 @@ public class CampusAccessController {
     private void verifyTeacher() {
         String pass = staffPassField.getText().trim();
         if ("teacher2024".equals(pass)) {
+            Session.login("Faculty Member", "Campus", "", "faculty@campus");
             Session.setCampusVerified(true);
             Session.setRole("TEACHER");
             SceneManager.switchScene("teacher-dashboard.fxml");
@@ -107,6 +115,7 @@ public class CampusAccessController {
     private void verifyAuthority() {
         String pass = staffPassField.getText().trim();
         if ("admin2024".equals(pass)) {
+            Session.login("Admin", "Campus", "", "admin@campus");
             Session.setCampusVerified(true);
             Session.setRole("AUTHORITY");
             SceneManager.switchScene("authority-dashboard.fxml");

@@ -50,6 +50,12 @@ public class AuthorityDashboardController {
     }
 
     @FXML
+    private void signOutCampus() {
+        Session.logout();
+        SceneManager.switchScene("home.fxml");
+    }
+
+    @FXML
     private void goBack() {
         SceneManager.goBack();
     }

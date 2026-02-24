@@ -3,7 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
-<?import javafx.scene.control.SeparatorMenuItem?>
+
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.moodle.controller.HomeController">
@@ -26,19 +26,18 @@
                     text="My Campus"
                     onAction="#goToCampus"/>
 
-            <!-- Profile Dropdown -->
-            <MenuButton fx:id="profileMenu"
-                        text="My Profile"
-                        visible="false">
+            <!-- My Profile Button (visible when logged in) -->
+            <Button fx:id="profileButton"
+                    text="My Profile"
+                    onAction="#goToProfile"
+                    visible="false"/>
 
-                <MenuItem fx:id="nameItem"/>
-                <MenuItem fx:id="universityItem"/>
-                <MenuItem fx:id="emailItem"/>
-                <SeparatorMenuItem/>
-                <MenuItem text="View / Edit Profile" onAction="#goToProfile"/>
-                <MenuItem text="Logout" onAction="#logout"/>
-
-            </MenuButton>
+            <!-- Logout Button (visible when logged in) -->
+            <Button fx:id="logoutButton"
+                    text="Logout"
+                    onAction="#logout"
+                    visible="false"
+                    style="-fx-background-color: #c0392b; -fx-text-fill: white;"/>
 
             <!-- Sign Up Button -->
             <Button fx:id="signupButton"

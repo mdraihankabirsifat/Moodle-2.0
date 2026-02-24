@@ -9,8 +9,6 @@ import com.example.moodle.util.UniversityDatabase;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -19,10 +17,8 @@ public class HomeController {
 
     @FXML private Button loginButton;
     @FXML private Button campusButton;
-    @FXML private MenuButton profileMenu;
-    @FXML private MenuItem nameItem;
-    @FXML private MenuItem universityItem;
-    @FXML private MenuItem emailItem;
+    @FXML private Button profileButton;
+    @FXML private Button logoutButton;
     @FXML private Pane floatingLayer;
     @FXML private Button signupButton;
     @FXML private TextField searchField;
@@ -37,15 +33,13 @@ public class HomeController {
         if (Session.isLoggedIn()) {
             loginButton.setVisible(false);
             signupButton.setVisible(false);
-            profileMenu.setVisible(true);
-
-            nameItem.setText("Name: " + Session.getName());
-            universityItem.setText("University: " + Session.getUniversity());
-            emailItem.setText("Email: " + Session.getEmail());
+            profileButton.setVisible(true);
+            logoutButton.setVisible(true);
         } else {
             loginButton.setVisible(true);
             signupButton.setVisible(true);
-            profileMenu.setVisible(false);
+            profileButton.setVisible(false);
+            logoutButton.setVisible(false);
         }
 
         // Live search

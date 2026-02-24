@@ -44,6 +44,7 @@
                 <!-- Teacher / Authority field -->
                 <VBox fx:id="staffFields" spacing="10" visible="false" managed="false">
                     <PasswordField fx:id="staffPassField" promptText="Access Password"/>
+                    <Label fx:id="hintLabel" text="" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
                 </VBox>
 
                 <Button text="Enter Campus"
