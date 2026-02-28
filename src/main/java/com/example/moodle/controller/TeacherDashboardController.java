@@ -742,7 +742,6 @@ public class TeacherDashboardController {
         Button sendBtn = new Button("Send \u27A1");
         sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
         Label statusLabel = new Label();
-        final int[] lastMsgCount = {-1};
 
         Runnable refreshChat = () -> {
             List<Message> allMsgs = DataStore.getMessagesFor(myId);
@@ -753,8 +752,6 @@ public class TeacherDashboardController {
                     filtered.add(m);
                 }
             }
-            if (filtered.size() == lastMsgCount[0]) return;
-            lastMsgCount[0] = filtered.size();
 
             chatMessages.getChildren().clear();
             for (Message m : filtered) {
@@ -791,7 +788,6 @@ public class TeacherDashboardController {
             DataStore.sendMessage(myId, recipientId, content);
             chatInput.clear();
             statusLabel.setText("");
-            lastMsgCount[0] = -1;
             refreshChat.run();
         });
 

@@ -43,21 +43,6 @@
 
                 <!-- Teacher / Authority field -->
                 <VBox fx:id="staffFields" spacing="10" visible="false" managed="false">
-                    <!-- Teacher-specific detail fields -->
-                    <VBox fx:id="teacherDetailFields" spacing="10" visible="false" managed="false">
-                        <TextField fx:id="teacherNameField" promptText="Full Name"/>
-                        <TextField fx:id="teacherDeptField" promptText="Department (e.g. CSE, EEE)"/>
-                        <TextField fx:id="teacherDesignationField" promptText="Designation (e.g. Professor)"/>
-                        <HBox spacing="20" alignment="CENTER_LEFT">
-                            <fx:define>
-                                <ToggleGroup fx:id="teacherTypeGroup"/>
-                            </fx:define>
-                            <RadioButton fx:id="facultyRadio" text="Faculty Teacher"
-                                         toggleGroup="$teacherTypeGroup" selected="true"/>
-                            <RadioButton fx:id="guestRadio" text="Guest Teacher"
-                                         toggleGroup="$teacherTypeGroup"/>
-                        </HBox>
-                    </VBox>
                     <PasswordField fx:id="staffPassField" promptText="Access Password"/>
                     <Label fx:id="hintLabel" text="" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
                 </VBox>

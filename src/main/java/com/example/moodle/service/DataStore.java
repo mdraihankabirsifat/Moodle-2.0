@@ -193,7 +193,7 @@ public class DataStore {
     public static List<Message> getMessagesFor(String email) {
         List<Message> list = new ArrayList<>();
         for (String line : FileStore.loadLines(MESSAGES_FILE)) {
-            String[] p = line.split("\\|", -1);
+            String[] p = line.split("\\|", 4);
             if (p.length >= 4 && (p[0].equals(email) || p[1].equals(email))) {
                 list.add(new Message(p[0], p[1], p[2], p[3]));
             }

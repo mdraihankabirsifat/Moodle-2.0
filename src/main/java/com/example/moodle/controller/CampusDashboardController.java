@@ -1086,7 +1086,6 @@ public class CampusDashboardController {
         sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
 
         Label statusLabel = new Label();
-        final int[] lastMsgCount = {-1};
 
         Runnable refreshChat = () -> {
             List<Message> allMsgs = DataStore.getMessagesFor(myId);
@@ -1097,8 +1096,6 @@ public class CampusDashboardController {
                     filtered.add(m);
                 }
             }
-            if (filtered.size() == lastMsgCount[0]) return; // no change, skip rebuild
-            lastMsgCount[0] = filtered.size();
 
             chatMessages.getChildren().clear();
             for (Message m : filtered) {
@@ -1149,7 +1146,6 @@ public class CampusDashboardController {
             DataStore.sendMessage(myId, recipientId, content);
             chatInput.clear();
             statusLabel.setText("");
-            lastMsgCount[0] = -1; // force rebuild
             refreshChat.run();
         });
 
@@ -1205,7 +1201,6 @@ public class CampusDashboardController {
         sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
 
         Label statusLabel = new Label();
-        final int[] lastMsgCount = {-1};
 
         Runnable refreshChat = () -> {
             String recipient = recipientField.getText().trim();
@@ -1220,8 +1215,6 @@ public class CampusDashboardController {
                     filtered.add(m);
                 }
             }
-            if (filtered.size() == lastMsgCount[0]) return; // no change
-            lastMsgCount[0] = filtered.size();
 
             chatMessages.getChildren().clear();
             for (Message m : filtered) {
@@ -1285,14 +1278,13 @@ public class CampusDashboardController {
             DataStore.sendMessage(myId, recipient, content);
             chatInput.clear();
             statusLabel.setText("");
-            lastMsgCount[0] = -1; // force rebuild
             refreshChat.run();
         });
 
-        recipientField.setOnAction(e -> { lastMsgCount[0] = -1; refreshChat.run(); });
+        recipientField.setOnAction(e -> refreshChat.run());
 
         Button loadChatBtn = new Button("Load Chat");
-        loadChatBtn.setOnAction(e -> { lastMsgCount[0] = -1; refreshChat.run(); });
+        loadChatBtn.setOnAction(e -> refreshChat.run());
 
         HBox recipientRow = new HBox(10, recipientField, loadChatBtn);
         recipientRow.setAlignment(Pos.CENTER_LEFT);
@@ -1433,11 +1425,63 @@ public class CampusDashboardController {
                     // Display attached image if present
                     if (p.length >= 5 && p[4] != null && !p[4].isEmpty()) {
                         try {
-                            javafx.scene.image.Image img = new javafx.scene.image.Image(p[4], 400, 300, true, true);
+                            String imageUri = p[4];
+                            javafx.scene.image.Image img = new javafx.scene.image.Image(imageUri, 400, 300, true, true);
                             javafx.scene.image.ImageView imgView = new javafx.scene.image.ImageView(img);
                             imgView.setPreserveRatio(true);
                             imgView.setFitWidth(400);
-                            imgView.setStyle("-fx-padding: 5 0 0 32;");
+                            imgView.setStyle("-fx-cursor: hand;");
+
+                            // Click to maximize
+                            imgView.setOnMouseClicked(ev -> {
+                                javafx.scene.image.Image fullImg = new javafx.scene.image.Image(imageUri);
+                                javafx.scene.image.ImageView fullView = new javafx.scene.image.ImageView(fullImg);
+                                fullView.setPreserveRatio(true);
+                                fullView.fitWidthProperty().bind(contentArea.widthProperty().multiply(0.85));
+                                fullView.fitHeightProperty().bind(contentArea.heightProperty().multiply(0.85));
+
+                                Button closeBtn = new Button("\u2715 Close");
+                                closeBtn.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; "
+                                        + "-fx-background-radius: 20; -fx-padding: 8 20 8 20; -fx-cursor: hand;");
+
+                                Button downloadBtn = new Button("\u2B07 Download");
+                                downloadBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; "
+                                        + "-fx-background-radius: 20; -fx-padding: 8 20 8 20; -fx-cursor: hand;");
+                                downloadBtn.setOnAction(de -> {
+                                    try {
+                                        java.net.URI uri = new java.net.URI(imageUri);
+                                        java.io.File srcFile = new java.io.File(uri);
+                                        FileChooser saveDlg = new FileChooser();
+                                        saveDlg.setTitle("Save Image");
+                                        saveDlg.setInitialFileName(srcFile.getName());
+                                        saveDlg.getExtensionFilters().add(
+                                                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+                                        java.io.File dest = saveDlg.showSaveDialog(contentArea.getScene().getWindow());
+                                        if (dest != null) {
+                                            java.nio.file.Files.copy(srcFile.toPath(), dest.toPath(),
+                                                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                        }
+                                    } catch (Exception ex) { /* ignore errors */ }
+                                });
+
+                                HBox btnRow = new HBox(15, closeBtn, downloadBtn);
+                                btnRow.setAlignment(Pos.CENTER);
+
+                                VBox overlayContent = new VBox(10, fullView, btnRow);
+                                overlayContent.setAlignment(Pos.CENTER);
+
+                                StackPane overlay = new StackPane(overlayContent);
+                                overlay.setStyle("-fx-background-color: rgba(0,0,0,0.85);");
+                                overlay.setAlignment(Pos.CENTER);
+
+                                closeBtn.setOnAction(ce -> contentArea.getChildren().remove(overlay));
+                                overlay.setOnMouseClicked(oe -> {
+                                    if (oe.getTarget() == overlay) contentArea.getChildren().remove(overlay);
+                                });
+
+                                contentArea.getChildren().add(overlay);
+                            });
+
                             postCard.getChildren().add(imgView);
                         } catch (Exception ex) { /* invalid image, skip */ }
                     }

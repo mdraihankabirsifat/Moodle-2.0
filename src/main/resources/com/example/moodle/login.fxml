@@ -15,12 +15,42 @@
     </top>
 
     <center>
-        <VBox spacing="15" alignment="CENTER" maxWidth="350">
+        <VBox spacing="15" alignment="CENTER" maxWidth="400">
 
             <Label text="Portal Login" styleClass="title-label"/>
 
-            <TextField fx:id="emailField" promptText="Email"/>
-            <PasswordField fx:id="passwordField" promptText="Password"/>
+            <!-- Role selection -->
+            <fx:define>
+                <ToggleGroup fx:id="loginRoleGroup"/>
+            </fx:define>
+            <HBox spacing="25" alignment="CENTER" style="-fx-padding: 5 0 5 0;">
+                <RadioButton fx:id="studentLoginRadio" text="Student" toggleGroup="$loginRoleGroup" selected="true"/>
+                <RadioButton fx:id="teacherLoginRadio" text="Teacher" toggleGroup="$loginRoleGroup"/>
+            </HBox>
+
+            <!-- Student login fields -->
+            <VBox fx:id="studentLoginFields" spacing="10">
+                <TextField fx:id="emailField" promptText="Email"/>
+                <PasswordField fx:id="passwordField" promptText="Password"/>
+            </VBox>
+
+            <!-- Teacher login fields -->
+            <VBox fx:id="teacherLoginFields" spacing="10" visible="false" managed="false">
+                <TextField fx:id="teacherNameField" promptText="Full Name"/>
+                <TextField fx:id="teacherDeptField" promptText="Department (e.g. CSE, EEE)"/>
+                <TextField fx:id="teacherDesignationField" promptText="Designation (e.g. Professor)"/>
+                <HBox spacing="20" alignment="CENTER_LEFT">
+                    <fx:define>
+                        <ToggleGroup fx:id="teacherTypeGroup"/>
+                    </fx:define>
+                    <RadioButton fx:id="facultyRadio" text="Faculty Teacher"
+                                 toggleGroup="$teacherTypeGroup" selected="true"/>
+                    <RadioButton fx:id="guestRadio" text="Guest Teacher"
+                                 toggleGroup="$teacherTypeGroup"/>
+                </HBox>
+                <PasswordField fx:id="teacherPasswordField" promptText="Password"/>
+                <Label text="Default password: teacher2026" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+            </VBox>
 
             <Button text="Login" onAction="#handleLogin"/>
 

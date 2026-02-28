@@ -98,6 +98,12 @@ public class SceneManager {
                 return;
             }
 
+            // Preserve window dimensions and state before switching
+            boolean wasMaximized = stage.isMaximized();
+            double prevWidth = stage.getWidth();
+            double prevHeight = stage.getHeight();
+            boolean hadScene = (stage.getScene() != null);
+
             FXMLLoader loader = new FXMLLoader(resource);
             Parent root = loader.load();
 
@@ -113,7 +119,13 @@ public class SceneManager {
 
             root.setOpacity(0);
 
-            Scene scene = new Scene(root, 1000, 650);
+            Scene scene;
+            if (hadScene) {
+                // Use previous dimensions to preserve user's window size
+                scene = new Scene(root, prevWidth, prevHeight);
+            } else {
+                scene = new Scene(root, 1000, 650);
+            }
 
             // Safe CSS loading
             URL css = SceneManager.class
@@ -124,6 +136,11 @@ public class SceneManager {
             }
 
             stage.setScene(scene);
+
+            // Restore maximized state after setting the scene
+            if (wasMaximized) {
+                stage.setMaximized(true);
+            }
 
             FadeTransition fadeIn
                     = new FadeTransition(Duration.millis(400), root);
