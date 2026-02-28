@@ -30,5 +30,6 @@ public class User {
     public void setUniversity(String university) { this.university = university; }
     public void setStudentId(String studentId) { this.studentId = studentId; }
     public void setEmail(String email) { this.email = email; }
+    public void setPassword(String password) { this.password = password; }
     public void setRole(String role) { this.role = role; }
 }

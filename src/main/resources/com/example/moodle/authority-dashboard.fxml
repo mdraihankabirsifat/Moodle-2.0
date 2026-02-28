@@ -50,10 +50,28 @@
                         onAction="#showPaymentOverview"
                         maxWidth="Infinity"/>
 
+                <Button text="📝 Edit Gradesheet"
+                        onAction="#showEditGradesheet"
+                        maxWidth="Infinity"/>
+
                 <Label text="SYSTEM" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
 
                 <Button text="System Overview"
                         onAction="#showSystemOverview"
+                        maxWidth="Infinity"/>
+
+                <Label text="CAMPUS FACILITIES" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+
+                <Button text="🏟 Manage Games"
+                        onAction="#showManageGames"
+                        maxWidth="Infinity"/>
+
+                <Button text="🏥 Manage Hospital"
+                        onAction="#showManageHospital"
+                        maxWidth="Infinity"/>
+
+                <Button text="🏠 Manage Hall"
+                        onAction="#showManageHall"
                         maxWidth="Infinity"/>
 
             </VBox>

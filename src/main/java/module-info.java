@@ -1,6 +1,7 @@
 module com.example.moodle {
     requires javafx.controls;
     requires javafx.fxml;
+    requires java.desktop;
 
     // Allow JavaFX to access your controller for the FXML injections (@FXML)
     opens com.example.moodle.controller to javafx.fxml;

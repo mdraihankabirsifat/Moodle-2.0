@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import com.example.moodle.model.Assignment;
 import com.example.moodle.model.Course;
@@ -98,7 +97,6 @@ public class CampusDashboardController {
     }
 
     // ===================== PROJECT SUBMISSION =====================
-
     @FXML
     private void showProjects() {
         VBox box = new VBox(15);
@@ -170,7 +168,6 @@ public class CampusDashboardController {
     }
 
     // ===================== HALL MANAGEMENT =====================
-
     @FXML
     private void showHall() {
         VBox box = new VBox(15);
@@ -191,40 +188,43 @@ public class CampusDashboardController {
         Label subTitle = new Label("Available Halls:");
         subTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
 
-        String[] halls = {"Shahid Smriti Hall", "Titumir Hall", "Sher-e-Bangla Hall", "Kabi Nazrul Hall", "Bangamata Hall"};
-        String[] rooms = {"Room 101", "Room 205", "Room 312", "Room 408", "Room 503"};
+        List<String[]> halls = DataStore.getAllHallRooms();
 
         VBox hallList = new VBox(10);
         Label msgLabel = new Label();
-        Random rand = new Random();
 
-        for (int i = 0; i < halls.length; i++) {
-            final String hallName = halls[i];
-            final String roomNum = rooms[i];
-            int available = 5 + rand.nextInt(20);
+        if (halls.isEmpty()) {
+            hallList.getChildren().add(new Label("No hall rooms available at the moment."));
+        } else {
+            for (int i = 0; i < halls.size(); i++) {
+                String[] h = halls.get(i);
+                final String hallName = h[0];
+                final String roomNum = h.length > 1 ? h[1] : "Room";
+                String capacity = h.length > 2 ? h[2] : "?";
 
-            HBox row = new HBox(15);
-            row.setAlignment(Pos.CENTER_LEFT);
-            row.setStyle("-fx-padding: 10; -fx-background-color: #f8f9ff; -fx-background-radius: 8;");
+                HBox row = new HBox(15);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setStyle("-fx-padding: 10; -fx-background-color: #f8f9ff; -fx-background-radius: 8;");
 
-            VBox info = new VBox(3);
-            Label hName = new Label(hallName);
-            hName.setStyle("-fx-font-weight: bold;");
-            Label avail = new Label("Available: " + available + " rooms");
-            avail.setStyle("-fx-text-fill: #666;");
-            info.getChildren().addAll(hName, avail);
+                VBox info = new VBox(3);
+                Label hName = new Label(hallName);
+                hName.setStyle("-fx-font-weight: bold;");
+                Label avail = new Label(roomNum + "  |  Capacity: " + capacity);
+                avail.setStyle("-fx-text-fill: #666;");
+                info.getChildren().addAll(hName, avail);
 
-            Button allocBtn = new Button("Request " + roomNum);
-            allocBtn.setOnAction(e -> {
-                hallRoom = hallName + " - " + roomNum;
-                statusLabel.setText("Current Room: " + hallRoom);
-                statusLabel.setStyle("-fx-text-fill: green; -fx-font-size: 14px;");
-                msgLabel.setStyle("-fx-text-fill: green;");
-                msgLabel.setText("Room allocated: " + hallRoom);
-            });
+                Button allocBtn = new Button("Request " + roomNum);
+                allocBtn.setOnAction(e -> {
+                    hallRoom = hallName + " - " + roomNum;
+                    statusLabel.setText("Current Room: " + hallRoom);
+                    statusLabel.setStyle("-fx-text-fill: green; -fx-font-size: 14px;");
+                    msgLabel.setStyle("-fx-text-fill: green;");
+                    msgLabel.setText("Room allocated: " + hallRoom);
+                });
 
-            row.getChildren().addAll(info, allocBtn);
-            hallList.getChildren().add(row);
+                row.getChildren().addAll(info, allocBtn);
+                hallList.getChildren().add(row);
+            }
         }
 
         box.getChildren().addAll(title, statusLabel, new Separator(), subTitle, hallList, msgLabel);
@@ -232,6 +232,9 @@ public class CampusDashboardController {
     }
 
     // ===================== SCHEDULE =====================
+    private static final String[] SCHED_DAYS = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"};
+    private static final String[] SCHED_TIMES = {"08:00-09:00", "09:00-10:00", "10:00-11:00", "11:00-12:00",
+            "12:00-01:00", "01:00-02:00", "02:00-03:00", "03:00-04:00"};
 
     @FXML
     private void showSchedule() {
@@ -241,44 +244,73 @@ public class CampusDashboardController {
         Label title = new Label("Class Schedule");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
 
+        String studentId = Session.getStudentId();
+        String batch = (studentId != null && studentId.length() >= 2) ? studentId.substring(0, 2) : "";
+
+        Label batchLabel = new Label("Batch: " + batch + " | Student ID: " + studentId);
+        batchLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #555;");
+
+        // Build schedule lookup: day+time -> entry
+        java.util.Map<String, String[]> lookup = new java.util.HashMap<>();
+        for (String[] e : DataStore.getScheduleForBatch(batch)) {
+            lookup.put(e[1] + "|" + e[2], e); // day|time -> entry
+        }
+
         GridPane grid = new GridPane();
         grid.setHgap(2);
         grid.setVgap(2);
-        grid.setStyle("-fx-background-color: #ddd;");
 
-        String[] days = {"Time", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"};
-        String[][] schedule = {
-                {"08:00", "CSE 101", "MATH 201", "CSE 101", "MATH 201", "PHY 101"},
-                {"09:30", "PHY 101", "ENG 102", "PHY Lab", "ENG 102", "CSE 203"},
-                {"11:00", "CSE 203", "CSE 101", "MATH 201", "CSE 203", "ENG 102"},
-                {"02:00", "Free", "CSE Lab", "Free", "CSE Lab", "Free"},
-        };
+        // Corner cell
+        Label corner = new Label("Time \\ Day");
+        corner.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 100;");
+        corner.setMaxWidth(Double.MAX_VALUE);
+        grid.add(corner, 0, 0);
 
-        // Header
-        for (int c = 0; c < days.length; c++) {
-            Label cell = new Label(days[c]);
-            cell.setStyle("-fx-font-weight: bold; -fx-padding: 8 12 8 12; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 100;");
-            cell.setMaxWidth(Double.MAX_VALUE);
-            grid.add(cell, c, 0);
+        // Day headers
+        for (int d = 0; d < SCHED_DAYS.length; d++) {
+            Label dayLabel = new Label(SCHED_DAYS[d]);
+            dayLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 110; -fx-alignment: center;");
+            dayLabel.setMaxWidth(Double.MAX_VALUE);
+            grid.add(dayLabel, d + 1, 0);
         }
 
-        // Data
-        for (int r = 0; r < schedule.length; r++) {
-            for (int c = 0; c < schedule[r].length; c++) {
-                Label cell = new Label(schedule[r][c]);
-                String bg = c == 0 ? "#e8ecf4" : (schedule[r][c].equals("Free") ? "#f5f5f5" : "white");
-                cell.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: " + bg + "; -fx-min-width: 100;");
-                cell.setMaxWidth(Double.MAX_VALUE);
-                grid.add(cell, c, r + 1);
+        // Time rows with cells
+        for (int t = 0; t < SCHED_TIMES.length; t++) {
+            Label timeLabel = new Label(SCHED_TIMES[t]);
+            timeLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #34495e; -fx-text-fill: white; -fx-min-width: 100;");
+            timeLabel.setMaxWidth(Double.MAX_VALUE);
+            grid.add(timeLabel, 0, t + 1);
+
+            for (int d = 0; d < SCHED_DAYS.length; d++) {
+                String key = SCHED_DAYS[d] + "|" + SCHED_TIMES[t];
+                String[] entry = lookup.get(key);
+
+                if (entry != null) {
+                    VBox cell = new VBox(2);
+                    cell.setAlignment(Pos.CENTER);
+                    cell.setStyle("-fx-padding: 6; -fx-background-color: #d4edda; -fx-min-width: 110; -fx-min-height: 50;");
+                    Label code = new Label(entry[3]);
+                    code.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #155724;");
+                    Label cName = new Label(entry[4]);
+                    cName.setStyle("-fx-font-size: 10px; -fx-text-fill: #155724;");
+                    cName.setWrapText(true);
+                    cell.getChildren().addAll(code, cName);
+                    grid.add(cell, d + 1, t + 1);
+                } else {
+                    Label voidCell = new Label("\u2014");
+                    voidCell.setAlignment(Pos.CENTER);
+                    voidCell.setStyle("-fx-padding: 6; -fx-background-color: #f8f9ff; -fx-min-width: 110; -fx-min-height: 50; -fx-text-fill: #ccc; -fx-alignment: center;");
+                    voidCell.setMaxWidth(Double.MAX_VALUE);
+                    grid.add(voidCell, d + 1, t + 1);
+                }
             }
         }
 
-        box.getChildren().addAll(title, grid);
+        box.getChildren().addAll(title, batchLabel, grid);
         setScrollContent(box);
     }
 
     // ===================== INTERNAL NOTICES =====================
-
     @FXML
     private void showNotices() {
         VBox box = new VBox(15);
@@ -288,12 +320,24 @@ public class CampusDashboardController {
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
 
         VBox noticeList = new VBox(8);
-        for (int i = 0; i < notices.size(); i++) {
-            Label notice = new Label("📌  " + notices.get(i));
-            notice.setWrapText(true);
-            notice.setStyle("-fx-padding: 10 14 10 14; -fx-background-color: #fff8e1; " +
-                    "-fx-background-radius: 8; -fx-border-color: #ffe082; -fx-border-radius: 8; -fx-font-size: 14px;");
-            noticeList.getChildren().add(notice);
+
+        // Read notices from DataStore (posted by authority/teachers)
+        List<String[]> dsNotices = DataStore.getAllNotices();
+        if (dsNotices.isEmpty()) {
+            Label noNotice = new Label("No notices posted yet.");
+            noNotice.setStyle("-fx-text-fill: #888; -fx-padding: 10;");
+            noticeList.getChildren().add(noNotice);
+        } else {
+            for (int i = dsNotices.size() - 1; i >= 0; i--) {
+                String[] n = dsNotices.get(i);
+                Label notice = new Label("\uD83D\uDCCC  [" + n[0] + "] " + n[1]);
+                notice.setWrapText(true);
+                notice.setStyle("-fx-padding: 10 14 10 14; -fx-background-color: #fff8e1; "
+                        + "-fx-background-radius: 8; -fx-border-color: #ffe082; -fx-border-radius: 8; -fx-font-size: 14px;");
+                Label dateLabel = new Label("Posted: " + n[3] + " by " + n[2]);
+                dateLabel.setStyle("-fx-text-fill: #999; -fx-font-size: 11px; -fx-padding: 0 0 0 14;");
+                noticeList.getChildren().addAll(notice, dateLabel);
+            }
         }
 
         box.getChildren().addAll(title, noticeList);
@@ -301,7 +345,6 @@ public class CampusDashboardController {
     }
 
     // ===================== GRADESHEET =====================
-
     @FXML
     private void showGradesheet() {
         VBox box = new VBox(15);
@@ -310,7 +353,8 @@ public class CampusDashboardController {
         Label title = new Label("Gradesheet");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
 
-        Label studentInfo = new Label("Student: " + Session.getName() + "  |  ID: " + Session.getStudentId());
+        String studentId = Session.getStudentId();
+        Label studentInfo = new Label("Student: " + Session.getName() + "  |  ID: " + studentId);
         studentInfo.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
 
         GridPane grid = new GridPane();
@@ -327,30 +371,40 @@ public class CampusDashboardController {
             grid.add(cell, c, 0);
         }
 
+        List<String[]> gradeData = DataStore.getGradesForStudent(studentId != null ? studentId : "");
         int row = 1;
         double totalPoints = 0;
-        for (Map.Entry<String, Double> entry : grades.entrySet()) {
-            Label courseCell = new Label(entry.getKey());
+        for (String[] g : gradeData) {
+            // g[0]=studentId, g[1]=courseCode, g[2]=gradePoint
+            double gp = 0;
+            try {
+                gp = Double.parseDouble(g[2]);
+            } catch (NumberFormatException ignored) {
+            }
+
+            Label courseCell = new Label(g[1]);
             courseCell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: white; -fx-min-width: 180;");
             courseCell.setMaxWidth(Double.MAX_VALUE);
 
-            Label gpCell = new Label(String.format("%.2f", entry.getValue()));
+            Label gpCell = new Label(String.format("%.2f", gp));
             gpCell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: white; -fx-min-width: 180;");
             gpCell.setMaxWidth(Double.MAX_VALUE);
 
-            Label lgCell = new Label(getLetterGrade(entry.getValue()));
+            Label lgCell = new Label(getLetterGrade(gp));
             lgCell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: white; -fx-min-width: 180;");
             lgCell.setMaxWidth(Double.MAX_VALUE);
 
             grid.add(courseCell, 0, row);
             grid.add(gpCell, 1, row);
             grid.add(lgCell, 2, row);
-            totalPoints += entry.getValue();
+            totalPoints += gp;
             row++;
         }
 
-        double cgpa = grades.isEmpty() ? 0 : totalPoints / grades.size();
-        Label cgpaLabel = new Label(String.format("CGPA: %.2f", cgpa));
+        double cgpa = gradeData.isEmpty() ? 0 : totalPoints / gradeData.size();
+        Label cgpaLabel = new Label(gradeData.isEmpty()
+                ? "No grades assigned yet."
+                : String.format("CGPA: %.2f", cgpa));
         cgpaLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72; -fx-padding: 10 0 0 0;");
 
         box.getChildren().addAll(title, studentInfo, grid, cgpaLabel);
@@ -358,19 +412,34 @@ public class CampusDashboardController {
     }
 
     private String getLetterGrade(double gp) {
-        if (gp >= 4.0) return "A+";
-        if (gp >= 3.75) return "A";
-        if (gp >= 3.50) return "A-";
-        if (gp >= 3.25) return "B+";
-        if (gp >= 3.0) return "B";
-        if (gp >= 2.75) return "B-";
-        if (gp >= 2.50) return "C+";
-        if (gp >= 2.25) return "C";
+        if (gp >= 4.0) {
+            return "A+";
+        }
+        if (gp >= 3.75) {
+            return "A";
+        }
+        if (gp >= 3.50) {
+            return "A-";
+        }
+        if (gp >= 3.25) {
+            return "B+";
+        }
+        if (gp >= 3.0) {
+            return "B";
+        }
+        if (gp >= 2.75) {
+            return "B-";
+        }
+        if (gp >= 2.50) {
+            return "C+";
+        }
+        if (gp >= 2.25) {
+            return "C";
+        }
         return "F";
     }
 
     // ===================== VENDING MACHINE =====================
-
     @FXML
     private void showVending() {
         VBox box = new VBox(15);
@@ -397,8 +466,8 @@ public class CampusDashboardController {
 
             VBox itemBox = new VBox(5);
             itemBox.setAlignment(Pos.CENTER);
-            itemBox.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-min-width: 110;");
+            itemBox.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; "
+                    + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-min-width: 110;");
 
             Label emoji = new Label(emojis[i]);
             emoji.setStyle("-fx-font-size: 28px;");
@@ -439,7 +508,6 @@ public class CampusDashboardController {
     }
 
     // ===================== WASHING MACHINE =====================
-
     @FXML
     private void showWashing() {
         VBox box = new VBox(15);
@@ -452,8 +520,8 @@ public class CampusDashboardController {
         subTitle.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
 
         String[] slots = {"08:00 - 09:00 AM", "09:00 - 10:00 AM", "10:00 - 11:00 AM",
-                "11:00 - 12:00 PM", "02:00 - 03:00 PM", "03:00 - 04:00 PM",
-                "04:00 - 05:00 PM", "05:00 - 06:00 PM"};
+            "11:00 - 12:00 PM", "02:00 - 03:00 PM", "03:00 - 04:00 PM",
+            "04:00 - 05:00 PM", "05:00 - 06:00 PM"};
         String[] machines = {"Machine A", "Machine B", "Machine C"};
 
         Label msgLabel = new Label();
@@ -519,7 +587,6 @@ public class CampusDashboardController {
     }
 
     // ===================== GAMES & SPORTS =====================
-
     @FXML
     private void showGames() {
         VBox box = new VBox(15);
@@ -528,64 +595,63 @@ public class CampusDashboardController {
         Label title = new Label("Games & Sports");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
 
-        String[] sports = {"Cricket", "Football", "Badminton", "Table Tennis", "Chess", "Basketball"};
-        String[] sportEmojis = {"🏏", "⚽", "🏸", "🏓", "♟️", "🏀"};
-        String[] schedules = {"Sunday & Wednesday 4-6 PM", "Monday & Thursday 4-6 PM",
-                "Tuesday & Friday 5-7 PM", "Daily 3-5 PM",
-                "Daily Open Hours", "Saturday 9-11 AM"};
-        String[] venues = {"Main Ground", "Football Field", "Indoor Court", "Recreation Room",
-                "Common Room", "Basketball Court"};
-
+        List<String[]> games = DataStore.getAllGames();
         Label msgLabel = new Label();
 
-        GridPane grid = new GridPane();
-        grid.setHgap(12);
-        grid.setVgap(12);
+        if (games.isEmpty()) {
+            box.getChildren().addAll(title, new Label("No games/sports available at the moment."));
+        } else {
+            GridPane grid = new GridPane();
+            grid.setHgap(12);
+            grid.setVgap(12);
 
-        for (int i = 0; i < sports.length; i++) {
-            final String sport = sports[i];
+            for (int i = 0; i < games.size(); i++) {
+                String[] g = games.get(i);
+                final String sport = g[0];
+                String emoji = g.length > 1 ? g[1] : "\uD83C\uDFC6";
+                String schedule = g.length > 2 ? g[2] : "";
+                String venue = g.length > 3 ? g[3] : "";
 
-            VBox card = new VBox(8);
-            card.setAlignment(Pos.CENTER);
-            card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 18; " +
-                    "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-min-width: 160;");
+                VBox card = new VBox(8);
+                card.setAlignment(Pos.CENTER);
+                card.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 18; "
+                        + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-min-width: 160;");
 
-            Label emoji = new Label(sportEmojis[i]);
-            emoji.setStyle("-fx-font-size: 32px;");
-            Label name = new Label(sport);
-            name.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-            Label sched = new Label(schedules[i]);
-            sched.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
-            sched.setWrapText(true);
-            Label venue = new Label("📍 " + venues[i]);
-            venue.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
+                Label emojiL = new Label(emoji);
+                emojiL.setStyle("-fx-font-size: 32px;");
+                Label name = new Label(sport);
+                name.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+                Label sched = new Label(schedule);
+                sched.setStyle("-fx-text-fill: #666; -fx-font-size: 11px;");
+                sched.setWrapText(true);
+                Label venueL = new Label("\uD83D\uDCCD " + venue);
+                venueL.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
 
-            boolean registered = gameRegistrations.contains(sport);
-            Button regBtn = new Button(registered ? "✅ Registered" : "Register");
-            if (registered) {
-                regBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 6;");
-                regBtn.setDisable(true);
+                boolean registered = gameRegistrations.contains(sport);
+                Button regBtn = new Button(registered ? "\u2705 Registered" : "Register");
+                if (registered) {
+                    regBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white; -fx-background-radius: 6;");
+                    regBtn.setDisable(true);
+                }
+                regBtn.setOnAction(e -> {
+                    gameRegistrations.add(sport);
+                    msgLabel.setStyle("-fx-text-fill: green;");
+                    msgLabel.setText("Registered for " + sport + "! \uD83C\uDF89");
+                    showGames(); // Refresh
+                });
+
+                card.getChildren().addAll(emojiL, name, sched, venueL, regBtn);
+                grid.add(card, i % 3, i / 3);
             }
-            regBtn.setOnAction(e -> {
-                gameRegistrations.add(sport);
-                msgLabel.setStyle("-fx-text-fill: green;");
-                msgLabel.setText("Registered for " + sport + "! 🎉");
-                showGames(); // Refresh
-            });
 
-            card.getChildren().addAll(emoji, name, sched, venue, regBtn);
-            grid.add(card, i % 3, i / 3);
+            box.getChildren().addAll(title, grid, msgLabel);
         }
-
-        box.getChildren().addAll(title, grid, msgLabel);
         setScrollContent(box);
     }
 
     // ===================== REMOVED OLD METHODS =====================
     // showActivities removed - replaced by showGames
-
     // ===================== MY COURSES =====================
-
     @FXML
     private void showCourses() {
         VBox box = new VBox(15);
@@ -595,18 +661,32 @@ public class CampusDashboardController {
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
         box.getChildren().add(title);
 
+        String studentId = Session.getStudentId();
+        String myBatch = (studentId != null && studentId.length() >= 2) ? studentId.substring(0, 2) : "";
+
         List<Course> courses = DataStore.getAllCourses();
-        if (courses.isEmpty()) {
-            box.getChildren().add(new Label("No courses available."));
+        // Filter by batch
+        List<Course> filtered = new ArrayList<>();
+        for (Course c : courses) {
+            if (c.getBatch().isEmpty() || c.getBatch().equals(myBatch)) {
+                filtered.add(c);
+            }
+        }
+
+        if (filtered.isEmpty()) {
+            box.getChildren().add(new Label("No courses available for your batch (" + myBatch + ")."));
         } else {
-            for (Course c : courses) {
+            for (Course c : filtered) {
                 VBox courseCard = new VBox(10);
                 courseCard.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-padding: 15; "
                         + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
 
                 Label cName = new Label("\uD83D\uDCDA " + c.getCode() + " - " + c.getName());
                 cName.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-                Label cInfo = new Label("Semester: " + c.getSemester() + " | Teacher: " + c.getTeacherEmail());
+                String teacherInfo = c.getTeacherName().isEmpty() ? c.getTeacherEmail()
+                        : c.getTeacherName() + " (" + c.getTeacherEmail() + ")";
+                Label cInfo = new Label("Semester: " + c.getSemester() + " | Teacher: " + teacherInfo
+                        + (c.getBatch().isEmpty() ? "" : " | Batch: " + c.getBatch()));
                 cInfo.setStyle("-fx-text-fill: #666; -fx-font-size: 12px;");
 
                 HBox btnRow = new HBox(10);
@@ -630,9 +710,37 @@ public class CampusDashboardController {
                             aBox.setStyle("-fx-padding: 8; -fx-background-color: #f8f9ff; -fx-background-radius: 6;");
                             Label aTitle = new Label("\uD83D\uDCDD " + a.getTitle());
                             aTitle.setStyle("-fx-font-weight: bold;");
-                            Label aDesc = new Label(a.getDescription());
+
+                            String rawDesc = a.getDescription();
+                            String displayDesc = rawDesc;
+                            String pdfFile = "";
+                            if (rawDesc.contains("[PDF:")) {
+                                int idx = rawDesc.indexOf("[PDF:");
+                                int end = rawDesc.indexOf("]", idx);
+                                if (end > idx) {
+                                    pdfFile = rawDesc.substring(idx + 5, end);
+                                    displayDesc = rawDesc.substring(0, idx).trim();
+                                }
+                            }
+                            Label aDesc = new Label(displayDesc);
                             aDesc.setWrapText(true);
                             aDesc.setStyle("-fx-text-fill: #555;");
+                            aBox.getChildren().addAll(aTitle, aDesc);
+
+                            // PDF open button
+                            if (!pdfFile.isEmpty()) {
+                                final String fp = pdfFile;
+                                Button openPdf = new Button("\uD83D\uDCC4 Open PDF");
+                                openPdf.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
+                                openPdf.setOnAction(ev -> {
+                                    try {
+                                        java.awt.Desktop.getDesktop().open(new File(fp));
+                                    } catch (Exception ex) {
+                                        // fallback
+                                    }
+                                });
+                                aBox.getChildren().add(openPdf);
+                            }
 
                             // Check if already submitted
                             List<String[]> mySubs = DataStore.getSubmissionsByStudent(Session.getStudentId());
@@ -649,13 +757,12 @@ public class CampusDashboardController {
                             if (submitted) {
                                 Label status = new Label("\u2705 Submitted | Marks: " + marks);
                                 status.setStyle("-fx-text-fill: green; -fx-font-weight: bold;");
-                                aBox.getChildren().addAll(aTitle, aDesc, status);
+                                aBox.getChildren().add(status);
                             } else {
                                 TextArea subArea = new TextArea();
                                 subArea.setPromptText("Your submission...");
                                 subArea.setPrefRowCount(2);
 
-                                // PDF attachment for submission
                                 Label pdfLabel = new Label("No PDF attached");
                                 pdfLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
                                 final String[] pdfPath = {""};
@@ -696,7 +803,7 @@ public class CampusDashboardController {
                                         pdfBtn.setDisable(true);
                                     }
                                 });
-                                aBox.getChildren().addAll(aTitle, aDesc, subArea, pdfRow, subBtn, subMsg);
+                                aBox.getChildren().addAll(subArea, pdfRow, subBtn, subMsg);
                             }
                             detailBox.getChildren().add(aBox);
                         }
@@ -714,10 +821,35 @@ public class CampusDashboardController {
                             sBox.setStyle("-fx-padding: 8; -fx-background-color: #e8f5e9; -fx-background-radius: 6;");
                             Label sTitle = new Label("\uD83D\uDCCA " + s[1]);
                             sTitle.setStyle("-fx-font-weight: bold;");
-                            Label sDesc = new Label(s[2]);
+                            String rawSlide = s[2];
+                            String displaySlide = rawSlide;
+                            String slidePdf = "";
+                            if (rawSlide.contains("[PDF:")) {
+                                int idx = rawSlide.indexOf("[PDF:");
+                                int end = rawSlide.indexOf("]", idx);
+                                if (end > idx) {
+                                    slidePdf = rawSlide.substring(idx + 5, end);
+                                    displaySlide = rawSlide.substring(0, idx).trim();
+                                }
+                            }
+                            Label sDesc = new Label(displaySlide);
                             sDesc.setWrapText(true);
                             sDesc.setStyle("-fx-text-fill: #555;");
                             sBox.getChildren().addAll(sTitle, sDesc);
+
+                            if (!slidePdf.isEmpty()) {
+                                final String fp = slidePdf;
+                                Button openPdf = new Button("\uD83D\uDCC4 Open PDF");
+                                openPdf.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
+                                openPdf.setOnAction(ev -> {
+                                    try {
+                                        java.awt.Desktop.getDesktop().open(new File(fp));
+                                    } catch (Exception ex) {
+                                        /* ignore */ }
+                                });
+                                sBox.getChildren().add(openPdf);
+                            }
+
                             detailBox.getChildren().add(sBox);
                         }
                     }
@@ -747,7 +879,6 @@ public class CampusDashboardController {
     }
 
     // ===================== PAYMENT =====================
-
     @FXML
     private void showPayment() {
         VBox box = new VBox(15);
@@ -760,12 +891,11 @@ public class CampusDashboardController {
         Label msgLabel = new Label();
 
         String[][] fees = {
-                {"Hall Fees", "5000", "\uD83C\uDFE0"},
-                {"Exam Fees", "3000", "\uD83D\uDCDD"},
-                {"Semester Fees", "15000", "\uD83C\uDF93"},
-                {"Library Fees", "1000", "\uD83D\uDCDA"},
-                {"Lab Fees", "2000", "\uD83D\uDD2C"},
-        };
+            {"Hall Fees", "5000", "\uD83C\uDFE0"},
+            {"Exam Fees", "3000", "\uD83D\uDCDD"},
+            {"Semester Fees", "15000", "\uD83C\uDF93"},
+            {"Library Fees", "1000", "\uD83D\uDCDA"},
+            {"Lab Fees", "2000", "\uD83D\uDD2C"},};
 
         GridPane grid = new GridPane();
         grid.setHgap(15);
@@ -824,98 +954,224 @@ public class CampusDashboardController {
         setScrollContent(box);
     }
 
-    // ===================== MESSAGES =====================
-
+    // ===================== MESSAGES (Messenger Style) =====================
     @FXML
     private void showMessages() {
         VBox box = new VBox(15);
         box.setPadding(new Insets(10));
 
-        Label title = new Label("Messages");
+        Label title = new Label("\uD83D\uDCE8 Messages");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
 
         String myId = Session.getIdentifier();
 
-        Label composeTitle = new Label("Send Message");
-        composeTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-        TextField toField = new TextField();
-        toField.setPromptText("Recipient (email or ID)");
-        TextArea msgArea = new TextArea();
-        msgArea.setPromptText("Your message...");
-        msgArea.setPrefRowCount(3);
-
-        Label msgLabel = new Label();
-        Button sendBtn = new Button("Send");
-        sendBtn.setOnAction(e -> {
-            String to = toField.getText().trim();
-            String content = msgArea.getText().trim();
-            if (to.isEmpty() || content.isEmpty()) {
-                msgLabel.setStyle("-fx-text-fill: red;");
-                msgLabel.setText("Fill all fields.");
-            } else {
-                DataStore.sendMessage(myId, to, content);
-                msgLabel.setStyle("-fx-text-fill: green;");
-                msgLabel.setText("Message sent!");
-                toField.clear();
-                msgArea.clear();
+        // Compose new message
+        HBox composeRow = new HBox(10);
+        composeRow.setAlignment(Pos.CENTER_LEFT);
+        TextField newChatField = new TextField();
+        newChatField.setPromptText("Start new chat (enter email or ID)...");
+        HBox.setHgrow(newChatField, Priority.ALWAYS);
+        Button newChatBtn = new Button("\uD83D\uDCAC Chat");
+        newChatBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;");
+        newChatBtn.setOnAction(e -> {
+            String to = newChatField.getText().trim();
+            if (!to.isEmpty()) {
+                showDirectChat(to);
             }
         });
+        composeRow.getChildren().addAll(newChatField, newChatBtn);
 
-        // Dynamic inbox section
-        VBox inbox = new VBox(8);
+        // Conversation list
+        VBox convList = new VBox(8);
 
-        Runnable refreshInbox = () -> {
-            inbox.getChildren().clear();
-            Label inboxTitle = new Label("Messages:");
-            inboxTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-            inbox.getChildren().add(inboxTitle);
-
+        Runnable refreshConversations = () -> {
+            convList.getChildren().clear();
             List<Message> messages = DataStore.getMessagesFor(myId);
-            if (messages.isEmpty()) {
-                inbox.getChildren().add(new Label("No messages."));
+            // Build unique conversation partners
+            Map<String, Message> lastMessages = new java.util.LinkedHashMap<>();
+            for (Message m : messages) {
+                String partner = m.getFrom().equals(myId) ? m.getTo() : m.getFrom();
+                lastMessages.put(partner, m); // last message wins
+            }
+            if (lastMessages.isEmpty()) {
+                Label noMsg = new Label("No conversations yet. Start one above!");
+                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                convList.getChildren().add(noMsg);
             } else {
-                for (int i = messages.size() - 1; i >= 0; i--) {
-                    Message m = messages.get(i);
-                    String direction = m.getFrom().equals(myId)
-                            ? "\u27A1 To: " + m.getTo()
-                            : "\u2B05 From: " + m.getFrom();
-                    VBox msgCard = new VBox(4);
-                    msgCard.setStyle("-fx-padding: 10; -fx-background-color: #f0f8ff; -fx-background-radius: 8;");
-                    Label dir = new Label(direction);
-                    dir.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #555;");
-                    Label content = new Label(m.getContent());
-                    content.setWrapText(true);
-                    Label ts = new Label(m.getTimestamp());
-                    ts.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
-                    msgCard.getChildren().addAll(dir, content, ts);
-                    inbox.getChildren().add(msgCard);
+                // Show conversations newest first
+                List<Map.Entry<String, Message>> entries = new ArrayList<>(lastMessages.entrySet());
+                for (int i = entries.size() - 1; i >= 0; i--) {
+                    Map.Entry<String, Message> entry = entries.get(i);
+                    String partner = entry.getKey();
+                    Message lastMsg = entry.getValue();
+
+                    HBox card = new HBox(12);
+                    card.setAlignment(Pos.CENTER_LEFT);
+                    card.setStyle("-fx-padding: 12; -fx-background-color: white; -fx-background-radius: 10; "
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2); -fx-cursor: hand;");
+
+                    Label avatar = new Label("\uD83D\uDC64");
+                    avatar.setStyle("-fx-font-size: 28px;");
+
+                    VBox info = new VBox(3);
+                    HBox.setHgrow(info, Priority.ALWAYS);
+                    Label nameLabel = new Label(partner);
+                    nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;");
+                    boolean fromMe = lastMsg.getFrom().equals(myId);
+                    String preview = (fromMe ? "You: " : "") + lastMsg.getContent();
+                    if (preview.length() > 50) {
+                        preview = preview.substring(0, 50) + "...";
+                    }
+                    Label previewLabel = new Label(preview);
+                    previewLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 12px;");
+                    info.getChildren().addAll(nameLabel, previewLabel);
+
+                    Label timeLabel = new Label(lastMsg.getTimestamp());
+                    timeLabel.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
+
+                    card.getChildren().addAll(avatar, info, timeLabel);
+                    card.setOnMouseClicked(ev -> showDirectChat(partner));
+                    convList.getChildren().add(card);
                 }
             }
         };
 
-        refreshInbox.run();
+        refreshConversations.run();
 
-        Label liveHint = new Label("\uD83D\uDFE2 Inbox auto-refreshes every 3 seconds");
+        Label liveHint = new Label("\uD83D\uDFE2 Conversations auto-refresh every 3 seconds");
         liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
 
-        box.getChildren().addAll(title, composeTitle, toField, msgArea,
-                sendBtn, msgLabel, new Separator(), liveHint, inbox);
+        box.getChildren().addAll(title, composeRow, new Separator(), liveHint, convList);
         setScrollContent(box);
 
-        // Auto-refresh inbox
-        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshInbox.run()));
+        // Auto-refresh conversations
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshConversations.run()));
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
+    }
+
+    /**
+     * Open direct live chat with a specific recipient
+     */
+    private void showDirectChat(String recipientId) {
+        VBox box = new VBox(10);
+        box.setPadding(new Insets(10));
+
+        String myId = Session.getIdentifier();
+
+        Button backBtn = new Button("\u2190 Back to Messages");
+        backBtn.setStyle("-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-background-radius: 8;");
+        backBtn.setOnAction(e -> showMessages());
+
+        Label title = new Label("\uD83D\uDCAC Chat with " + recipientId);
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        VBox chatMessages = new VBox(8);
+        chatMessages.setStyle("-fx-padding: 10;");
+
+        ScrollPane chatScroll = new ScrollPane(chatMessages);
+        chatScroll.setFitToWidth(true);
+        chatScroll.setPrefHeight(350);
+        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+
+        HBox inputRow = new HBox(10);
+        inputRow.setAlignment(Pos.CENTER_LEFT);
+        TextArea chatInput = new TextArea();
+        chatInput.setPromptText("Type a message...");
+        chatInput.setPrefRowCount(2);
+        chatInput.setPrefWidth(400);
+        HBox.setHgrow(chatInput, Priority.ALWAYS);
+
+        Button sendBtn = new Button("Send \u27A1");
+        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+
+        Label statusLabel = new Label();
+        final int[] lastMsgCount = {-1};
+
+        Runnable refreshChat = () -> {
+            List<Message> allMsgs = DataStore.getMessagesFor(myId);
+            List<Message> filtered = new ArrayList<>();
+            for (Message m : allMsgs) {
+                if ((m.getFrom().equals(myId) && m.getTo().equals(recipientId))
+                        || (m.getFrom().equals(recipientId) && m.getTo().equals(myId))) {
+                    filtered.add(m);
+                }
+            }
+            if (filtered.size() == lastMsgCount[0]) return; // no change, skip rebuild
+            lastMsgCount[0] = filtered.size();
+
+            chatMessages.getChildren().clear();
+            for (Message m : filtered) {
+                boolean isMine = m.getFrom().equals(myId);
+                HBox bubble = new HBox();
+                bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+                VBox msgBox = new VBox(2);
+                msgBox.setMaxWidth(300);
+                msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
+                        + (isMine ? "-fx-background-color: #2a5298;" : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+
+                Label content = new Label(m.getContent());
+                content.setWrapText(true);
+                content.setStyle(isMine ? "-fx-text-fill: white; -fx-font-size: 13px;" : "-fx-text-fill: #333; -fx-font-size: 13px;");
+
+                Label ts = new Label(m.getTimestamp());
+                ts.setStyle("-fx-font-size: 10px; " + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+
+                msgBox.getChildren().addAll(content, ts);
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                if (isMine) {
+                    bubble.getChildren().addAll(spacer, msgBox);
+                } else {
+                    bubble.getChildren().addAll(msgBox, spacer);
+                }
+                chatMessages.getChildren().add(bubble);
+            }
+            if (chatMessages.getChildren().isEmpty()) {
+                Label noMsg = new Label("No messages yet. Start the conversation!");
+                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                chatMessages.getChildren().add(noMsg);
+            }
+            // Scroll to bottom
+            chatScroll.applyCss();
+            chatScroll.layout();
+            chatScroll.setVvalue(1.0);
+        };
+
+        sendBtn.setOnAction(e -> {
+            String content = chatInput.getText().trim();
+            if (content.isEmpty()) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Type a message.");
+                return;
+            }
+            DataStore.sendMessage(myId, recipientId, content);
+            chatInput.clear();
+            statusLabel.setText("");
+            lastMsgCount[0] = -1; // force rebuild
+            refreshChat.run();
+        });
+
+        refreshChat.run();
+
+        Label onlineHint = new Label("\uD83D\uDFE2 Auto-refreshes every 3 seconds");
+        onlineHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+
+        inputRow.getChildren().addAll(chatInput, sendBtn);
+        box.getChildren().addAll(backBtn, title, onlineHint, chatScroll, inputRow, statusLabel);
+        setScrollContent(box);
+
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshChat.run()));
         refreshTimeline.setCycleCount(Timeline.INDEFINITE);
         refreshTimeline.play();
     }
 
     // ===================== LIVE CHAT =====================
-
     private Timeline refreshTimeline;
 
     @FXML
     private void showLiveChat() {
-        // refreshTimeline is stopped by setScrollContent
-
         VBox box = new VBox(10);
         box.setPadding(new Insets(10));
 
@@ -929,7 +1185,6 @@ public class CampusDashboardController {
         recipientField.setPromptText("Chat with (email or ID)...");
         recipientField.setStyle("-fx-padding: 8; -fx-background-radius: 20; -fx-border-radius: 20;");
 
-        // Chat messages area
         VBox chatMessages = new VBox(8);
         chatMessages.setStyle("-fx-padding: 10;");
 
@@ -937,9 +1192,7 @@ public class CampusDashboardController {
         chatScroll.setFitToWidth(true);
         chatScroll.setPrefHeight(350);
         chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
-        chatScroll.vvalueProperty().bind(chatMessages.heightProperty());
 
-        // Message input
         HBox inputRow = new HBox(10);
         inputRow.setAlignment(Pos.CENTER_LEFT);
         TextArea chatInput = new TextArea();
@@ -952,49 +1205,57 @@ public class CampusDashboardController {
         sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
 
         Label statusLabel = new Label();
+        final int[] lastMsgCount = {-1};
 
         Runnable refreshChat = () -> {
             String recipient = recipientField.getText().trim();
-            if (recipient.isEmpty()) return;
-            chatMessages.getChildren().clear();
-
-            List<Message> messages = DataStore.getMessagesFor(myId);
-            for (Message m : messages) {
-                if (m.getFrom().equals(myId) && m.getTo().equals(recipient)
-                        || m.getFrom().equals(recipient) && m.getTo().equals(myId)) {
-                    boolean isMine = m.getFrom().equals(myId);
-                    HBox bubble = new HBox();
-                    bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
-
-                    VBox msgBox = new VBox(2);
-                    msgBox.setMaxWidth(300);
-                    msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
-                            + (isMine
-                            ? "-fx-background-color: #2a5298;"
-                            : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
-
-                    Label content = new Label(m.getContent());
-                    content.setWrapText(true);
-                    content.setStyle(isMine
-                            ? "-fx-text-fill: white; -fx-font-size: 13px;"
-                            : "-fx-text-fill: #333; -fx-font-size: 13px;");
-
-                    Label ts = new Label(m.getTimestamp());
-                    ts.setStyle("-fx-font-size: 10px; "
-                            + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
-
-                    msgBox.getChildren().addAll(content, ts);
-
-                    Region spacer = new Region();
-                    HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                    if (isMine) {
-                        bubble.getChildren().addAll(spacer, msgBox);
-                    } else {
-                        bubble.getChildren().addAll(msgBox, spacer);
-                    }
-                    chatMessages.getChildren().add(bubble);
+            if (recipient.isEmpty()) {
+                return;
+            }
+            List<Message> allMsgs = DataStore.getMessagesFor(myId);
+            List<Message> filtered = new ArrayList<>();
+            for (Message m : allMsgs) {
+                if ((m.getFrom().equals(myId) && m.getTo().equals(recipient))
+                        || (m.getFrom().equals(recipient) && m.getTo().equals(myId))) {
+                    filtered.add(m);
                 }
+            }
+            if (filtered.size() == lastMsgCount[0]) return; // no change
+            lastMsgCount[0] = filtered.size();
+
+            chatMessages.getChildren().clear();
+            for (Message m : filtered) {
+                boolean isMine = m.getFrom().equals(myId);
+                HBox bubble = new HBox();
+                bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+                VBox msgBox = new VBox(2);
+                msgBox.setMaxWidth(300);
+                msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
+                        + (isMine
+                                ? "-fx-background-color: #2a5298;"
+                                : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+
+                Label content = new Label(m.getContent());
+                content.setWrapText(true);
+                content.setStyle(isMine
+                        ? "-fx-text-fill: white; -fx-font-size: 13px;"
+                        : "-fx-text-fill: #333; -fx-font-size: 13px;");
+
+                Label ts = new Label(m.getTimestamp());
+                ts.setStyle("-fx-font-size: 10px; "
+                        + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+
+                msgBox.getChildren().addAll(content, ts);
+
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                if (isMine) {
+                    bubble.getChildren().addAll(spacer, msgBox);
+                } else {
+                    bubble.getChildren().addAll(msgBox, spacer);
+                }
+                chatMessages.getChildren().add(bubble);
             }
 
             if (chatMessages.getChildren().isEmpty()) {
@@ -1002,6 +1263,10 @@ public class CampusDashboardController {
                 noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
                 chatMessages.getChildren().add(noMsg);
             }
+            // Scroll to bottom
+            chatScroll.applyCss();
+            chatScroll.layout();
+            chatScroll.setVvalue(1.0);
         };
 
         sendBtn.setOnAction(e -> {
@@ -1020,13 +1285,14 @@ public class CampusDashboardController {
             DataStore.sendMessage(myId, recipient, content);
             chatInput.clear();
             statusLabel.setText("");
+            lastMsgCount[0] = -1; // force rebuild
             refreshChat.run();
         });
 
-        recipientField.setOnAction(e -> refreshChat.run());
+        recipientField.setOnAction(e -> { lastMsgCount[0] = -1; refreshChat.run(); });
 
         Button loadChatBtn = new Button("Load Chat");
-        loadChatBtn.setOnAction(e -> refreshChat.run());
+        loadChatBtn.setOnAction(e -> { lastMsgCount[0] = -1; refreshChat.run(); });
 
         HBox recipientRow = new HBox(10, recipientField, loadChatBtn);
         recipientRow.setAlignment(Pos.CENTER_LEFT);
@@ -1034,24 +1300,24 @@ public class CampusDashboardController {
 
         inputRow.getChildren().addAll(chatInput, sendBtn);
 
-        // Auto-refresh every 3 seconds
-        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshChat.run()));
-        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
-        refreshTimeline.play();
-
-        // Online users hint
         Label onlineHint = new Label("\uD83D\uDFE2 Auto-refreshes every 3 seconds");
         onlineHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
 
         box.getChildren().addAll(title, recipientRow, onlineHint, chatScroll,
                 inputRow, statusLabel);
         setScrollContent(box);
+
+        // Auto-refresh — AFTER setScrollContent
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshChat.run()));
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
     }
 
     // ===================== UTILITY =====================
-
     private void setScrollContent(VBox content) {
-        if (refreshTimeline != null) refreshTimeline.stop();
+        if (refreshTimeline != null) {
+            refreshTimeline.stop();
+        }
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent;");
@@ -1059,14 +1325,12 @@ public class CampusDashboardController {
     }
 
     // ===================== OPEN NEW WINDOW =====================
-
     @FXML
     private void openNewWindow() {
         SceneManager.openNewWindow();
     }
 
     // ===================== STUDENTS COMMUNITY =====================
-
     @FXML
     private void showCommunity() {
         VBox box = new VBox(15);
@@ -1084,25 +1348,49 @@ public class CampusDashboardController {
         postArea.setPrefRowCount(3);
         postArea.setWrapText(true);
 
+        // Photo attachment
+        final String[] attachedImage = {""};
+        Label imgLabel = new Label("No image attached");
+        imgLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
+        Button imgBtn = new Button("\uD83D\uDCF7 Attach Photo");
+        imgBtn.setStyle("-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+        imgBtn.setOnAction(e -> {
+            javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+            fc.setTitle("Select Image");
+            fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+            java.io.File file = fc.showOpenDialog(contentArea.getScene().getWindow());
+            if (file != null) {
+                attachedImage[0] = file.toURI().toString();
+                imgLabel.setText("\u2705 " + file.getName());
+                imgLabel.setStyle("-fx-text-fill: green; -fx-font-size: 11px;");
+            }
+        });
+        HBox imgRow = new HBox(10, imgBtn, imgLabel);
+        imgRow.setAlignment(Pos.CENTER_LEFT);
+
         Label postMsg = new Label();
         Button postBtn = new Button("\uD83D\uDCE8 Post");
         postBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20 8 20; -fx-cursor: hand;");
 
         postBtn.setOnAction(e -> {
             String content = postArea.getText().trim();
-            if (content.isEmpty()) {
+            if (content.isEmpty() && attachedImage[0].isEmpty()) {
                 postMsg.setStyle("-fx-text-fill: red;");
-                postMsg.setText("Write something first!");
+                postMsg.setText("Write something or attach a photo!");
             } else {
                 DataStore.addCommunityPost(Session.getIdentifier(),
-                        Session.getName() != null ? Session.getName() : "Anonymous", content);
+                        Session.getName() != null ? Session.getName() : "Anonymous",
+                        content.isEmpty() ? "\uD83D\uDCF7 Photo" : content, attachedImage[0]);
                 postMsg.setStyle("-fx-text-fill: green;");
                 postMsg.setText("Posted successfully! \u2705");
                 postArea.clear();
+                attachedImage[0] = "";
+                imgLabel.setText("No image attached");
+                imgLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
             }
         });
 
-        VBox formBox = new VBox(8, formTitle, postArea, new HBox(10, postBtn, postMsg));
+        VBox formBox = new VBox(8, formTitle, postArea, imgRow, new HBox(10, postBtn, postMsg));
         formBox.setStyle("-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; "
                 + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
 
@@ -1141,6 +1429,19 @@ public class CampusDashboardController {
                     contentLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #333; -fx-padding: 5 0 0 32;");
 
                     postCard.getChildren().addAll(header, contentLabel);
+
+                    // Display attached image if present
+                    if (p.length >= 5 && p[4] != null && !p[4].isEmpty()) {
+                        try {
+                            javafx.scene.image.Image img = new javafx.scene.image.Image(p[4], 400, 300, true, true);
+                            javafx.scene.image.ImageView imgView = new javafx.scene.image.ImageView(img);
+                            imgView.setPreserveRatio(true);
+                            imgView.setFitWidth(400);
+                            imgView.setStyle("-fx-padding: 5 0 0 32;");
+                            postCard.getChildren().add(imgView);
+                        } catch (Exception ex) { /* invalid image, skip */ }
+                    }
+
                     feed.getChildren().add(postCard);
                 }
             }
@@ -1161,7 +1462,6 @@ public class CampusDashboardController {
     }
 
     // ===================== GROUP CHAT =====================
-
     @FXML
     private void showGroupChat() {
         VBox box = new VBox(15);
@@ -1178,6 +1478,8 @@ public class CampusDashboardController {
 
         TextField groupNameField = new TextField();
         groupNameField.setPromptText("Group Name (e.g. CSE101 Study Group)");
+        TextField groupPasswordField = new TextField();
+        groupPasswordField.setPromptText("Group Password (optional)");
         TextField membersField = new TextField();
         membersField.setPromptText("Members (comma separated emails/IDs)");
 
@@ -1186,22 +1488,83 @@ public class CampusDashboardController {
         createBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
         createBtn.setOnAction(e -> {
             String gName = groupNameField.getText().trim();
+            String gPass = groupPasswordField.getText().trim();
             String members = membersField.getText().trim();
             if (gName.isEmpty()) {
                 createMsg.setStyle("-fx-text-fill: red;");
                 createMsg.setText("Enter a group name.");
             } else {
                 String memberList = members.isEmpty() ? myId : myId + "," + members;
-                DataStore.createGroup(gName, myId, memberList);
+                DataStore.createGroup(gName, myId, gPass, memberList);
                 createMsg.setStyle("-fx-text-fill: green;");
                 createMsg.setText("Group '" + gName + "' created! \u2705");
                 groupNameField.clear();
+                groupPasswordField.clear();
                 membersField.clear();
             }
         });
 
-        VBox createBox = new VBox(8, createTitle, groupNameField, membersField, createBtn, createMsg);
+        VBox createBox = new VBox(8, createTitle, groupNameField, groupPasswordField, membersField, createBtn, createMsg);
         createBox.setStyle("-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
+
+        // ---- Search & Join Group section ----
+        Label searchTitle = new Label("Search & Join Group");
+        searchTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("\uD83D\uDD0D Search group name...");
+        VBox searchResults = new VBox(6);
+        Label joinMsg = new Label();
+
+        Button searchBtn = new Button("Search");
+        searchBtn.setOnAction(e -> {
+            searchResults.getChildren().clear();
+            String query = searchField.getText().trim();
+            if (query.isEmpty()) {
+                return;
+            }
+            List<String[]> found = DataStore.searchGroups(query);
+            if (found.isEmpty()) {
+                searchResults.getChildren().add(new Label("No groups found."));
+            } else {
+                for (String[] g : found) {
+                    HBox row = new HBox(10);
+                    row.setAlignment(Pos.CENTER_LEFT);
+                    row.setStyle("-fx-padding: 8; -fx-background-color: #f8f9ff; -fx-background-radius: 6;");
+                    Label gLabel = new Label("\uD83D\uDC65 " + g[0] + " (by " + g[1] + ")"
+                            + (g[2].isEmpty() ? "" : " \uD83D\uDD12"));
+                    gLabel.setStyle("-fx-font-weight: bold;");
+
+                    TextField passField = new TextField();
+                    passField.setPromptText("Password");
+                    passField.setPrefWidth(120);
+                    passField.setVisible(!g[2].isEmpty());
+                    passField.setManaged(!g[2].isEmpty());
+
+                    Button joinBtn = new Button("Join");
+                    joinBtn.setOnAction(ev -> {
+                        boolean ok = DataStore.joinGroup(g[0], passField.getText().trim(), myId);
+                        if (ok) {
+                            joinMsg.setStyle("-fx-text-fill: green;");
+                            joinMsg.setText("Joined '" + g[0] + "'!");
+                        } else {
+                            joinMsg.setStyle("-fx-text-fill: red;");
+                            joinMsg.setText("Wrong password for '" + g[0] + "'.");
+                        }
+                    });
+                    row.getChildren().addAll(gLabel, passField, joinBtn);
+                    searchResults.getChildren().add(row);
+                }
+            }
+        });
+
+        HBox searchRow = new HBox(10, searchField, searchBtn);
+        searchRow.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+
+        VBox searchBox = new VBox(8, searchTitle, searchRow, searchResults, joinMsg);
+        searchBox.setStyle("-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; "
                 + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
 
         // ---- Group selector ----
@@ -1212,7 +1575,6 @@ public class CampusDashboardController {
         groupSelector.setPromptText("Select a group to chat");
         groupSelector.setMaxWidth(Double.MAX_VALUE);
 
-        // Chat area
         VBox chatMessages = new VBox(8);
         chatMessages.setStyle("-fx-padding: 10;");
 
@@ -1250,7 +1612,9 @@ public class CampusDashboardController {
 
         Runnable refreshChat = () -> {
             String selected = groupSelector.getValue();
-            if (selected == null || selected.isEmpty()) return;
+            if (selected == null || selected.isEmpty()) {
+                return;
+            }
             chatMessages.getChildren().clear();
             List<String[]> msgs = DataStore.getGroupMessages(selected);
             if (msgs.isEmpty()) {
@@ -1267,8 +1631,8 @@ public class CampusDashboardController {
                     msgBox.setMaxWidth(300);
                     msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
                             + (isMine
-                            ? "-fx-background-color: #2a5298;"
-                            : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+                                    ? "-fx-background-color: #2a5298;"
+                                    : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
 
                     Label sender = new Label(isMine ? "You" : m[2]);
                     sender.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; "
@@ -1327,8 +1691,8 @@ public class CampusDashboardController {
 
         inputRow.getChildren().addAll(chatInput, sendBtn);
 
-        box.getChildren().addAll(title, createBox, new Separator(),
-                selectTitle, groupSelector, liveHint, chatScroll, inputRow, chatStatus);
+        box.getChildren().addAll(title, createBox, new Separator(), searchBox,
+                new Separator(), selectTitle, groupSelector, liveHint, chatScroll, inputRow, chatStatus);
         setScrollContent(box);
 
         // Auto-refresh groups + chat
@@ -1338,5 +1702,168 @@ public class CampusDashboardController {
         }));
         refreshTimeline.setCycleCount(Timeline.INDEFINITE);
         refreshTimeline.play();
+    }
+
+    // ===================== HOSPITAL =====================
+    @FXML
+    private void showHospital() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("\uD83C\uDFE5 Medical Center");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        String myId = Session.getIdentifier();
+
+        // ---- Available Doctors (from admin-managed DataStore) ----
+        Label docTitle = new Label("Available Doctors");
+        docTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #1e3c72;");
+
+        List<String[]> doctors = DataStore.getAllDoctors();
+
+        GridPane docGrid = new GridPane();
+        docGrid.setHgap(2);
+        docGrid.setVgap(2);
+        String[] docHeaders = {"Doctor", "Specialization", "Available Days", "Hours"};
+        for (int c = 0; c < docHeaders.length; c++) {
+            Label cell = new Label(docHeaders[c]);
+            cell.setStyle("-fx-font-weight: bold; -fx-padding: 8 12 8 12; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 140;");
+            cell.setMaxWidth(Double.MAX_VALUE);
+            docGrid.add(cell, c, 0);
+        }
+        for (int r = 0; r < doctors.size(); r++) {
+            String[] dr = doctors.get(r);
+            for (int c = 0; c < 4 && c < dr.length; c++) {
+                Label cell = new Label(dr[c]);
+                String bg = r % 2 == 0 ? "white" : "#f8f9ff";
+                cell.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: " + bg + "; -fx-min-width: 140;");
+                cell.setMaxWidth(Double.MAX_VALUE);
+                docGrid.add(cell, c, r + 1);
+            }
+        }
+
+        // ---- Book Appointment ----
+        Label bookTitle = new Label("Book Appointment");
+        bookTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 10 0 0 0;");
+
+        ComboBox<String> doctorBox = new ComboBox<>();
+        doctorBox.setPromptText("Select Doctor");
+        doctorBox.setMaxWidth(Double.MAX_VALUE);
+        for (String[] d : doctors) {
+            doctorBox.getItems().add(d[0] + " - " + (d.length > 1 ? d[1] : ""));
+        }
+
+        TextField dateField = new TextField();
+        dateField.setPromptText("Date (e.g. 2025-07-15)");
+        TextField timeField = new TextField();
+        timeField.setPromptText("Time (e.g. 10:00 AM)");
+        TextArea reasonField = new TextArea();
+        reasonField.setPromptText("Reason for visit...");
+        reasonField.setPrefRowCount(2);
+
+        Label bookMsg = new Label();
+        Button bookBtn = new Button("Book Appointment");
+        bookBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        bookBtn.setOnAction(e -> {
+            String doc = doctorBox.getValue();
+            String date = dateField.getText().trim();
+            String time = timeField.getText().trim();
+            String reason = reasonField.getText().trim();
+            if (doc == null || date.isEmpty() || time.isEmpty()) {
+                bookMsg.setStyle("-fx-text-fill: red;");
+                bookMsg.setText("Select doctor, date and time.");
+            } else {
+                DataStore.bookAppointment(myId, doc.split(" - ")[0], date, time, reason.isEmpty() ? "General Checkup" : reason);
+                bookMsg.setStyle("-fx-text-fill: green;");
+                bookMsg.setText("Appointment booked! \u2705");
+                dateField.clear();
+                timeField.clear();
+                reasonField.clear();
+            }
+        });
+
+        // ---- Tests Available ----
+        Label testTitle = new Label("\uD83E\uDDEA Tests Available");
+        testTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 10 0 0 0;");
+
+        String[][] tests = {
+            {"Blood Test (CBC)", "\u09F3200", "Available Daily"},
+            {"Urine Test", "\u09F3150", "Available Daily"},
+            {"X-Ray", "\u09F3500", "Mon-Fri"},
+            {"ECG", "\u09F3400", "Mon, Wed, Fri"},
+            {"Eye Test", "\u09F3300", "Tue, Thu"},
+            {"Blood Sugar", "\u09F3100", "Available Daily"},};
+
+        VBox testList = new VBox(6);
+        for (String[] t : tests) {
+            HBox row = new HBox(15);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setStyle("-fx-padding: 8; -fx-background-color: #f0f4ff; -fx-background-radius: 6;");
+            Label tName = new Label("\uD83E\uDDEA " + t[0]);
+            tName.setStyle("-fx-font-weight: bold; -fx-min-width: 180;");
+            Label tPrice = new Label(t[1]);
+            tPrice.setStyle("-fx-text-fill: #2a5298; -fx-min-width: 80;");
+            Label tAvail = new Label(t[2]);
+            tAvail.setStyle("-fx-text-fill: #666;");
+            row.getChildren().addAll(tName, tPrice, tAvail);
+            testList.getChildren().add(row);
+        }
+
+        // ---- Medicine ----
+        Label medTitle = new Label("\uD83D\uDC8A Medicine Counter");
+        medTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 10 0 0 0;");
+
+        String[][] meds = {
+            {"Paracetamol", "Fever / Pain", "\u09F35"},
+            {"Antacid", "Acidity", "\u09F38"},
+            {"Cetirizine", "Allergy", "\u09F36"},
+            {"ORS Packet", "Dehydration", "\u09F310"},
+            {"Bandage Roll", "First Aid", "\u09F315"},
+            {"Antiseptic Cream", "Wounds", "\u09F320"},};
+
+        VBox medList = new VBox(6);
+        for (String[] m : meds) {
+            HBox row = new HBox(15);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.setStyle("-fx-padding: 8; -fx-background-color: #e8f5e9; -fx-background-radius: 6;");
+            Label mName = new Label("\uD83D\uDC8A " + m[0]);
+            mName.setStyle("-fx-font-weight: bold; -fx-min-width: 160;");
+            Label mUse = new Label(m[1]);
+            mUse.setStyle("-fx-text-fill: #555; -fx-min-width: 140;");
+            Label mPrice = new Label(m[2]);
+            mPrice.setStyle("-fx-text-fill: #27ae60;");
+            row.getChildren().addAll(mName, mUse, mPrice);
+            medList.getChildren().add(row);
+        }
+
+        // ---- My Appointments ----
+        Label apptTitle = new Label("My Appointments");
+        apptTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 10 0 0 0;");
+
+        VBox apptList = new VBox(6);
+        List<String[]> myAppts = DataStore.getAppointmentsFor(myId);
+        if (myAppts.isEmpty()) {
+            apptList.getChildren().add(new Label("No appointments booked."));
+        } else {
+            for (String[] a : myAppts) {
+                Label aItem = new Label("\uD83D\uDCC5 " + a[1] + " | " + a[2] + " at " + a[3]
+                        + " | Reason: " + a[4] + " | Status: " + a[5]);
+                aItem.setStyle("-fx-padding: 6; -fx-background-color: #fff8e1; -fx-background-radius: 6;");
+                aItem.setWrapText(true);
+                apptList.getChildren().add(aItem);
+            }
+        }
+
+        // Emergency info
+        Label emergLabel = new Label("\uD83D\uDEA8 Emergency: Call 999 or visit Medical Center Ground Floor");
+        emergLabel.setStyle("-fx-text-fill: #c0392b; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 10 0 0 0;");
+
+        box.getChildren().addAll(title, docTitle, docGrid, new Separator(),
+                bookTitle, doctorBox, dateField, timeField, reasonField, bookBtn, bookMsg,
+                new Separator(), testTitle, testList,
+                new Separator(), medTitle, medList,
+                new Separator(), apptTitle, apptList,
+                emergLabel);
+        setScrollContent(box);
     }
 }

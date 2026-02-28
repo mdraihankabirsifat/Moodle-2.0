@@ -26,6 +26,22 @@
 
                 <VBox spacing="15" maxWidth="500" styleClass="card" alignment="CENTER_LEFT">
 
+                    <!-- Profile Photo -->
+                    <HBox spacing="15" alignment="CENTER_LEFT">
+                        <StackPane fx:id="photoContainer"
+                                   style="-fx-min-width: 100; -fx-min-height: 100; -fx-background-color: #e8e8e8; -fx-background-radius: 50;">
+                            <Label fx:id="photoPlaceholder" text="👤"
+                                   style="-fx-font-size: 40px; -fx-alignment: center;"/>
+                        </StackPane>
+                        <VBox spacing="8" alignment="CENTER_LEFT">
+                            <Button text="📷 Upload Photo" onAction="#uploadPhoto"
+                                    style="-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;"/>
+                            <Label fx:id="photoMsg" text="" style="-fx-font-size: 11px;"/>
+                        </VBox>
+                    </HBox>
+
+                    <Separator/>
+
                     <Label text="Full Name" styleClass="field-label"/>
                     <TextField fx:id="nameField" promptText="Full Name"/>
 
@@ -45,6 +61,30 @@
                     </HBox>
 
                     <Label fx:id="messageLabel"/>
+
+                    <Separator/>
+
+                    <!-- Change Universal Password -->
+                    <Label text="Change Universal Login Password"
+                           style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;"/>
+                    <PasswordField fx:id="currentPassField" promptText="Current Password"/>
+                    <PasswordField fx:id="newPassField" promptText="New Password"/>
+                    <Button text="Change Universal Password" onAction="#changeUniversalPassword"
+                            style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 8;"/>
+
+                    <Separator/>
+
+                    <!-- Change Campus Password -->
+                    <Label text="Change Campus Access Password"
+                           style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;"/>
+                    <Label text="Default campus password: 1234"
+                           style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                    <PasswordField fx:id="currentCampusPassField" promptText="Current Campus Password"/>
+                    <PasswordField fx:id="newCampusPassField" promptText="New Campus Password"/>
+                    <Button text="Change Campus Password" onAction="#changeCampusPassword"
+                            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 8;"/>
+
+                    <Label fx:id="passMessage"/>
 
                 </VBox>
             </VBox>

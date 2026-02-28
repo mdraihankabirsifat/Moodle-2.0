@@ -1,6 +1,7 @@
 package com.example.moodle.controller;
 
 import com.example.moodle.model.User;
+import com.example.moodle.service.DataStore;
 import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
 import com.example.moodle.util.UserStore;
@@ -21,6 +22,13 @@ public class CampusAccessController {
     @FXML private ToggleGroup roleGroup;
     @FXML private VBox studentFields;
     @FXML private VBox staffFields;
+    @FXML private VBox teacherDetailFields;
+    @FXML private TextField teacherNameField;
+    @FXML private TextField teacherDeptField;
+    @FXML private TextField teacherDesignationField;
+    @FXML private ToggleGroup teacherTypeGroup;
+    @FXML private RadioButton facultyRadio;
+    @FXML private RadioButton guestRadio;
     @FXML private TextField campusIdField;
     @FXML private PasswordField campusPassField;
     @FXML private PasswordField staffPassField;
@@ -33,14 +41,16 @@ public class CampusAccessController {
 
         roleGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
             boolean isStudent = (newVal == studentRadio);
+            boolean isTeacher = (newVal == teacherRadio);
             studentFields.setVisible(isStudent);
             studentFields.setManaged(isStudent);
             staffFields.setVisible(!isStudent);
             staffFields.setManaged(!isStudent);
+            teacherDetailFields.setVisible(isTeacher);
+            teacherDetailFields.setManaged(isTeacher);
             messageLabel.setText("");
-            //staffPassField.clear();
-            if (newVal == teacherRadio) {
-                hintLabel.setText("Hint: teacher2024");
+            if (isTeacher) {
+                hintLabel.setText("Default password: teacher2026");
             } else if (newVal == authorityRadio) {
                 hintLabel.setText("Hint: admin2024");
             }
@@ -86,30 +96,66 @@ public class CampusAccessController {
             return;
         }
 
-        User user = UserStore.getUserByStudentId(id);
-        if (user != null && user.getPassword().equals(pass)) {
-            Session.setCampusVerified(true);
-            Session.setRole("STUDENT");
-            if (!Session.isLoggedIn()) {
-                Session.login(user.getName(), user.getUniversity(),
-                        user.getStudentId(), user.getEmail());
-            }
-            SceneManager.switchScene("campus-dashboard.fxml");
-        } else {
+        // Check campus-specific password: custom > default "1234"
+        String customPass = DataStore.getCampusPassword(id);
+        String expectedPass = (customPass != null) ? customPass : "1234";
+
+        if (!expectedPass.equals(pass)) {
             showError("Invalid Student ID or Password.");
+            return;
         }
+
+        User user = UserStore.getUserByStudentId(id);
+        Session.setCampusVerified(true);
+        Session.setRole("STUDENT");
+        if (user != null) {
+            Session.login(user.getName(), user.getUniversity(),
+                    user.getStudentId(), user.getEmail());
+        } else {
+            Session.login("Student " + id, "Campus", id, id + "@campus");
+        }
+        SceneManager.switchScene("campus-dashboard.fxml");
     }
 
     private void verifyTeacher() {
+        String name = teacherNameField.getText().trim();
+        String dept = teacherDeptField.getText().trim();
+        String designation = teacherDesignationField.getText().trim();
+        String type = facultyRadio.isSelected() ? "Faculty Teacher" : "Guest Teacher";
         String pass = staffPassField.getText().trim();
-        if ("teacher2024".equals(pass)) {
-            Session.login("Faculty Member", "Campus", "", "faculty@campus");
-            Session.setCampusVerified(true);
-            Session.setRole("TEACHER");
-            SceneManager.switchScene("teacher-dashboard.fxml");
-        } else {
-            showError("Invalid Teacher Password.");
+
+        if (name.isEmpty() || dept.isEmpty()) {
+            showError("Enter your name and department.");
+            return;
         }
+
+        // Check if teacher profile exists
+        String[] profile = DataStore.getTeacherProfile(name, dept);
+        if (profile != null) {
+            if (!profile[4].equals(pass)) {
+                showError("Invalid password.");
+                return;
+            }
+            designation = profile[2];
+            type = profile[3];
+        } else {
+            // New teacher - verify against default
+            if (!"teacher2026".equals(pass)) {
+                showError("Invalid password.");
+                return;
+            }
+            DataStore.saveTeacherProfile(name, dept, designation, type, pass);
+        }
+
+        String teacherId = name.toLowerCase().replace(" ", ".") + "@"
+                + dept.toLowerCase().replace(" ", ".") + ".campus";
+        Session.login(name, dept, "", teacherId);
+        Session.setCampusVerified(true);
+        Session.setRole("TEACHER");
+        Session.setDepartment(dept);
+        Session.setDesignation(designation);
+        Session.setTeacherType(type);
+        SceneManager.switchScene("teacher-dashboard.fxml");
     }
 
     private void verifyAuthority() {

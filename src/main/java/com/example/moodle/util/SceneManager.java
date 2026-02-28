@@ -31,7 +31,15 @@ public class SceneManager {
         stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
             if (isFocused && stages.containsKey(stage)) activeStage = stage;
         });
-        stage.setOnCloseRequest(e -> stages.remove(stage));
+        stage.setOnCloseRequest(e -> {
+            stages.remove(stage);
+            Session.removeStage(stage);
+        });
+    }
+
+    /** Returns the currently active (focused) stage */
+    public static Stage getActiveStage() {
+        return activeStage;
     }
 
     private static StageContext ctx() {
@@ -76,6 +84,9 @@ public class SceneManager {
             System.out.println("Stage not set!");
             return;
         }
+
+        // Ensure active stage is correct before loading FXML (controllers use Session in initialize)
+        activeStage = stage;
 
         try {
 

@@ -32,6 +32,10 @@
 
                 <Label text="COURSES" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold;"/>
 
+                <Button text="👤 My Profile"
+                        onAction="#showMyProfile"
+                        maxWidth="Infinity"/>
+
                 <Button text="My Courses"
                         onAction="#showMyCourses"
                         maxWidth="Infinity"/>
@@ -56,6 +60,16 @@
 
                 <Button text="Student List"
                         onAction="#showStudentList"
+                        maxWidth="Infinity"/>
+
+                <Label text="SCHEDULE" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
+
+                <Button text="📅 Edit Schedule"
+                        onAction="#showEditSchedule"
+                        maxWidth="Infinity"/>
+
+                <Button text="🏥 Hospital"
+                        onAction="#showHospital"
                         maxWidth="Infinity"/>
 
                 <Label text="COMMUNICATION" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 0 0;"/>
