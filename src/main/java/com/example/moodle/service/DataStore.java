@@ -19,6 +19,9 @@ public class DataStore {
     private static final String MESSAGES_FILE = "messages.txt";
     private static final String PAYMENTS_FILE = "payments.txt";
     private static final String NOTICES_FILE = "course_notices.txt";
+    private static final String COMMUNITY_FILE = "community_posts.txt";
+    private static final String GROUPS_FILE = "groups.txt";
+    private static final String GROUP_MESSAGES_FILE = "group_messages.txt";
 
     static {
         seedDefaults();
@@ -222,6 +225,68 @@ public class DataStore {
         for (String line : FileStore.loadLines(NOTICES_FILE)) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 4) list.add(p);
+        }
+        return list;
+    }
+
+    // ==================== STUDENTS COMMUNITY ====================
+    // Format: authorId|authorName|content|timestamp
+
+    public static void addCommunityPost(String authorId, String authorName, String content) {
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        FileStore.appendLine(COMMUNITY_FILE, authorId + "|" + authorName + "|" + content + "|" + ts);
+    }
+
+    public static List<String[]> getAllCommunityPosts() {
+        List<String[]> list = new ArrayList<>();
+        for (String line : FileStore.loadLines(COMMUNITY_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 4) list.add(p);
+        }
+        return list;
+    }
+
+    // ==================== GROUP MESSAGING ====================
+    // groups.txt format: groupName|creatorId|member1,member2,...
+
+    public static void createGroup(String groupName, String creatorId, String members) {
+        FileStore.appendLine(GROUPS_FILE, groupName + "|" + creatorId + "|" + members);
+    }
+
+    public static List<String[]> getAllGroups() {
+        List<String[]> list = new ArrayList<>();
+        for (String line : FileStore.loadLines(GROUPS_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 3) list.add(p);
+        }
+        return list;
+    }
+
+    public static List<String[]> getGroupsForUser(String userId) {
+        List<String[]> result = new ArrayList<>();
+        for (String[] g : getAllGroups()) {
+            String members = "," + g[1] + "," + g[2] + ",";
+            if (members.contains("," + userId + ",")) {
+                result.add(g);
+            }
+        }
+        return result;
+    }
+
+    // group_messages.txt format: groupName|senderId|senderName|content|timestamp
+
+    public static void addGroupMessage(String groupName, String senderId,
+                                       String senderName, String content) {
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        FileStore.appendLine(GROUP_MESSAGES_FILE,
+                groupName + "|" + senderId + "|" + senderName + "|" + content + "|" + ts);
+    }
+
+    public static List<String[]> getGroupMessages(String groupName) {
+        List<String[]> list = new ArrayList<>();
+        for (String line : FileStore.loadLines(GROUP_MESSAGES_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 5 && p[0].equals(groupName)) list.add(p);
         }
         return list;
     }

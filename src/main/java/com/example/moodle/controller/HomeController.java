@@ -110,6 +110,11 @@ public class HomeController {
     }
 
     @FXML
+    private void openNewWindow() {
+        SceneManager.openNewWindow();
+    }
+
+    @FXML
     private void goBack() {
         SceneManager.goBack();
     }

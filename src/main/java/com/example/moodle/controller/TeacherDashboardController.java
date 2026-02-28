@@ -246,15 +246,10 @@ public class TeacherDashboardController {
         VBox submissionsBox = new VBox(10);
         Label msgLabel = new Label();
 
-        Button loadBtn = new Button("Load Submissions");
-        loadBtn.setOnAction(e -> {
+        Runnable loadSubmissions = () -> {
             submissionsBox.getChildren().clear();
             String sel = courseBox.getValue();
-            if (sel == null) {
-                msgLabel.setStyle("-fx-text-fill: red;");
-                msgLabel.setText("Select a course first.");
-                return;
-            }
+            if (sel == null) return;
             String code = sel.split(" - ")[0];
             List<Assignment> assignments = DataStore.getAssignmentsForCourse(code);
             if (assignments.isEmpty()) {
@@ -299,7 +294,6 @@ public class TeacherDashboardController {
                                     DataStore.gradeSubmission(studentId, courseCode, aTitle, marks);
                                     msgLabel.setStyle("-fx-text-fill: green;");
                                     msgLabel.setText("Graded " + studentId + " with " + marks);
-                                    showEvaluate();
                                 }
                             });
 
@@ -313,11 +307,24 @@ public class TeacherDashboardController {
                     }
                 }
             }
-        });
+        };
+
+        Button loadBtn = new Button("Load Submissions");
+        loadBtn.setOnAction(e -> loadSubmissions.run());
+
+        courseBox.setOnAction(e -> loadSubmissions.run());
+
+        Label liveHint = new Label("\uD83D\uDFE2 Submissions auto-refresh every 3 seconds");
+        liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
 
         box.getChildren().addAll(title, courseBox, loadBtn, msgLabel,
-                new Separator(), submissionsBox);
+                liveHint, new Separator(), submissionsBox);
         setScrollContent(box);
+
+        // Auto-refresh submissions
+        panelRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> loadSubmissions.run()));
+        panelRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        panelRefreshTimeline.play();
     }
 
     // ===================== UPLOAD SLIDES =====================
@@ -506,40 +513,54 @@ public class TeacherDashboardController {
                 msgLabel.setText("Message sent!");
                 toField.clear();
                 msgArea.clear();
-                showMessages();
             }
         });
 
-        box.getChildren().addAll(title, composeTitle, toField, msgArea,
-                sendBtn, msgLabel, new Separator());
+        // Dynamic inbox
+        VBox inbox = new VBox(8);
 
-        // Inbox
-        Label inboxTitle = new Label("Inbox:");
-        inboxTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-        box.getChildren().add(inboxTitle);
+        Runnable refreshInbox = () -> {
+            inbox.getChildren().clear();
+            Label inboxTitle = new Label("Inbox:");
+            inboxTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+            inbox.getChildren().add(inboxTitle);
 
-        List<Message> messages = DataStore.getMessagesFor(teacherEmail());
-        if (messages.isEmpty()) {
-            box.getChildren().add(new Label("No messages."));
-        } else {
-            for (int i = messages.size() - 1; i >= 0; i--) {
-                Message m = messages.get(i);
-                String direction = m.getFrom().equals(teacherEmail())
-                        ? "\u27A1 To: " + m.getTo()
-                        : "\u2B05 From: " + m.getFrom();
-                VBox msgCard = new VBox(4);
-                msgCard.setStyle("-fx-padding: 10; -fx-background-color: #f0f8ff; -fx-background-radius: 8;");
-                Label dir = new Label(direction);
-                dir.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #555;");
-                Label content = new Label(m.getContent());
-                content.setWrapText(true);
-                Label ts = new Label(m.getTimestamp());
-                ts.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
-                msgCard.getChildren().addAll(dir, content, ts);
-                box.getChildren().add(msgCard);
+            List<Message> messages = DataStore.getMessagesFor(teacherEmail());
+            if (messages.isEmpty()) {
+                inbox.getChildren().add(new Label("No messages."));
+            } else {
+                for (int i = messages.size() - 1; i >= 0; i--) {
+                    Message m = messages.get(i);
+                    String direction = m.getFrom().equals(teacherEmail())
+                            ? "\u27A1 To: " + m.getTo()
+                            : "\u2B05 From: " + m.getFrom();
+                    VBox msgCard = new VBox(4);
+                    msgCard.setStyle("-fx-padding: 10; -fx-background-color: #f0f8ff; -fx-background-radius: 8;");
+                    Label dir = new Label(direction);
+                    dir.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #555;");
+                    Label content = new Label(m.getContent());
+                    content.setWrapText(true);
+                    Label ts = new Label(m.getTimestamp());
+                    ts.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
+                    msgCard.getChildren().addAll(dir, content, ts);
+                    inbox.getChildren().add(msgCard);
+                }
             }
-        }
+        };
+
+        refreshInbox.run();
+
+        Label liveHint = new Label("\uD83D\uDFE2 Inbox auto-refreshes every 3 seconds");
+        liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+
+        box.getChildren().addAll(title, composeTitle, toField, msgArea,
+                sendBtn, msgLabel, new Separator(), liveHint, inbox);
         setScrollContent(box);
+
+        // Auto-refresh inbox
+        panelRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshInbox.run()));
+        panelRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        panelRefreshTimeline.play();
     }
 
     // ===================== VIEW STUDENTS =====================
@@ -590,6 +611,12 @@ public class TeacherDashboardController {
     // ===================== LIVE CHAT =====================
 
     private Timeline chatRefreshTimeline;
+    private Timeline panelRefreshTimeline;
+
+    @FXML
+    private void openNewWindow() {
+        SceneManager.openNewWindow();
+    }
 
     @FXML
     private void showLiveChat() {
@@ -725,6 +752,8 @@ public class TeacherDashboardController {
     // ===================== UTILITY =====================
 
     private void setScrollContent(VBox content) {
+        if (panelRefreshTimeline != null) panelRefreshTimeline.stop();
+        if (chatRefreshTimeline != null) chatRefreshTimeline.stop();
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent;");

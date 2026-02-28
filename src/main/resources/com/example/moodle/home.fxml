@@ -22,6 +22,9 @@
             <Region HBox.hgrow="ALWAYS"/>
 
             <!-- Your Campus -->
+            <Button text="🔲 New Window" onAction="#openNewWindow"
+                    style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 11px;"/>
+
             <Button fx:id="campusButton"
                     text="My Campus"
                     onAction="#goToCampus"/>

@@ -1,6 +1,8 @@
 package com.example.moodle.util;
 
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Stack;
 
 import javafx.animation.FadeTransition;
@@ -14,34 +16,64 @@ import javafx.util.Duration;
 
 public class SceneManager {
 
-    private static Stage primaryStage;
-    private static final Stack<String> history = new Stack<>();
-    private static String currentFxml = null;
+    // ========== Multi-window support ==========
+    private static final Map<Stage, StageContext> stages = new HashMap<>();
+    private static Stage activeStage;
+
+    private static class StageContext {
+        final Stack<String> history = new Stack<>();
+        String currentFxml = null;
+    }
 
     public static void setStage(Stage stage) {
-        primaryStage = stage;
+        stages.put(stage, new StageContext());
+        activeStage = stage;
+        stage.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+            if (isFocused && stages.containsKey(stage)) activeStage = stage;
+        });
+        stage.setOnCloseRequest(e -> stages.remove(stage));
+    }
+
+    private static StageContext ctx() {
+        if (activeStage == null || !stages.containsKey(activeStage)) return null;
+        return stages.get(activeStage);
     }
 
     public static void switchScene(String fxml) {
-        if (currentFxml != null && !currentFxml.equals("splash.fxml") && !currentFxml.equals(fxml)) {
-            history.push(currentFxml);
+        StageContext ctx = ctx();
+        if (ctx == null) return;
+        if (ctx.currentFxml != null && !ctx.currentFxml.equals("splash.fxml")
+                && !ctx.currentFxml.equals(fxml)) {
+            ctx.history.push(ctx.currentFxml);
         }
-        currentFxml = fxml;
-        loadScene(fxml);
+        ctx.currentFxml = fxml;
+        loadScene(fxml, activeStage);
     }
 
     public static void goBack() {
-        if (!history.isEmpty()) {
-            String prev = history.pop();
-            currentFxml = prev;
-            loadScene(prev);
+        StageContext ctx = ctx();
+        if (ctx != null && !ctx.history.isEmpty()) {
+            String prev = ctx.history.pop();
+            ctx.currentFxml = prev;
+            loadScene(prev, activeStage);
         }
     }
 
-    private static void loadScene(String fxml) {
+    /** Open a brand-new independent window starting at home.fxml */
+    public static Stage openNewWindow() {
+        Stage newStage = new Stage();
+        newStage.setTitle("Moodle 2.0 — Window " + stages.size());
+        setStage(newStage);
+        switchScene("home.fxml");
+        newStage.setResizable(true);
+        newStage.show();
+        return newStage;
+    }
 
-        if (primaryStage == null) {
-            System.out.println("Primary stage not set!");
+    private static void loadScene(String fxml, Stage stage) {
+
+        if (stage == null) {
+            System.out.println("Stage not set!");
             return;
         }
 
@@ -80,7 +112,7 @@ public class SceneManager {
                 scene.getStylesheets().add(css.toExternalForm());
             }
 
-            primaryStage.setScene(scene);
+            stage.setScene(scene);
 
             FadeTransition fadeIn
                     = new FadeTransition(Duration.millis(400), root);

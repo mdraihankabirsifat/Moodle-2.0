@@ -858,49 +858,63 @@ public class CampusDashboardController {
                 msgLabel.setText("Message sent!");
                 toField.clear();
                 msgArea.clear();
-                showMessages();
             }
         });
 
-        box.getChildren().addAll(title, composeTitle, toField, msgArea,
-                sendBtn, msgLabel, new Separator());
+        // Dynamic inbox section
+        VBox inbox = new VBox(8);
 
-        Label inboxTitle = new Label("Messages:");
-        inboxTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-        box.getChildren().add(inboxTitle);
+        Runnable refreshInbox = () -> {
+            inbox.getChildren().clear();
+            Label inboxTitle = new Label("Messages:");
+            inboxTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+            inbox.getChildren().add(inboxTitle);
 
-        List<Message> messages = DataStore.getMessagesFor(myId);
-        if (messages.isEmpty()) {
-            box.getChildren().add(new Label("No messages."));
-        } else {
-            for (int i = messages.size() - 1; i >= 0; i--) {
-                Message m = messages.get(i);
-                String direction = m.getFrom().equals(myId)
-                        ? "\u27A1 To: " + m.getTo()
-                        : "\u2B05 From: " + m.getFrom();
-                VBox msgCard = new VBox(4);
-                msgCard.setStyle("-fx-padding: 10; -fx-background-color: #f0f8ff; -fx-background-radius: 8;");
-                Label dir = new Label(direction);
-                dir.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #555;");
-                Label content = new Label(m.getContent());
-                content.setWrapText(true);
-                Label ts = new Label(m.getTimestamp());
-                ts.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
-                msgCard.getChildren().addAll(dir, content, ts);
-                box.getChildren().add(msgCard);
+            List<Message> messages = DataStore.getMessagesFor(myId);
+            if (messages.isEmpty()) {
+                inbox.getChildren().add(new Label("No messages."));
+            } else {
+                for (int i = messages.size() - 1; i >= 0; i--) {
+                    Message m = messages.get(i);
+                    String direction = m.getFrom().equals(myId)
+                            ? "\u27A1 To: " + m.getTo()
+                            : "\u2B05 From: " + m.getFrom();
+                    VBox msgCard = new VBox(4);
+                    msgCard.setStyle("-fx-padding: 10; -fx-background-color: #f0f8ff; -fx-background-radius: 8;");
+                    Label dir = new Label(direction);
+                    dir.setStyle("-fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #555;");
+                    Label content = new Label(m.getContent());
+                    content.setWrapText(true);
+                    Label ts = new Label(m.getTimestamp());
+                    ts.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
+                    msgCard.getChildren().addAll(dir, content, ts);
+                    inbox.getChildren().add(msgCard);
+                }
             }
-        }
+        };
+
+        refreshInbox.run();
+
+        Label liveHint = new Label("\uD83D\uDFE2 Inbox auto-refreshes every 3 seconds");
+        liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+
+        box.getChildren().addAll(title, composeTitle, toField, msgArea,
+                sendBtn, msgLabel, new Separator(), liveHint, inbox);
         setScrollContent(box);
+
+        // Auto-refresh inbox
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshInbox.run()));
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
     }
 
     // ===================== LIVE CHAT =====================
 
-    private Timeline chatRefreshTimeline;
+    private Timeline refreshTimeline;
 
     @FXML
     private void showLiveChat() {
-        // Stop any previous chat refresh
-        if (chatRefreshTimeline != null) chatRefreshTimeline.stop();
+        // refreshTimeline is stopped by setScrollContent
 
         VBox box = new VBox(10);
         box.setPadding(new Insets(10));
@@ -1021,9 +1035,9 @@ public class CampusDashboardController {
         inputRow.getChildren().addAll(chatInput, sendBtn);
 
         // Auto-refresh every 3 seconds
-        chatRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshChat.run()));
-        chatRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
-        chatRefreshTimeline.play();
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshChat.run()));
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
 
         // Online users hint
         Label onlineHint = new Label("\uD83D\uDFE2 Auto-refreshes every 3 seconds");
@@ -1037,9 +1051,292 @@ public class CampusDashboardController {
     // ===================== UTILITY =====================
 
     private void setScrollContent(VBox content) {
+        if (refreshTimeline != null) refreshTimeline.stop();
         ScrollPane scroll = new ScrollPane(content);
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent;");
         contentArea.getChildren().setAll(scroll);
+    }
+
+    // ===================== OPEN NEW WINDOW =====================
+
+    @FXML
+    private void openNewWindow() {
+        SceneManager.openNewWindow();
+    }
+
+    // ===================== STUDENTS COMMUNITY =====================
+
+    @FXML
+    private void showCommunity() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("\uD83C\uDF10 Students Community");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        // New Post Form
+        Label formTitle = new Label("Share something with your community");
+        formTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #555;");
+
+        TextArea postArea = new TextArea();
+        postArea.setPromptText("What's on your mind?");
+        postArea.setPrefRowCount(3);
+        postArea.setWrapText(true);
+
+        Label postMsg = new Label();
+        Button postBtn = new Button("\uD83D\uDCE8 Post");
+        postBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20 8 20; -fx-cursor: hand;");
+
+        postBtn.setOnAction(e -> {
+            String content = postArea.getText().trim();
+            if (content.isEmpty()) {
+                postMsg.setStyle("-fx-text-fill: red;");
+                postMsg.setText("Write something first!");
+            } else {
+                DataStore.addCommunityPost(Session.getIdentifier(),
+                        Session.getName() != null ? Session.getName() : "Anonymous", content);
+                postMsg.setStyle("-fx-text-fill: green;");
+                postMsg.setText("Posted successfully! \u2705");
+                postArea.clear();
+            }
+        });
+
+        VBox formBox = new VBox(8, formTitle, postArea, new HBox(10, postBtn, postMsg));
+        formBox.setStyle("-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
+
+        // Feed (dynamic, auto-refreshed)
+        VBox feed = new VBox(10);
+        feed.setId("community-feed");
+
+        Runnable refreshFeed = () -> {
+            feed.getChildren().clear();
+            List<String[]> posts = DataStore.getAllCommunityPosts();
+            if (posts.isEmpty()) {
+                Label noPost = new Label("No posts yet. Be the first to share!");
+                noPost.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                feed.getChildren().add(noPost);
+            } else {
+                for (int i = posts.size() - 1; i >= 0; i--) {
+                    String[] p = posts.get(i);
+                    VBox postCard = new VBox(6);
+                    postCard.setStyle("-fx-padding: 14; -fx-background-color: white; -fx-background-radius: 10; "
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2);");
+
+                    HBox header = new HBox(10);
+                    header.setAlignment(Pos.CENTER_LEFT);
+                    Label avatar = new Label("\uD83D\uDC64");
+                    avatar.setStyle("-fx-font-size: 22px;");
+                    VBox nameTime = new VBox(2);
+                    Label authorLabel = new Label(p[1]);
+                    authorLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;");
+                    Label timeLabel = new Label(p[3]);
+                    timeLabel.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
+                    nameTime.getChildren().addAll(authorLabel, timeLabel);
+                    header.getChildren().addAll(avatar, nameTime);
+
+                    Label contentLabel = new Label(p[2]);
+                    contentLabel.setWrapText(true);
+                    contentLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #333; -fx-padding: 5 0 0 32;");
+
+                    postCard.getChildren().addAll(header, contentLabel);
+                    feed.getChildren().add(postCard);
+                }
+            }
+        };
+
+        refreshFeed.run();
+
+        Label liveHint = new Label("\uD83D\uDFE2 Live feed — auto-refreshes every 3 seconds");
+        liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+
+        box.getChildren().addAll(title, formBox, new Separator(), liveHint, feed);
+        setScrollContent(box);
+
+        // Auto-refresh the feed
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshFeed.run()));
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
+    }
+
+    // ===================== GROUP CHAT =====================
+
+    @FXML
+    private void showGroupChat() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("\uD83D\uDC65 Group Chat");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        String myId = Session.getIdentifier();
+
+        // ---- Create Group section ----
+        Label createTitle = new Label("Create New Group");
+        createTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+
+        TextField groupNameField = new TextField();
+        groupNameField.setPromptText("Group Name (e.g. CSE101 Study Group)");
+        TextField membersField = new TextField();
+        membersField.setPromptText("Members (comma separated emails/IDs)");
+
+        Label createMsg = new Label();
+        Button createBtn = new Button("Create Group");
+        createBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+        createBtn.setOnAction(e -> {
+            String gName = groupNameField.getText().trim();
+            String members = membersField.getText().trim();
+            if (gName.isEmpty()) {
+                createMsg.setStyle("-fx-text-fill: red;");
+                createMsg.setText("Enter a group name.");
+            } else {
+                String memberList = members.isEmpty() ? myId : myId + "," + members;
+                DataStore.createGroup(gName, myId, memberList);
+                createMsg.setStyle("-fx-text-fill: green;");
+                createMsg.setText("Group '" + gName + "' created! \u2705");
+                groupNameField.clear();
+                membersField.clear();
+            }
+        });
+
+        VBox createBox = new VBox(8, createTitle, groupNameField, membersField, createBtn, createMsg);
+        createBox.setStyle("-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
+
+        // ---- Group selector ----
+        Label selectTitle = new Label("Your Groups");
+        selectTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+
+        ComboBox<String> groupSelector = new ComboBox<>();
+        groupSelector.setPromptText("Select a group to chat");
+        groupSelector.setMaxWidth(Double.MAX_VALUE);
+
+        // Chat area
+        VBox chatMessages = new VBox(8);
+        chatMessages.setStyle("-fx-padding: 10;");
+
+        ScrollPane chatScroll = new ScrollPane(chatMessages);
+        chatScroll.setFitToWidth(true);
+        chatScroll.setPrefHeight(250);
+        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        chatScroll.vvalueProperty().bind(chatMessages.heightProperty());
+
+        HBox inputRow = new HBox(10);
+        inputRow.setAlignment(Pos.CENTER_LEFT);
+        TextArea chatInput = new TextArea();
+        chatInput.setPromptText("Type a message...");
+        chatInput.setPrefRowCount(2);
+        chatInput.setPrefWidth(400);
+        HBox.setHgrow(chatInput, Priority.ALWAYS);
+
+        Button sendBtn = new Button("Send \u27A1");
+        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; "
+                + "-fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+
+        Label chatStatus = new Label();
+
+        Runnable refreshGroups = () -> {
+            String prevSelection = groupSelector.getValue();
+            groupSelector.getItems().clear();
+            List<String[]> groups = DataStore.getGroupsForUser(myId);
+            for (String[] g : groups) {
+                groupSelector.getItems().add(g[0]);
+            }
+            if (prevSelection != null && groupSelector.getItems().contains(prevSelection)) {
+                groupSelector.setValue(prevSelection);
+            }
+        };
+
+        Runnable refreshChat = () -> {
+            String selected = groupSelector.getValue();
+            if (selected == null || selected.isEmpty()) return;
+            chatMessages.getChildren().clear();
+            List<String[]> msgs = DataStore.getGroupMessages(selected);
+            if (msgs.isEmpty()) {
+                Label noMsg = new Label("No messages yet. Start the conversation!");
+                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                chatMessages.getChildren().add(noMsg);
+            } else {
+                for (String[] m : msgs) {
+                    boolean isMine = m[1].equals(myId);
+                    HBox bubble = new HBox();
+                    bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+                    VBox msgBox = new VBox(2);
+                    msgBox.setMaxWidth(300);
+                    msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
+                            + (isMine
+                            ? "-fx-background-color: #2a5298;"
+                            : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+
+                    Label sender = new Label(isMine ? "You" : m[2]);
+                    sender.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; "
+                            + (isMine ? "-fx-text-fill: rgba(255,255,255,0.7);" : "-fx-text-fill: #1e3c72;"));
+
+                    Label content = new Label(m[3]);
+                    content.setWrapText(true);
+                    content.setStyle(isMine
+                            ? "-fx-text-fill: white; -fx-font-size: 13px;"
+                            : "-fx-text-fill: #333; -fx-font-size: 13px;");
+
+                    Label ts = new Label(m[4]);
+                    ts.setStyle("-fx-font-size: 10px; "
+                            + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+
+                    msgBox.getChildren().addAll(sender, content, ts);
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+                    if (isMine) {
+                        bubble.getChildren().addAll(spacer, msgBox);
+                    } else {
+                        bubble.getChildren().addAll(msgBox, spacer);
+                    }
+                    chatMessages.getChildren().add(bubble);
+                }
+            }
+        };
+
+        groupSelector.setOnAction(e -> refreshChat.run());
+
+        sendBtn.setOnAction(e -> {
+            String selected = groupSelector.getValue();
+            String content = chatInput.getText().trim();
+            if (selected == null || selected.isEmpty()) {
+                chatStatus.setStyle("-fx-text-fill: red;");
+                chatStatus.setText("Select a group first.");
+                return;
+            }
+            if (content.isEmpty()) {
+                chatStatus.setStyle("-fx-text-fill: red;");
+                chatStatus.setText("Type a message.");
+                return;
+            }
+            String senderName = Session.getName() != null ? Session.getName() : myId;
+            DataStore.addGroupMessage(selected, myId, senderName, content);
+            chatInput.clear();
+            chatStatus.setText("");
+            refreshChat.run();
+        });
+
+        refreshGroups.run();
+
+        Label liveHint = new Label("\uD83D\uDFE2 Auto-refreshes every 3 seconds");
+        liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+
+        inputRow.getChildren().addAll(chatInput, sendBtn);
+
+        box.getChildren().addAll(title, createBox, new Separator(),
+                selectTitle, groupSelector, liveHint, chatScroll, inputRow, chatStatus);
+        setScrollContent(box);
+
+        // Auto-refresh groups + chat
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
+            refreshGroups.run();
+            refreshChat.run();
+        }));
+        refreshTimeline.setCycleCount(Timeline.INDEFINITE);
+        refreshTimeline.play();
     }
 }

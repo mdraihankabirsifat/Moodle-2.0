@@ -50,6 +50,11 @@ public class AuthorityDashboardController {
     }
 
     @FXML
+    private void openNewWindow() {
+        SceneManager.openNewWindow();
+    }
+
+    @FXML
     private void signOutCampus() {
         Session.logout();
         SceneManager.switchScene("home.fxml");
