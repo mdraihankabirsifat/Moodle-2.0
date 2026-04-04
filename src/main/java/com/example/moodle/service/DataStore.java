@@ -36,6 +36,8 @@ public class DataStore {
     private static final String GAMES_FILE = "games_data.txt";
     private static final String DOCTORS_FILE = "hospital_doctors.txt";
     private static final String HALLS_FILE = "hall_data.txt";
+    private static final String HALL_REQUESTS_FILE = "hall_room_requests.txt";
+    private static final String HALL_ALLOCATIONS_FILE = "hall_allocations.txt";
 
     static {
         seedDefaults();
@@ -752,6 +754,132 @@ public class DataStore {
             return p.length >= 2 && p[0].equals(hallName) && p[1].equals(room);
         });
         FileStore.saveLines(HALLS_FILE, lines);
+    }
+
+    // ==================== HALL REQUESTS / ALLOCATIONS ====================
+    // hall_room_requests.txt: requesterId|requesterName|hall|room|status|timestamp
+    // hall_allocations.txt: requesterId|hall|room|timestamp
+
+    public static void addHallAvailabilityRequest(String requesterId, String requesterName,
+                                                  String hallName, String room) {
+        String id = requesterId == null ? "" : requesterId.trim();
+        String name = requesterName == null ? "" : requesterName.trim();
+        String hall = hallName == null ? "" : hallName.trim();
+        String roomNo = room == null ? "" : room.trim();
+        if (id.isEmpty() || hall.isEmpty() || roomNo.isEmpty()) return;
+
+        if (hasPendingHallRequest(id, hall, roomNo)) return;
+
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        FileStore.appendLine(HALL_REQUESTS_FILE,
+                id + "|" + name + "|" + hall + "|" + roomNo + "|PENDING|" + ts);
+    }
+
+    public static List<String[]> getAllHallAvailabilityRequests() {
+        List<String[]> list = new ArrayList<>();
+        for (String line : FileStore.loadLines(HALL_REQUESTS_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 6) list.add(p);
+        }
+        return list;
+    }
+
+    public static List<String[]> getPendingHallAvailabilityRequests() {
+        List<String[]> pending = new ArrayList<>();
+        for (String[] r : getAllHallAvailabilityRequests()) {
+            if (r[4].equalsIgnoreCase("PENDING")) pending.add(r);
+        }
+        return pending;
+    }
+
+    public static boolean hasPendingHallRequest(String requesterId, String hallName, String room) {
+        String id = requesterId == null ? "" : requesterId.trim();
+        String hall = hallName == null ? "" : hallName.trim();
+        String roomNo = room == null ? "" : room.trim();
+        for (String[] r : getPendingHallAvailabilityRequests()) {
+            if (r[0].equals(id) && r[2].equals(hall) && r[3].equals(roomNo)) return true;
+        }
+        return false;
+    }
+
+    public static void updateHallAvailabilityRequestStatus(String requesterId,
+                                                           String hallName,
+                                                           String room,
+                                                           String status) {
+        List<String> lines = FileStore.loadLines(HALL_REQUESTS_FILE);
+        String newStatus = status == null ? "PENDING" : status.trim().toUpperCase();
+        for (int i = 0; i < lines.size(); i++) {
+            String[] p = lines.get(i).split("\\|", -1);
+            if (p.length >= 6 && p[0].equals(requesterId)
+                    && p[2].equals(hallName) && p[3].equals(room)
+                    && p[4].equalsIgnoreCase("PENDING")) {
+                String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                lines.set(i, p[0] + "|" + p[1] + "|" + p[2] + "|" + p[3] + "|" + newStatus + "|" + ts);
+                break;
+            }
+        }
+        FileStore.saveLines(HALL_REQUESTS_FILE, lines);
+    }
+
+    public static void assignHallRoom(String requesterId, String hallName, String room) {
+        if (requesterId == null || requesterId.trim().isEmpty()) return;
+        List<String> lines = FileStore.loadLines(HALL_ALLOCATIONS_FILE);
+        String id = requesterId.trim();
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+
+        boolean updated = false;
+        for (int i = 0; i < lines.size(); i++) {
+            String[] p = lines.get(i).split("\\|", -1);
+            if (p.length >= 4 && p[0].equals(id)) {
+                lines.set(i, id + "|" + hallName + "|" + room + "|" + ts);
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) {
+            lines.add(id + "|" + hallName + "|" + room + "|" + ts);
+        }
+        FileStore.saveLines(HALL_ALLOCATIONS_FILE, lines);
+    }
+
+    public static String[] getHallAllocation(String requesterId) {
+        String id = requesterId == null ? "" : requesterId.trim();
+        if (id.isEmpty()) return null;
+        for (String line : FileStore.loadLines(HALL_ALLOCATIONS_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 4 && p[0].equals(id)) return p;
+        }
+        return null;
+    }
+
+    public static int getHallRoomOccupancy(String hallName, String room) {
+        int count = 0;
+        for (String line : FileStore.loadLines(HALL_ALLOCATIONS_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 4 && p[1].equals(hallName) && p[2].equals(room)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static boolean hasHallCapacity(String hallName, String room) {
+        int capacity = -1;
+        for (String[] h : getAllHallRooms()) {
+            if (h.length >= 2 && h[0].equals(hallName) && h[1].equals(room)) {
+                if (h.length >= 3) {
+                    try {
+                        capacity = Integer.parseInt(h[2].trim());
+                    } catch (NumberFormatException ignored) {
+                        capacity = -1;
+                    }
+                }
+                break;
+            }
+        }
+
+        if (capacity <= 0) return true;
+        return getHallRoomOccupancy(hallName, room) < capacity;
     }
 
     // ==================== COMMUNITY (with images) ====================

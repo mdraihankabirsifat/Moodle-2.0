@@ -629,6 +629,71 @@ public class AuthorityDashboardController {
                 box.getChildren().add(row);
             }
         }
+
+        box.getChildren().add(new Separator());
+
+        Label reqTitle = new Label("Evaluate Room Availability Requests");
+        reqTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(reqTitle);
+
+        List<String[]> requests = DataStore.getPendingHallAvailabilityRequests();
+        Label evalMsg = new Label();
+
+        if (requests.isEmpty()) {
+            box.getChildren().add(new Label("No pending requests."));
+        } else {
+            for (String[] r : requests) {
+                String requesterId = r[0];
+                String requesterName = r[1];
+                String hall = r[2];
+                String room = r[3];
+                String ts = r[5];
+
+                int occupancy = DataStore.getHallRoomOccupancy(hall, room);
+                boolean hasCapacity = DataStore.hasHallCapacity(hall, room);
+
+                HBox row = new HBox(10);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: #f8f9ff; -fx-background-radius: 8;");
+
+                Label info = new Label("Student: " + requesterName + " (" + requesterId + ")"
+                        + " | Requested: " + hall + " - " + room
+                        + " | Occupied: " + occupancy
+                        + " | Requested At: " + ts);
+                info.setWrapText(true);
+                info.setMaxWidth(520);
+
+                Button approveBtn = new Button("Approve");
+                approveBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 6;");
+                approveBtn.setDisable(!hasCapacity);
+                approveBtn.setOnAction(ev -> {
+                    if (!DataStore.hasHallCapacity(hall, room)) {
+                        evalMsg.setStyle("-fx-text-fill: red;");
+                        evalMsg.setText("Cannot approve " + requesterId + ": room is full.");
+                        return;
+                    }
+                    DataStore.assignHallRoom(requesterId, hall, room);
+                    DataStore.updateHallAvailabilityRequestStatus(requesterId, hall, room, "APPROVED");
+                    evalMsg.setStyle("-fx-text-fill: green;");
+                    evalMsg.setText("Approved request for " + requesterId + " (" + hall + " - " + room + ").");
+                    showManageHall();
+                });
+
+                Button rejectBtn = new Button("Reject");
+                rejectBtn.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 6;");
+                rejectBtn.setOnAction(ev -> {
+                    DataStore.updateHallAvailabilityRequestStatus(requesterId, hall, room, "REJECTED");
+                    evalMsg.setStyle("-fx-text-fill: #c0392b;");
+                    evalMsg.setText("Rejected request for " + requesterId + " (" + hall + " - " + room + ").");
+                    showManageHall();
+                });
+
+                row.getChildren().addAll(info, approveBtn, rejectBtn);
+                box.getChildren().add(row);
+            }
+        }
+
+        box.getChildren().add(evalMsg);
         setScrollContent(box);
     }
 

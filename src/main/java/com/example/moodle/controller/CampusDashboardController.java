@@ -43,7 +43,6 @@ public class CampusDashboardController {
     // Persistent data stores for simulation
     private static final List<String> submittedProjects = new ArrayList<>();
     private static final List<String> notices = new ArrayList<>();
-    private static String hallRoom = null;
     private static final Map<String, Double> grades = new HashMap<>();
     private static int vendingBalance = 500;
     private static final List<String> washingSlots = new ArrayList<>();
@@ -176,12 +175,16 @@ public class CampusDashboardController {
         Label title = new Label("Hall Management");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
 
+        String myId = Session.getIdentifier();
+        String myName = Session.getName() != null ? Session.getName() : myId;
+
         Label statusLabel = new Label();
-        if (hallRoom != null) {
-            statusLabel.setText("Current Room: " + hallRoom);
+        String[] allocation = DataStore.getHallAllocation(myId);
+        if (allocation != null) {
+            statusLabel.setText("Current Room: " + allocation[1] + " - " + allocation[2]);
             statusLabel.setStyle("-fx-text-fill: green; -fx-font-size: 14px;");
         } else {
-            statusLabel.setText("No room allocated yet.");
+            statusLabel.setText("No room allocated yet. You can request room availability below.");
             statusLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 14px;");
         }
 
@@ -201,6 +204,12 @@ public class CampusDashboardController {
                 final String hallName = h[0];
                 final String roomNum = h.length > 1 ? h[1] : "Room";
                 String capacity = h.length > 2 ? h[2] : "?";
+                int occupancy = DataStore.getHallRoomOccupancy(hallName, roomNum);
+                boolean hasCapacity = DataStore.hasHallCapacity(hallName, roomNum);
+                boolean pending = DataStore.hasPendingHallRequest(myId, hallName, roomNum);
+                boolean alreadyAllocated = allocation != null
+                        && allocation[1].equals(hallName)
+                        && allocation[2].equals(roomNum);
 
                 HBox row = new HBox(15);
                 row.setAlignment(Pos.CENTER_LEFT);
@@ -209,17 +218,26 @@ public class CampusDashboardController {
                 VBox info = new VBox(3);
                 Label hName = new Label(hallName);
                 hName.setStyle("-fx-font-weight: bold;");
-                Label avail = new Label(roomNum + "  |  Capacity: " + capacity);
+                Label avail = new Label(roomNum + "  |  Capacity: " + capacity + "  |  Occupied: " + occupancy);
                 avail.setStyle("-fx-text-fill: #666;");
                 info.getChildren().addAll(hName, avail);
 
-                Button allocBtn = new Button("Request " + roomNum);
+                Button allocBtn = new Button("Ask Availability");
+                if (alreadyAllocated) {
+                    allocBtn.setText("Allocated");
+                    allocBtn.setDisable(true);
+                } else if (pending) {
+                    allocBtn.setText("Requested");
+                    allocBtn.setDisable(true);
+                } else if (!hasCapacity) {
+                    allocBtn.setText("Full");
+                    allocBtn.setDisable(true);
+                }
                 allocBtn.setOnAction(e -> {
-                    hallRoom = hallName + " - " + roomNum;
-                    statusLabel.setText("Current Room: " + hallRoom);
-                    statusLabel.setStyle("-fx-text-fill: green; -fx-font-size: 14px;");
-                    msgLabel.setStyle("-fx-text-fill: green;");
-                    msgLabel.setText("Room allocated: " + hallRoom);
+                    DataStore.addHallAvailabilityRequest(myId, myName, hallName, roomNum);
+                    msgLabel.setStyle("-fx-text-fill: #2a5298;");
+                    msgLabel.setText("Request sent: " + hallName + " - " + roomNum + ". Admin will evaluate availability.");
+                    showHall();
                 });
 
                 row.getChildren().addAll(info, allocBtn);
@@ -319,6 +337,15 @@ public class CampusDashboardController {
         Label title = new Label("Internal Notices");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
 
+        Button scheduleBtn = new Button("Schedule");
+        scheduleBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;");
+        scheduleBtn.setOnAction(e -> showSchedule());
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(10, title, spacer, scheduleBtn);
+        header.setAlignment(Pos.CENTER_LEFT);
+
         VBox noticeList = new VBox(8);
 
         // Read notices from DataStore (posted by authority/teachers)
@@ -340,7 +367,7 @@ public class CampusDashboardController {
             }
         }
 
-        box.getChildren().addAll(title, noticeList);
+        box.getChildren().addAll(header, noticeList);
         setScrollContent(box);
     }
 
@@ -973,7 +1000,10 @@ public class CampusDashboardController {
         HBox.setHgrow(newChatField, Priority.ALWAYS);
         Button newChatBtn = new Button("\uD83D\uDCAC Open Chat");
         newChatBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;");
-        composeRow.getChildren().addAll(newChatField, newChatBtn);
+        Button groupChatBtn = new Button("\uD83D\uDC65 Group Chat");
+        groupChatBtn.setStyle("-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-background-radius: 8;");
+        groupChatBtn.setOnAction(e -> showGroupChat());
+        composeRow.getChildren().addAll(newChatField, newChatBtn, groupChatBtn);
 
         // Left: conversation list
         VBox convList = new VBox(8);
@@ -1213,6 +1243,56 @@ public class CampusDashboardController {
         }));
         refreshTimeline.setCycleCount(Timeline.INDEFINITE);
         refreshTimeline.play();
+    }
+
+    @FXML
+    private void showWellBeing() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+
+        Label title = new Label("Well Being");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        Label subtitle = new Label("Campus support services for student life and wellness.");
+        subtitle.setStyle("-fx-text-fill: #666;");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(12);
+        grid.setVgap(12);
+
+        java.util.List<Button> buttons = new java.util.ArrayList<>();
+
+        Button hallBtn = new Button("Hall Management");
+        hallBtn.setOnAction(e -> showHall());
+        buttons.add(hallBtn);
+
+        Button gamesBtn = new Button("Games & Sports");
+        gamesBtn.setOnAction(e -> showGames());
+        buttons.add(gamesBtn);
+
+        Button hospitalBtn = new Button("Hospital");
+        hospitalBtn.setOnAction(e -> showHospital());
+        buttons.add(hospitalBtn);
+
+        Button washingBtn = new Button("Washing Machine");
+        washingBtn.setOnAction(e -> showWashing());
+        buttons.add(washingBtn);
+
+        Button vendingBtn = new Button("Vending Machine");
+        vendingBtn.setOnAction(e -> showVending());
+        buttons.add(vendingBtn);
+
+        for (int i = 0; i < buttons.size(); i++) {
+            Button b = buttons.get(i);
+            b.setMaxWidth(Double.MAX_VALUE);
+            b.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 14 20 14 20; "
+                    + "-fx-background-radius: 10; -fx-cursor: hand;");
+            GridPane.setHgrow(b, Priority.ALWAYS);
+            grid.add(b, i % 2, i / 2);
+        }
+
+        box.getChildren().addAll(title, subtitle, grid);
+        setScrollContent(box);
     }
 
     /**

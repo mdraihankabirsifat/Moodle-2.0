@@ -58,7 +58,7 @@ public class TeacherDashboardController {
             SceneManager.switchScene(Session.getCampusDashboardFxml());
         } else {
             SceneManager.switchScene("campus-access.fxml");
-        }
+            VBox box = new VBox(12);
     }
 
     @FXML
@@ -66,21 +66,251 @@ public class TeacherDashboardController {
         Session.logout();
         SceneManager.switchScene("home.fxml");
     }
-
+            // Start a conversation by entering an ID/email.
     @FXML
     private void goBack() {
         SceneManager.goBack();
-    }
+            newChatField.setPromptText("Start new chat (enter email or ID)...");
 
-    // ===================== MY COURSES =====================
+            Button newChatBtn = new Button("\uD83D\uDCAC Open Chat");
 
-    @FXML
-    private void showMyProfile() {
-        VBox box = new VBox(15);
-        box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDC64 My Profile");
+            // Left: conversation list
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+            convList.setStyle("-fx-padding: 8;");
+
+            ScrollPane convScroll = new ScrollPane(convList);
+            convScroll.setFitToWidth(true);
+            convScroll.setPrefWidth(300);
+            convScroll.setMinWidth(260);
+            convScroll.setStyle("-fx-background-color: #f8f9ff; -fx-background-radius: 10;");
+
+            // Right: active chat panel
+            Label chatTitle = new Label("Select a conversation");
+            chatTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+            VBox chatMessages = new VBox(8);
+            chatMessages.setStyle("-fx-padding: 10;");
+
+            ScrollPane chatScroll = new ScrollPane(chatMessages);
+            chatScroll.setFitToWidth(true);
+            chatScroll.setPrefHeight(420);
+            chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+
+            TextArea chatInput = new TextArea();
+            chatInput.setPromptText("Type a message...");
+            chatInput.setPrefRowCount(2);
+            HBox.setHgrow(chatInput, Priority.ALWAYS);
+            chatInput.setDisable(true);
+
+            Button sendBtn = new Button("Send \u27A1");
+            sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+            sendBtn.setDisable(true);
+
+            Label statusLabel = new Label();
+
+            HBox inputRow = new HBox(10, chatInput, sendBtn);
+            inputRow.setAlignment(Pos.CENTER_LEFT);
+
+            VBox chatPane = new VBox(10, chatTitle, chatScroll, inputRow, statusLabel);
+            chatPane.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 10;");
+            HBox.setHgrow(chatPane, Priority.ALWAYS);
+
+            HBox mainRow = new HBox(12, convScroll, chatPane);
+            HBox.setHgrow(mainRow, Priority.ALWAYS);
+
+            final String[] activePartner = {null};
+            final Runnable[] refreshConversationsRef = new Runnable[1];
+
+            Runnable refreshChat = () -> {
+                chatMessages.getChildren().clear();
+                statusLabel.setText("");
+
+                if (activePartner[0] == null || activePartner[0].isBlank()) {
+                    chatTitle.setText("Select a conversation");
+                    chatInput.setDisable(true);
+                    sendBtn.setDisable(true);
+                    Label hint = new Label("Choose a chat from the left, or start one above.");
+                    hint.setStyle("-fx-text-fill: #777; -fx-padding: 20;");
+                    chatMessages.getChildren().add(hint);
+                    return;
+                }
+
+                chatTitle.setText("\uD83D\uDCAC Chat with " + activePartner[0]);
+                chatInput.setDisable(false);
+                sendBtn.setDisable(false);
+
+                List<Message> allMsgs = DataStore.getMessagesFor(myId);
+                List<Message> filtered = new java.util.ArrayList<>();
+                for (Message m : allMsgs) {
+                    boolean between = (DataStore.isSameMessagingUser(m.getFrom(), myId)
+                            && DataStore.isSameMessagingUser(m.getTo(), activePartner[0]))
+                            || (DataStore.isSameMessagingUser(m.getFrom(), activePartner[0])
+                            && DataStore.isSameMessagingUser(m.getTo(), myId));
+                    if (between) {
+                        filtered.add(m);
+                    }
+                }
+
+                for (Message m : filtered) {
+                    boolean isMine = DataStore.isSameMessagingUser(m.getFrom(), myId);
+                    HBox bubble = new HBox();
+                    bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+                    VBox msgBox = new VBox(2);
+                    msgBox.setMaxWidth(320);
+                    msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
+                            + (isMine
+                            ? "-fx-background-color: #2a5298;"
+                            : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+
+                    Label content = new Label(m.getContent());
+                    content.setWrapText(true);
+                    content.setStyle(isMine
+                            ? "-fx-text-fill: white; -fx-font-size: 13px;"
+                            : "-fx-text-fill: #333; -fx-font-size: 13px;");
+
+                    Label ts = new Label(m.getTimestamp());
+                    ts.setStyle("-fx-font-size: 10px; "
+                            + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+
+                    msgBox.getChildren().addAll(content, ts);
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+                    if (isMine) {
+                        bubble.getChildren().addAll(spacer, msgBox);
+                    } else {
+                        bubble.getChildren().addAll(msgBox, spacer);
+                    }
+                    chatMessages.getChildren().add(bubble);
+                }
+
+                if (chatMessages.getChildren().isEmpty()) {
+                    Label noMsg = new Label("No messages yet. Start the conversation!");
+                    noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                    chatMessages.getChildren().add(noMsg);
+                }
+
+                chatScroll.applyCss();
+                chatScroll.layout();
+                chatScroll.setVvalue(1.0);
+            };
+
+            java.util.function.Consumer<String> openChat = partnerRaw -> {
+                String partner = DataStore.canonicalMessageId(partnerRaw);
+                if (partner.isEmpty()) return;
+                activePartner[0] = partner;
+                refreshChat.run();
+                if (refreshConversationsRef[0] != null) {
+                    refreshConversationsRef[0].run();
+                }
+            };
+
+            newChatBtn.setOnAction(e -> {
+                String to = DataStore.canonicalMessageId(newChatField.getText().trim());
+                if (!to.isEmpty()) {
+                    openChat.accept(to);
+                    newChatField.clear();
+                }
+            });
+            newChatField.setOnAction(e -> newChatBtn.fire());
+
+            sendBtn.setOnAction(e -> {
+                if (activePartner[0] == null || activePartner[0].isBlank()) {
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                    statusLabel.setText("Select a conversation first.");
+                    return;
+                }
+
+                String content = chatInput.getText().trim();
+                if (content.isEmpty()) {
+                    statusLabel.setStyle("-fx-text-fill: red;");
+                    statusLabel.setText("Type a message.");
+                    return;
+                }
+
+                DataStore.sendMessage(myId, activePartner[0], content);
+                chatInput.clear();
+                statusLabel.setText("");
+                refreshChat.run();
+                if (refreshConversationsRef[0] != null) {
+                    refreshConversationsRef[0].run();
+                }
+            });
+
+            refreshConversationsRef[0] = () -> {
+                convList.getChildren().clear();
+                List<Message> messages = DataStore.getMessagesFor(myId);
+                java.util.LinkedHashMap<String, Message> lastMessages = new java.util.LinkedHashMap<>();
+                for (Message m : messages) {
+                    boolean sentByMe = DataStore.isSameMessagingUser(m.getFrom(), myId);
+                    String partner = DataStore.canonicalMessageId(sentByMe ? m.getTo() : m.getFrom());
+                    if (!partner.isEmpty()) {
+                        lastMessages.put(partner, m);
+                    }
+                }
+                if (lastMessages.isEmpty()) {
+                    Label noMsg = new Label("No conversations yet. Start one above!");
+                    noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                    convList.getChildren().add(noMsg);
+                } else {
+                    java.util.List<java.util.Map.Entry<String, Message>> entries = new java.util.ArrayList<>(lastMessages.entrySet());
+                    for (int i = entries.size() - 1; i >= 0; i--) {
+                        java.util.Map.Entry<String, Message> entry = entries.get(i);
+                        String partner = entry.getKey();
+                        Message lastMsg = entry.getValue();
+
+                        HBox card = new HBox(12);
+                        card.setAlignment(Pos.CENTER_LEFT);
+                        card.setStyle("-fx-padding: 12; -fx-background-color: white; -fx-background-radius: 10; "
+                                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2); -fx-cursor: hand;");
+
+                        Label avatar = new Label("\uD83D\uDC64");
+                        avatar.setStyle("-fx-font-size: 28px;");
+
+                        VBox info = new VBox(3);
+                        HBox.setHgrow(info, Priority.ALWAYS);
+                        Label nameLabel = new Label(partner);
+                        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;");
+                        boolean fromMe = DataStore.isSameMessagingUser(lastMsg.getFrom(), myId);
+                        String preview = (fromMe ? "You: " : "") + lastMsg.getContent();
+                        if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
+                        Label previewLabel = new Label(preview);
+                        previewLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 12px;");
+                        info.getChildren().addAll(nameLabel, previewLabel);
+
+                        Label timeLabel = new Label(lastMsg.getTimestamp());
+                        timeLabel.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
+
+                        if (activePartner[0] != null && DataStore.isSameMessagingUser(activePartner[0], partner)) {
+                            card.setStyle("-fx-padding: 12; -fx-background-color: #eaf2ff; -fx-background-radius: 10; "
+                                    + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2); -fx-cursor: hand;");
+                        }
+
+                        card.getChildren().addAll(avatar, info, timeLabel);
+                        card.setOnMouseClicked(ev -> openChat.accept(partner));
+                        convList.getChildren().add(card);
+                    }
+                }
+            };
+
+            refreshConversationsRef[0].run();
+            refreshChat.run();
+
+            Label liveHint = new Label("\uD83D\uDFE2 Messages auto-refresh every 3 seconds");
+            liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+
+            box.getChildren().addAll(title, composeRow, new Separator(), mainRow, liveHint);
+            setScrollContent(box);
+
+            panelRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
+                refreshConversationsRef[0].run();
+                refreshChat.run();
+            }));
+            panelRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
+            panelRefreshTimeline.play();
 
         // Photo section
         javafx.scene.layout.StackPane photoArea = new javafx.scene.layout.StackPane();
