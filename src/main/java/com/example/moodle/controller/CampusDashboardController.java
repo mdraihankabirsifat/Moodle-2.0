@@ -957,7 +957,7 @@ public class CampusDashboardController {
     // ===================== MESSAGES (Messenger Style) =====================
     @FXML
     private void showMessages() {
-        VBox box = new VBox(15);
+        VBox box = new VBox(12);
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDCE8 Messages");
@@ -965,40 +965,197 @@ public class CampusDashboardController {
 
         String myId = Session.getIdentifier();
 
-        // Compose new message
+        // Start a conversation by entering an ID/email.
         HBox composeRow = new HBox(10);
         composeRow.setAlignment(Pos.CENTER_LEFT);
         TextField newChatField = new TextField();
         newChatField.setPromptText("Start new chat (enter email or ID)...");
         HBox.setHgrow(newChatField, Priority.ALWAYS);
-        Button newChatBtn = new Button("\uD83D\uDCAC Chat");
+        Button newChatBtn = new Button("\uD83D\uDCAC Open Chat");
         newChatBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;");
-        newChatBtn.setOnAction(e -> {
-            String to = newChatField.getText().trim();
-            if (!to.isEmpty()) {
-                showDirectChat(to);
-            }
-        });
         composeRow.getChildren().addAll(newChatField, newChatBtn);
 
-        // Conversation list
+        // Left: conversation list
         VBox convList = new VBox(8);
+        convList.setStyle("-fx-padding: 8;");
+        ScrollPane convScroll = new ScrollPane(convList);
+        convScroll.setFitToWidth(true);
+        convScroll.setPrefWidth(300);
+        convScroll.setMinWidth(260);
+        convScroll.setStyle("-fx-background-color: #f8f9ff; -fx-background-radius: 10;");
 
-        Runnable refreshConversations = () -> {
+        // Right: active chat panel
+        Label chatTitle = new Label("Select a conversation");
+        chatTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        VBox chatMessages = new VBox(8);
+        chatMessages.setStyle("-fx-padding: 10;");
+
+        ScrollPane chatScroll = new ScrollPane(chatMessages);
+        chatScroll.setFitToWidth(true);
+        chatScroll.setPrefHeight(420);
+        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+
+        TextArea chatInput = new TextArea();
+        chatInput.setPromptText("Type a message...");
+        chatInput.setPrefRowCount(2);
+        HBox.setHgrow(chatInput, Priority.ALWAYS);
+        chatInput.setDisable(true);
+
+        Button sendBtn = new Button("Send \u27A1");
+        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        sendBtn.setDisable(true);
+
+        Label statusLabel = new Label();
+
+        HBox inputRow = new HBox(10, chatInput, sendBtn);
+        inputRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox chatPane = new VBox(10, chatTitle, chatScroll, inputRow, statusLabel);
+        chatPane.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 10;");
+        HBox.setHgrow(chatPane, Priority.ALWAYS);
+
+        HBox mainRow = new HBox(12, convScroll, chatPane);
+        HBox.setHgrow(mainRow, Priority.ALWAYS);
+
+        final String[] activePartner = {null};
+        final Runnable[] refreshConversationsRef = new Runnable[1];
+
+        Runnable refreshChat = () -> {
+            chatMessages.getChildren().clear();
+            statusLabel.setText("");
+
+            if (activePartner[0] == null || activePartner[0].isBlank()) {
+                chatTitle.setText("Select a conversation");
+                chatInput.setDisable(true);
+                sendBtn.setDisable(true);
+                Label hint = new Label("Choose a chat from the left, or start one above.");
+                hint.setStyle("-fx-text-fill: #777; -fx-padding: 20;");
+                chatMessages.getChildren().add(hint);
+                return;
+            }
+
+            chatTitle.setText("\uD83D\uDCAC Chat with " + activePartner[0]);
+            chatInput.setDisable(false);
+            sendBtn.setDisable(false);
+
+            List<Message> allMsgs = DataStore.getMessagesFor(myId);
+            List<Message> filtered = new ArrayList<>();
+            for (Message m : allMsgs) {
+                boolean between = (DataStore.isSameMessagingUser(m.getFrom(), myId)
+                        && DataStore.isSameMessagingUser(m.getTo(), activePartner[0]))
+                        || (DataStore.isSameMessagingUser(m.getFrom(), activePartner[0])
+                        && DataStore.isSameMessagingUser(m.getTo(), myId));
+                if (between) {
+                    filtered.add(m);
+                }
+            }
+
+            for (Message m : filtered) {
+                boolean isMine = DataStore.isSameMessagingUser(m.getFrom(), myId);
+                HBox bubble = new HBox();
+                bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+                VBox msgBox = new VBox(2);
+                msgBox.setMaxWidth(320);
+                msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
+                        + (isMine
+                        ? "-fx-background-color: #2a5298;"
+                        : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+
+                Label content = new Label(m.getContent());
+                content.setWrapText(true);
+                content.setStyle(isMine
+                        ? "-fx-text-fill: white; -fx-font-size: 13px;"
+                        : "-fx-text-fill: #333; -fx-font-size: 13px;");
+
+                Label ts = new Label(m.getTimestamp());
+                ts.setStyle("-fx-font-size: 10px; "
+                        + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+
+                msgBox.getChildren().addAll(content, ts);
+
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+                if (isMine) {
+                    bubble.getChildren().addAll(spacer, msgBox);
+                } else {
+                    bubble.getChildren().addAll(msgBox, spacer);
+                }
+                chatMessages.getChildren().add(bubble);
+            }
+
+            if (chatMessages.getChildren().isEmpty()) {
+                Label noMsg = new Label("No messages yet. Start the conversation!");
+                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                chatMessages.getChildren().add(noMsg);
+            }
+
+            chatScroll.applyCss();
+            chatScroll.layout();
+            chatScroll.setVvalue(1.0);
+        };
+
+        java.util.function.Consumer<String> openChat = partnerRaw -> {
+            String partner = DataStore.canonicalMessageId(partnerRaw);
+            if (partner.isEmpty()) return;
+            activePartner[0] = partner;
+            refreshChat.run();
+            if (refreshConversationsRef[0] != null) {
+                refreshConversationsRef[0].run();
+            }
+        };
+
+        newChatBtn.setOnAction(e -> {
+            String to = DataStore.canonicalMessageId(newChatField.getText().trim());
+            if (!to.isEmpty()) {
+                openChat.accept(to);
+                newChatField.clear();
+            }
+        });
+        newChatField.setOnAction(e -> newChatBtn.fire());
+
+        sendBtn.setOnAction(e -> {
+            if (activePartner[0] == null || activePartner[0].isBlank()) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Select a conversation first.");
+                return;
+            }
+
+            String content = chatInput.getText().trim();
+            if (content.isEmpty()) {
+                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setText("Type a message.");
+                return;
+            }
+
+            DataStore.sendMessage(myId, activePartner[0], content);
+            chatInput.clear();
+            statusLabel.setText("");
+            refreshChat.run();
+            if (refreshConversationsRef[0] != null) {
+                refreshConversationsRef[0].run();
+            }
+        });
+
+        refreshConversationsRef[0] = () -> {
             convList.getChildren().clear();
             List<Message> messages = DataStore.getMessagesFor(myId);
-            // Build unique conversation partners
+
             Map<String, Message> lastMessages = new java.util.LinkedHashMap<>();
             for (Message m : messages) {
-                String partner = m.getFrom().equals(myId) ? m.getTo() : m.getFrom();
-                lastMessages.put(partner, m); // last message wins
+                boolean sentByMe = DataStore.isSameMessagingUser(m.getFrom(), myId);
+                String partner = DataStore.canonicalMessageId(sentByMe ? m.getTo() : m.getFrom());
+                if (!partner.isEmpty()) {
+                    lastMessages.put(partner, m);
+                }
             }
+
             if (lastMessages.isEmpty()) {
                 Label noMsg = new Label("No conversations yet. Start one above!");
                 noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
                 convList.getChildren().add(noMsg);
             } else {
-                // Show conversations newest first
                 List<Map.Entry<String, Message>> entries = new ArrayList<>(lastMessages.entrySet());
                 for (int i = entries.size() - 1; i >= 0; i--) {
                     Map.Entry<String, Message> entry = entries.get(i);
@@ -1017,7 +1174,7 @@ public class CampusDashboardController {
                     HBox.setHgrow(info, Priority.ALWAYS);
                     Label nameLabel = new Label(partner);
                     nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;");
-                    boolean fromMe = lastMsg.getFrom().equals(myId);
+                    boolean fromMe = DataStore.isSameMessagingUser(lastMsg.getFrom(), myId);
                     String preview = (fromMe ? "You: " : "") + lastMsg.getContent();
                     if (preview.length() > 50) {
                         preview = preview.substring(0, 50) + "...";
@@ -1029,23 +1186,31 @@ public class CampusDashboardController {
                     Label timeLabel = new Label(lastMsg.getTimestamp());
                     timeLabel.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
 
+                    if (activePartner[0] != null && DataStore.isSameMessagingUser(activePartner[0], partner)) {
+                        card.setStyle("-fx-padding: 12; -fx-background-color: #eaf2ff; -fx-background-radius: 10; "
+                                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2); -fx-cursor: hand;");
+                    }
+
                     card.getChildren().addAll(avatar, info, timeLabel);
-                    card.setOnMouseClicked(ev -> showDirectChat(partner));
+                    card.setOnMouseClicked(ev -> openChat.accept(partner));
                     convList.getChildren().add(card);
                 }
             }
         };
 
-        refreshConversations.run();
+        refreshConversationsRef[0].run();
+        refreshChat.run();
 
-        Label liveHint = new Label("\uD83D\uDFE2 Conversations auto-refresh every 3 seconds");
+        Label liveHint = new Label("\uD83D\uDFE2 Messages auto-refresh every 3 seconds");
         liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
 
-        box.getChildren().addAll(title, composeRow, new Separator(), liveHint, convList);
+        box.getChildren().addAll(title, composeRow, new Separator(), mainRow, liveHint);
         setScrollContent(box);
 
-        // Auto-refresh conversations
-        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> refreshConversations.run()));
+        refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
+            refreshConversationsRef[0].run();
+            refreshChat.run();
+        }));
         refreshTimeline.setCycleCount(Timeline.INDEFINITE);
         refreshTimeline.play();
     }
@@ -1508,7 +1673,7 @@ public class CampusDashboardController {
     // ===================== GROUP CHAT =====================
     @FXML
     private void showGroupChat() {
-        VBox box = new VBox(15);
+        VBox box = new VBox(12);
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDC65 Group Chat");
@@ -1516,9 +1681,52 @@ public class CampusDashboardController {
 
         String myId = Session.getIdentifier();
 
-        // ---- Create Group section ----
+        final String[] activeGroup = {null};
+        final Runnable[] refreshGroupsRef = new Runnable[1];
+        final Runnable[] refreshChatRef = new Runnable[1];
+
+        java.util.function.Consumer<String> openGroup = groupName -> {
+            if (groupName == null || groupName.isBlank()) return;
+            activeGroup[0] = groupName;
+            if (refreshChatRef[0] != null) refreshChatRef[0].run();
+            if (refreshGroupsRef[0] != null) refreshGroupsRef[0].run();
+        };
+
+        Label groupsTitle = new Label("Your Groups");
+        groupsTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+
+        VBox groupList = new VBox(8);
+        groupList.setStyle("-fx-padding: 8;");
+
+        ScrollPane groupScroll = new ScrollPane(groupList);
+        groupScroll.setFitToWidth(true);
+        groupScroll.setPrefWidth(300);
+        groupScroll.setMinWidth(260);
+        groupScroll.setStyle("-fx-background-color: #f8f9ff; -fx-background-radius: 10;");
+
+        VBox leftPane = new VBox(8, groupsTitle, groupScroll);
+        leftPane.setPrefWidth(300);
+        leftPane.setMinWidth(260);
+
+        Label activeGroupTitle = new Label("Select a group");
+        activeGroupTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+        Button manageBtn = new Button("Join/Create Group");
+        manageBtn.setStyle("-fx-font-size: 11px; -fx-padding: 6 10 6 10; -fx-background-radius: 8;");
+
+        Region headerSpacer = new Region();
+        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
+        HBox rightHeader = new HBox(10, activeGroupTitle, headerSpacer, manageBtn);
+        rightHeader.setAlignment(Pos.CENTER_LEFT);
+
+        // Manage groups panel: same create/join logic, compact and toggleable.
+        VBox managePanel = new VBox(10);
+        managePanel.setStyle("-fx-padding: 12; -fx-background-color: #f8f9ff; -fx-background-radius: 10;");
+        managePanel.setVisible(false);
+        managePanel.setManaged(false);
+
         Label createTitle = new Label("Create New Group");
-        createTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        createTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
 
         TextField groupNameField = new TextField();
         groupNameField.setPromptText("Group Name (e.g. CSE101 Study Group)");
@@ -1529,7 +1737,62 @@ public class CampusDashboardController {
 
         Label createMsg = new Label();
         Button createBtn = new Button("Create Group");
-        createBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+        createBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+
+        Label searchTitle = new Label("Search & Join Group");
+        searchTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search group name...");
+        Button searchBtn = new Button("Search");
+        VBox searchResults = new VBox(6);
+        Label joinMsg = new Label();
+
+        HBox searchRow = new HBox(10, searchField, searchBtn);
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+        searchRow.setAlignment(Pos.CENTER_LEFT);
+
+        managePanel.getChildren().addAll(
+                createTitle, groupNameField, groupPasswordField, membersField, createBtn, createMsg,
+                new Separator(), searchTitle, searchRow, searchResults, joinMsg
+        );
+
+        VBox chatMessages = new VBox(8);
+        chatMessages.setStyle("-fx-padding: 10;");
+
+        ScrollPane chatScroll = new ScrollPane(chatMessages);
+        chatScroll.setFitToWidth(true);
+        chatScroll.setPrefHeight(360);
+        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+
+        TextArea chatInput = new TextArea();
+        chatInput.setPromptText("Type a message...");
+        chatInput.setPrefRowCount(2);
+        chatInput.setDisable(true);
+        HBox.setHgrow(chatInput, Priority.ALWAYS);
+
+        Button sendBtn = new Button("Send \u27A1");
+        sendBtn.setDisable(true);
+        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; "
+                + "-fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+
+        Label chatStatus = new Label();
+        HBox inputRow = new HBox(10, chatInput, sendBtn);
+        inputRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox rightPane = new VBox(10, rightHeader, managePanel, chatScroll, inputRow, chatStatus);
+        rightPane.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 10;");
+        HBox.setHgrow(rightPane, Priority.ALWAYS);
+
+        HBox mainRow = new HBox(12, leftPane, rightPane);
+        HBox.setHgrow(mainRow, Priority.ALWAYS);
+
+        manageBtn.setOnAction(e -> {
+            boolean show = !managePanel.isVisible();
+            managePanel.setVisible(show);
+            managePanel.setManaged(show);
+        });
+
         createBtn.setOnAction(e -> {
             String gName = groupNameField.getText().trim();
             String gPass = groupPasswordField.getText().trim();
@@ -1537,37 +1800,23 @@ public class CampusDashboardController {
             if (gName.isEmpty()) {
                 createMsg.setStyle("-fx-text-fill: red;");
                 createMsg.setText("Enter a group name.");
-            } else {
-                String memberList = members.isEmpty() ? myId : myId + "," + members;
-                DataStore.createGroup(gName, myId, gPass, memberList);
-                createMsg.setStyle("-fx-text-fill: green;");
-                createMsg.setText("Group '" + gName + "' created! \u2705");
-                groupNameField.clear();
-                groupPasswordField.clear();
-                membersField.clear();
+                return;
             }
+            String memberList = members.isEmpty() ? myId : myId + "," + members;
+            DataStore.createGroup(gName, myId, gPass, memberList);
+            createMsg.setStyle("-fx-text-fill: green;");
+            createMsg.setText("Group '" + gName + "' created! \u2705");
+            groupNameField.clear();
+            groupPasswordField.clear();
+            membersField.clear();
+            openGroup.accept(gName);
         });
 
-        VBox createBox = new VBox(8, createTitle, groupNameField, groupPasswordField, membersField, createBtn, createMsg);
-        createBox.setStyle("-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; "
-                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
-
-        // ---- Search & Join Group section ----
-        Label searchTitle = new Label("Search & Join Group");
-        searchTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-
-        TextField searchField = new TextField();
-        searchField.setPromptText("\uD83D\uDD0D Search group name...");
-        VBox searchResults = new VBox(6);
-        Label joinMsg = new Label();
-
-        Button searchBtn = new Button("Search");
         searchBtn.setOnAction(e -> {
             searchResults.getChildren().clear();
             String query = searchField.getText().trim();
-            if (query.isEmpty()) {
-                return;
-            }
+            if (query.isEmpty()) return;
+
             List<String[]> found = DataStore.searchGroups(query);
             if (found.isEmpty()) {
                 searchResults.getChildren().add(new Label("No groups found."));
@@ -1575,10 +1824,12 @@ public class CampusDashboardController {
                 for (String[] g : found) {
                     HBox row = new HBox(10);
                     row.setAlignment(Pos.CENTER_LEFT);
-                    row.setStyle("-fx-padding: 8; -fx-background-color: #f8f9ff; -fx-background-radius: 6;");
+                    row.setStyle("-fx-padding: 8; -fx-background-color: white; -fx-background-radius: 6;");
+
                     Label gLabel = new Label("\uD83D\uDC65 " + g[0] + " (by " + g[1] + ")"
                             + (g[2].isEmpty() ? "" : " \uD83D\uDD12"));
                     gLabel.setStyle("-fx-font-weight: bold;");
+                    HBox.setHgrow(gLabel, Priority.ALWAYS);
 
                     TextField passField = new TextField();
                     passField.setPromptText("Password");
@@ -1592,75 +1843,80 @@ public class CampusDashboardController {
                         if (ok) {
                             joinMsg.setStyle("-fx-text-fill: green;");
                             joinMsg.setText("Joined '" + g[0] + "'!");
+                            openGroup.accept(g[0]);
                         } else {
                             joinMsg.setStyle("-fx-text-fill: red;");
                             joinMsg.setText("Wrong password for '" + g[0] + "'.");
                         }
                     });
+
                     row.getChildren().addAll(gLabel, passField, joinBtn);
                     searchResults.getChildren().add(row);
                 }
             }
         });
 
-        HBox searchRow = new HBox(10, searchField, searchBtn);
-        searchRow.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(searchField, Priority.ALWAYS);
-
-        VBox searchBox = new VBox(8, searchTitle, searchRow, searchResults, joinMsg);
-        searchBox.setStyle("-fx-padding: 15; -fx-background-color: white; -fx-background-radius: 10; "
-                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
-
-        // ---- Group selector ----
-        Label selectTitle = new Label("Your Groups");
-        selectTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-
-        ComboBox<String> groupSelector = new ComboBox<>();
-        groupSelector.setPromptText("Select a group to chat");
-        groupSelector.setMaxWidth(Double.MAX_VALUE);
-
-        VBox chatMessages = new VBox(8);
-        chatMessages.setStyle("-fx-padding: 10;");
-
-        ScrollPane chatScroll = new ScrollPane(chatMessages);
-        chatScroll.setFitToWidth(true);
-        chatScroll.setPrefHeight(250);
-        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
-        chatScroll.vvalueProperty().bind(chatMessages.heightProperty());
-
-        HBox inputRow = new HBox(10);
-        inputRow.setAlignment(Pos.CENTER_LEFT);
-        TextArea chatInput = new TextArea();
-        chatInput.setPromptText("Type a message...");
-        chatInput.setPrefRowCount(2);
-        chatInput.setPrefWidth(400);
-        HBox.setHgrow(chatInput, Priority.ALWAYS);
-
-        Button sendBtn = new Button("Send \u27A1");
-        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; "
-                + "-fx-background-radius: 20; -fx-padding: 10 20 10 20;");
-
-        Label chatStatus = new Label();
-
-        Runnable refreshGroups = () -> {
-            String prevSelection = groupSelector.getValue();
-            groupSelector.getItems().clear();
+        refreshGroupsRef[0] = () -> {
+            groupList.getChildren().clear();
             List<String[]> groups = DataStore.getGroupsForUser(myId);
-            for (String[] g : groups) {
-                groupSelector.getItems().add(g[0]);
+
+            if (groups.isEmpty()) {
+                activeGroup[0] = null;
+                Label noGroup = new Label("No groups yet. Use Join/Create Group.");
+                noGroup.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                groupList.getChildren().add(noGroup);
+                return;
             }
-            if (prevSelection != null && groupSelector.getItems().contains(prevSelection)) {
-                groupSelector.setValue(prevSelection);
+
+            boolean activeExists = false;
+            for (String[] g : groups) {
+                String gName = g[0];
+                if (gName.equals(activeGroup[0])) activeExists = true;
+
+                HBox card = new HBox(10);
+                card.setAlignment(Pos.CENTER_LEFT);
+                card.setStyle("-fx-padding: 10; -fx-background-color: white; -fx-background-radius: 10; "
+                        + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1); -fx-cursor: hand;");
+
+                if (gName.equals(activeGroup[0])) {
+                    card.setStyle("-fx-padding: 10; -fx-background-color: #eaf2ff; -fx-background-radius: 10; "
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1); -fx-cursor: hand;");
+                }
+
+                Label icon = new Label("\uD83D\uDC65");
+                icon.setStyle("-fx-font-size: 18px;");
+
+                Label name = new Label(gName + (g[2].isEmpty() ? "" : " \uD83D\uDD12"));
+                name.setStyle("-fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+
+                card.getChildren().addAll(icon, name);
+                card.setOnMouseClicked(ev -> openGroup.accept(gName));
+                groupList.getChildren().add(card);
+            }
+
+            if (!activeExists) {
+                activeGroup[0] = null;
             }
         };
 
-        Runnable refreshChat = () -> {
-            String selected = groupSelector.getValue();
-            if (selected == null || selected.isEmpty()) {
+        refreshChatRef[0] = () -> {
+            chatMessages.getChildren().clear();
+
+            if (activeGroup[0] == null || activeGroup[0].isEmpty()) {
+                activeGroupTitle.setText("Select a group");
+                chatInput.setDisable(true);
+                sendBtn.setDisable(true);
+                Label hint = new Label("Pick a group from the left to start chatting.");
+                hint.setStyle("-fx-text-fill: #777; -fx-padding: 20;");
+                chatMessages.getChildren().add(hint);
                 return;
             }
-            chatMessages.getChildren().clear();
-            List<String[]> msgs = DataStore.getGroupMessages(selected);
+
+            activeGroupTitle.setText("\uD83D\uDC65 " + activeGroup[0]);
+            chatInput.setDisable(false);
+            sendBtn.setDisable(false);
+
+            List<String[]> msgs = DataStore.getGroupMessages(activeGroup[0]);
             if (msgs.isEmpty()) {
                 Label noMsg = new Label("No messages yet. Start the conversation!");
                 noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
@@ -1672,11 +1928,11 @@ public class CampusDashboardController {
                     bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
 
                     VBox msgBox = new VBox(2);
-                    msgBox.setMaxWidth(300);
+                    msgBox.setMaxWidth(320);
                     msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
                             + (isMine
-                                    ? "-fx-background-color: #2a5298;"
-                                    : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+                            ? "-fx-background-color: #2a5298;"
+                            : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
 
                     Label sender = new Label(isMine ? "You" : m[2]);
                     sender.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; "
@@ -1704,14 +1960,15 @@ public class CampusDashboardController {
                     chatMessages.getChildren().add(bubble);
                 }
             }
+
+            chatScroll.applyCss();
+            chatScroll.layout();
+            chatScroll.setVvalue(1.0);
         };
 
-        groupSelector.setOnAction(e -> refreshChat.run());
-
         sendBtn.setOnAction(e -> {
-            String selected = groupSelector.getValue();
             String content = chatInput.getText().trim();
-            if (selected == null || selected.isEmpty()) {
+            if (activeGroup[0] == null || activeGroup[0].isEmpty()) {
                 chatStatus.setStyle("-fx-text-fill: red;");
                 chatStatus.setText("Select a group first.");
                 return;
@@ -1721,28 +1978,27 @@ public class CampusDashboardController {
                 chatStatus.setText("Type a message.");
                 return;
             }
+
             String senderName = Session.getName() != null ? Session.getName() : myId;
-            DataStore.addGroupMessage(selected, myId, senderName, content);
+            DataStore.addGroupMessage(activeGroup[0], myId, senderName, content);
             chatInput.clear();
             chatStatus.setText("");
-            refreshChat.run();
+            refreshChatRef[0].run();
+            refreshGroupsRef[0].run();
         });
 
-        refreshGroups.run();
+        refreshGroupsRef[0].run();
+        refreshChatRef[0].run();
 
-        Label liveHint = new Label("\uD83D\uDFE2 Auto-refreshes every 3 seconds");
+        Label liveHint = new Label("\uD83D\uDFE2 Groups and chat auto-refresh every 3 seconds");
         liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
 
-        inputRow.getChildren().addAll(chatInput, sendBtn);
-
-        box.getChildren().addAll(title, createBox, new Separator(), searchBox,
-                new Separator(), selectTitle, groupSelector, liveHint, chatScroll, inputRow, chatStatus);
+        box.getChildren().addAll(title, mainRow, liveHint);
         setScrollContent(box);
 
-        // Auto-refresh groups + chat
         refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
-            refreshGroups.run();
-            refreshChat.run();
+            refreshGroupsRef[0].run();
+            refreshChatRef[0].run();
         }));
         refreshTimeline.setCycleCount(Timeline.INDEFINITE);
         refreshTimeline.play();

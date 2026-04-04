@@ -654,8 +654,11 @@ public class TeacherDashboardController {
             List<Message> messages = DataStore.getMessagesFor(myId);
             java.util.LinkedHashMap<String, Message> lastMessages = new java.util.LinkedHashMap<>();
             for (Message m : messages) {
-                String partner = m.getFrom().equals(myId) ? m.getTo() : m.getFrom();
-                lastMessages.put(partner, m);
+                boolean sentByMe = DataStore.isSameMessagingUser(m.getFrom(), myId);
+                String partner = DataStore.canonicalMessageId(sentByMe ? m.getTo() : m.getFrom());
+                if (!partner.isEmpty()) {
+                    lastMessages.put(partner, m);
+                }
             }
             if (lastMessages.isEmpty()) {
                 convList.getChildren().add(new Label("No conversations yet."));
@@ -678,7 +681,7 @@ public class TeacherDashboardController {
                     HBox.setHgrow(info, Priority.ALWAYS);
                     Label nameLabel = new Label(partner);
                     nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;");
-                    boolean fromMe = lastMsg.getFrom().equals(myId);
+                    boolean fromMe = DataStore.isSameMessagingUser(lastMsg.getFrom(), myId);
                     String preview = (fromMe ? "You: " : "") + lastMsg.getContent();
                     if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
                     Label previewLabel = new Label(preview);
@@ -715,12 +718,13 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         String myId = teacherEmail();
+        String targetId = DataStore.canonicalMessageId(recipientId);
 
         Button backBtn = new Button("\u2190 Back to Messages");
         backBtn.setStyle("-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-background-radius: 8;");
         backBtn.setOnAction(e -> showMessages());
 
-        Label title = new Label("\uD83D\uDCAC Chat with " + recipientId);
+        Label title = new Label("\uD83D\uDCAC Chat with " + targetId);
         title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
 
         VBox chatMessages = new VBox(8);
@@ -747,15 +751,18 @@ public class TeacherDashboardController {
             List<Message> allMsgs = DataStore.getMessagesFor(myId);
             List<Message> filtered = new java.util.ArrayList<>();
             for (Message m : allMsgs) {
-                if ((m.getFrom().equals(myId) && m.getTo().equals(recipientId))
-                        || (m.getFrom().equals(recipientId) && m.getTo().equals(myId))) {
+                boolean between = (DataStore.isSameMessagingUser(m.getFrom(), myId)
+                        && DataStore.isSameMessagingUser(m.getTo(), targetId))
+                        || (DataStore.isSameMessagingUser(m.getFrom(), targetId)
+                        && DataStore.isSameMessagingUser(m.getTo(), myId));
+                if (between) {
                     filtered.add(m);
                 }
             }
 
             chatMessages.getChildren().clear();
             for (Message m : filtered) {
-                boolean isMine = m.getFrom().equals(myId);
+                boolean isMine = DataStore.isSameMessagingUser(m.getFrom(), myId);
                 HBox bubble = new HBox();
                 bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
                 VBox msgBox = new VBox(2);
@@ -785,7 +792,7 @@ public class TeacherDashboardController {
         sendBtn.setOnAction(e -> {
             String content = chatInput.getText().trim();
             if (content.isEmpty()) { statusLabel.setStyle("-fx-text-fill: red;"); statusLabel.setText("Type a message."); return; }
-            DataStore.sendMessage(myId, recipientId, content);
+            DataStore.sendMessage(myId, targetId, content);
             chatInput.clear();
             statusLabel.setText("");
             refreshChat.run();

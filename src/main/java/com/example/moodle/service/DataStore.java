@@ -3,12 +3,17 @@ package com.example.moodle.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 import com.example.moodle.model.Assignment;
 import com.example.moodle.model.Course;
 import com.example.moodle.model.Message;
 import com.example.moodle.model.Payment;
+import com.example.moodle.model.User;
+import com.example.moodle.util.UserStore;
 
 public class DataStore {
 
@@ -186,19 +191,96 @@ public class DataStore {
     // ==================== MESSAGES ====================
 
     public static void sendMessage(String from, String to, String content) {
+        String fromId = canonicalMessageId(from);
+        String toId = canonicalMessageId(to);
+        String safeContent = content == null ? "" : content.trim();
+        if (fromId.isEmpty() || toId.isEmpty() || safeContent.isEmpty()) return;
+
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        FileStore.appendLine(MESSAGES_FILE, from + "|" + to + "|" + content + "|" + ts);
+        FileStore.appendLine(MESSAGES_FILE, fromId + "|" + toId + "|" + safeContent + "|" + ts);
     }
 
-    public static List<Message> getMessagesFor(String email) {
+    public static List<Message> getMessagesFor(String identifier) {
         List<Message> list = new ArrayList<>();
         for (String line : FileStore.loadLines(MESSAGES_FILE)) {
             String[] p = line.split("\\|", 4);
-            if (p.length >= 4 && (p[0].equals(email) || p[1].equals(email))) {
+            if (p.length >= 4 && (isSameMessagingUser(p[0], identifier)
+                    || isSameMessagingUser(p[1], identifier))) {
                 list.add(new Message(p[0], p[1], p[2], p[3]));
             }
         }
         return list;
+    }
+
+    public static String canonicalMessageId(String rawId) {
+        String id = rawId == null ? "" : rawId.trim();
+        if (id.isEmpty()) return "";
+
+        User user = resolveUser(id);
+        if (user != null) {
+            String sid = user.getStudentId() == null ? "" : user.getStudentId().trim();
+            if (!sid.isEmpty()) return sid;
+
+            String email = user.getEmail() == null ? "" : user.getEmail().trim();
+            if (!email.isEmpty()) return email.toLowerCase(Locale.ROOT);
+        }
+
+        return id.contains("@") ? id.toLowerCase(Locale.ROOT) : id;
+    }
+
+    public static boolean isSameMessagingUser(String firstId, String secondId) {
+        if (firstId == null || secondId == null) return false;
+        Set<String> first = buildMessageAliases(firstId);
+        Set<String> second = buildMessageAliases(secondId);
+        for (String alias : first) {
+            if (second.contains(alias)) return true;
+        }
+        return false;
+    }
+
+    private static Set<String> buildMessageAliases(String rawId) {
+        Set<String> aliases = new HashSet<>();
+        String id = rawId == null ? "" : rawId.trim();
+        if (id.isEmpty()) return aliases;
+
+        addAlias(aliases, id);
+        addAlias(aliases, canonicalMessageId(id));
+
+        User user = resolveUser(id);
+        if (user != null) {
+            addAlias(aliases, user.getStudentId());
+            addAlias(aliases, user.getEmail());
+        }
+        return aliases;
+    }
+
+    private static void addAlias(Set<String> aliases, String value) {
+        if (value == null) return;
+        String v = value.trim();
+        if (v.isEmpty()) return;
+        aliases.add(v);
+        if (v.contains("@")) aliases.add(v.toLowerCase(Locale.ROOT));
+    }
+
+    private static User resolveUser(String rawId) {
+        if (rawId == null) return null;
+        String id = rawId.trim();
+        if (id.isEmpty()) return null;
+
+        User byEmail = UserStore.getUser(id);
+        if (byEmail != null) return byEmail;
+
+        User bySid = UserStore.getUserByStudentId(id);
+        if (bySid != null) return bySid;
+
+        if (id.contains("@")) {
+            for (User u : UserStore.getAllUsers()) {
+                if (u.getEmail() != null && u.getEmail().equalsIgnoreCase(id)) {
+                    return u;
+                }
+            }
+        }
+        return null;
     }
 
     public static int getTotalMessageCount() {
@@ -490,16 +572,36 @@ public class DataStore {
     }
 
     // ==================== TEACHER PROFILES ====================
-    // Format: name|dept|designation|type|password
+    // Legacy format: name|dept|designation|type|password
+    // Current format: name|dept|designation|type|password|email
 
     public static void saveTeacherProfile(String name, String dept,
                                           String designation, String type, String password) {
+        String email = "";
+        String[] existing = getTeacherProfile(name, dept);
+        if (existing != null && existing.length >= 6) {
+            email = existing[5];
+        }
+        saveTeacherProfile(name, dept, designation, type, password, email);
+    }
+
+    public static void saveTeacherProfile(String name, String dept,
+                                          String designation, String type,
+                                          String password, String email) {
         List<String> lines = FileStore.loadLines(TEACHER_PROFILES_FILE);
+        String normalizedEmail = email == null ? "" : email.trim().toLowerCase();
         boolean found = false;
         for (int i = 0; i < lines.size(); i++) {
             String[] p = lines.get(i).split("\\|", -1);
-            if (p.length >= 5 && p[0].equals(name) && p[1].equals(dept)) {
-                lines.set(i, name + "|" + dept + "|" + designation + "|" + type + "|" + password);
+            if (p.length < 5) continue;
+
+            String existingEmail = p.length >= 6 ? p[5].trim().toLowerCase() : "";
+            boolean sameByEmail = !normalizedEmail.isEmpty() && existingEmail.equals(normalizedEmail);
+            boolean sameByNameDept = p[0].equals(name) && p[1].equals(dept);
+
+            if (sameByEmail || sameByNameDept) {
+                lines.set(i, name + "|" + dept + "|" + designation + "|" + type + "|"
+                        + password + "|" + normalizedEmail);
                 found = true;
                 break;
             }
@@ -508,7 +610,8 @@ public class DataStore {
             FileStore.saveLines(TEACHER_PROFILES_FILE, lines);
         } else {
             FileStore.appendLine(TEACHER_PROFILES_FILE,
-                    name + "|" + dept + "|" + designation + "|" + type + "|" + password);
+                    name + "|" + dept + "|" + designation + "|" + type + "|"
+                            + password + "|" + normalizedEmail);
         }
     }
 
@@ -518,6 +621,39 @@ public class DataStore {
             if (p.length >= 5 && p[0].equals(name) && p[1].equals(dept)) return p;
         }
         return null;
+    }
+
+    public static String[] getTeacherProfileByName(String name) {
+        String lookupName = name == null ? "" : name.trim();
+        for (String line : FileStore.loadLines(TEACHER_PROFILES_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 5 && p[0].equalsIgnoreCase(lookupName)) return p;
+        }
+        return null;
+    }
+
+    public static String[] getTeacherProfileByEmail(String email) {
+        String lookup = email == null ? "" : email.trim().toLowerCase();
+        if (lookup.isEmpty()) return null;
+
+        for (String line : FileStore.loadLines(TEACHER_PROFILES_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length < 5) continue;
+
+            if (p.length >= 6 && p[5].trim().equalsIgnoreCase(lookup)) return p;
+
+            // Backward compatibility for older 5-field rows.
+            String legacyId = buildLegacyTeacherId(p[0], p[1]);
+            if (!legacyId.isEmpty() && legacyId.equalsIgnoreCase(lookup)) return p;
+        }
+        return null;
+    }
+
+    private static String buildLegacyTeacherId(String name, String dept) {
+        String n = name == null ? "" : name.trim().toLowerCase().replace(" ", ".");
+        String d = dept == null ? "" : dept.trim().toLowerCase().replace(" ", ".");
+        if (n.isEmpty()) return "";
+        return d.isEmpty() ? n + "@campus" : n + "@" + d + ".campus";
     }
 
     // ==================== PROFILE PHOTOS ====================

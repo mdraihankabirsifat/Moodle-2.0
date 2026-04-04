@@ -29,11 +29,6 @@ public class LoginController {
 
     // Teacher fields
     @FXML private TextField teacherNameField;
-    @FXML private TextField teacherDeptField;
-    @FXML private TextField teacherDesignationField;
-    @FXML private ToggleGroup teacherTypeGroup;
-    @FXML private RadioButton facultyRadio;
-    @FXML private RadioButton guestRadio;
     @FXML private PasswordField teacherPasswordField;
 
     @FXML
@@ -100,39 +95,37 @@ public class LoginController {
 
     private void handleTeacherLogin() {
         String name = teacherNameField.getText().trim();
-        String dept = teacherDeptField.getText().trim();
-        String designation = teacherDesignationField.getText().trim();
-        String type = facultyRadio.isSelected() ? "Faculty Teacher" : "Guest Teacher";
         String pass = teacherPasswordField.getText().trim();
 
-        if (name.isEmpty() || dept.isEmpty()) {
+        if (name.isEmpty() || pass.isEmpty()) {
             messageLabel.setStyle("-fx-text-fill: red;");
-            messageLabel.setText("Enter your name and department.");
+            messageLabel.setText("Enter teacher name and password.");
             return;
         }
 
-        // Check if teacher profile exists
-        String[] profile = DataStore.getTeacherProfile(name, dept);
-        if (profile != null) {
-            if (!profile[4].equals(pass)) {
-                messageLabel.setStyle("-fx-text-fill: red;");
-                messageLabel.setText("Invalid password.");
-                return;
-            }
-            designation = profile[2];
-            type = profile[3];
-        } else {
-            // New teacher — verify against default password
-            if (!"teacher2026".equals(pass)) {
-                messageLabel.setStyle("-fx-text-fill: red;");
-                messageLabel.setText("Invalid password.");
-                return;
-            }
-            DataStore.saveTeacherProfile(name, dept, designation, type, pass);
+        String[] profile = DataStore.getTeacherProfileByName(name);
+        if (profile == null) {
+            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setText("Teacher account not found. Please sign up first.");
+            return;
         }
 
-        String teacherId = name.toLowerCase().replace(" ", ".") + "@"
-                + dept.toLowerCase().replace(" ", ".") + ".campus";
+        if (!profile[4].equals(pass)) {
+            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setText("Invalid password.");
+            return;
+        }
+
+        String dept = profile[1];
+        String designation = profile[2];
+        String type = profile[3];
+
+        String normalizedName = name.toLowerCase().replace(" ", ".");
+        String normalizedDept = dept == null ? "" : dept.trim().toLowerCase().replace(" ", ".");
+        String teacherId = normalizedDept.isEmpty()
+                ? normalizedName + "@campus"
+                : normalizedName + "@" + normalizedDept + ".campus";
+
         Session.login(name, dept, "", teacherId);
         Session.setRole("TEACHER");
         Session.setDepartment(dept);

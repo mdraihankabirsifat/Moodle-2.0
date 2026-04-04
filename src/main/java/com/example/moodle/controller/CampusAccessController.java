@@ -24,6 +24,7 @@ public class CampusAccessController {
     @FXML private VBox staffFields;
     @FXML private TextField campusIdField;
     @FXML private PasswordField campusPassField;
+    @FXML private TextField staffEmailField;
     @FXML private PasswordField staffPassField;
     @FXML private Label messageLabel;
     @FXML private Label hintLabel;
@@ -34,13 +35,19 @@ public class CampusAccessController {
 
         roleGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
             boolean isStudent = (newVal == studentRadio);
+            boolean isTeacher = (newVal == teacherRadio);
             studentFields.setVisible(isStudent);
             studentFields.setManaged(isStudent);
             staffFields.setVisible(!isStudent);
             staffFields.setManaged(!isStudent);
+            staffEmailField.setVisible(isTeacher);
+            staffEmailField.setManaged(isTeacher);
+            if (!isTeacher) {
+                staffEmailField.clear();
+            }
             messageLabel.setText("");
             if (newVal == teacherRadio) {
-                hintLabel.setText("Default password: teacher2026");
+                hintLabel.setText("Use your teacher email and password.");
             } else if (newVal == authorityRadio) {
                 hintLabel.setText("Hint: admin2024");
             }
@@ -108,40 +115,39 @@ public class CampusAccessController {
     }
 
     private void verifyTeacher() {
+        String email = staffEmailField.getText().trim().toLowerCase();
         String pass = staffPassField.getText().trim();
 
-        // Teacher must have signed in via Portal Login first
-        String name = Session.getName();
-        String dept = Session.getDepartment();
-
-        if (name == null || name.isEmpty() || dept == null || dept.isEmpty()
-                || !"TEACHER".equals(Session.getRole())) {
-            showError("Please sign in as Teacher via Portal Login first.");
+        if (email.isEmpty() || pass.isEmpty()) {
+            showError("Enter teacher email and password.");
             return;
         }
 
-        // Verify password against stored profile or default
-        String[] profile = DataStore.getTeacherProfile(name, dept);
-        if (profile != null) {
-            if (!profile[4].equals(pass)) {
-                showError("Invalid password.");
-                return;
-            }
-        } else {
-            if (!"teacher2026".equals(pass)) {
-                showError("Invalid password.");
-                return;
-            }
+        String[] profile = DataStore.getTeacherProfileByEmail(email);
+        if (profile == null) {
+            showError("Teacher account not found. Please sign up first.");
+            return;
         }
 
-        String teacherId = name.toLowerCase().replace(" ", ".") + "@"
-                + dept.toLowerCase().replace(" ", ".") + ".campus";
-        Session.login(name, dept, "", teacherId);
+        if (!profile[4].equals(pass)) {
+            showError("Invalid password.");
+            return;
+        }
+
+        String name = profile[0];
+        String dept = profile[1];
+        String designation = profile[2];
+        String type = profile[3];
+        String teacherEmail = (profile.length >= 6 && profile[5] != null && !profile[5].trim().isEmpty())
+                ? profile[5].trim().toLowerCase()
+                : email;
+
+        Session.login(name, dept, "", teacherEmail);
         Session.setCampusVerified(true);
         Session.setRole("TEACHER");
         Session.setDepartment(dept);
-        Session.setDesignation(Session.getDesignation());
-        Session.setTeacherType(Session.getTeacherType());
+        Session.setDesignation(designation);
+        Session.setTeacherType(type);
         SceneManager.switchScene("teacher-dashboard.fxml");
     }
 

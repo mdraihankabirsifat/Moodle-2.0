@@ -78,10 +78,6 @@
                         onAction="#showMessages"
                         maxWidth="Infinity"/>
 
-                <Button text="💬 Live Chat"
-                        onAction="#showLiveChat"
-                        maxWidth="Infinity"/>
-
             </VBox>
         </ScrollPane>
     </left>

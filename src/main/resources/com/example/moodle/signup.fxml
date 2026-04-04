@@ -26,20 +26,58 @@
                 <Label text="Portal Signup"
                        styleClass="title-label"/>
 
-                <TextField fx:id="nameField"
-                           promptText="Full Name"/>
+                <fx:define>
+                    <ToggleGroup fx:id="signupRoleGroup"/>
+                </fx:define>
 
-                <ComboBox fx:id="universityBox"
-                          promptText="Select University"/>
+                <HBox spacing="25" alignment="CENTER" style="-fx-padding: 5 0 5 0;">
+                    <RadioButton fx:id="studentSignupRadio" text="Student" toggleGroup="$signupRoleGroup" selected="true"/>
+                    <RadioButton fx:id="teacherSignupRadio" text="Teacher" toggleGroup="$signupRoleGroup"/>
+                </HBox>
 
-                <TextField fx:id="idField"
-                           promptText="Student ID"/>
+                <VBox fx:id="studentSignupFields" spacing="10">
+                    <TextField fx:id="nameField"
+                               promptText="Full Name"/>
 
-                <TextField fx:id="emailField"
-                           promptText="Email Address"/>
+                    <ComboBox fx:id="universityBox"
+                              promptText="Select University"/>
 
-                <PasswordField fx:id="passwordField"
-                               promptText="Password"/>
+                    <TextField fx:id="idField"
+                               promptText="Student ID"/>
+
+                    <TextField fx:id="emailField"
+                               promptText="Email Address"/>
+
+                    <PasswordField fx:id="passwordField"
+                                   promptText="Password"/>
+                </VBox>
+
+                <VBox fx:id="teacherSignupFields" spacing="10" visible="false" managed="false">
+                    <TextField fx:id="teacherNameField"
+                               promptText="Teacher Name"/>
+
+                    <TextField fx:id="teacherEmailField"
+                               promptText="Teacher Email"/>
+
+                    <TextField fx:id="teacherDeptField"
+                               promptText="Department (e.g. CSE, EEE)"/>
+
+                    <TextField fx:id="teacherDesignationField"
+                               promptText="Designation (e.g. Professor)"/>
+
+                    <HBox spacing="20" alignment="CENTER_LEFT">
+                        <fx:define>
+                            <ToggleGroup fx:id="teacherTypeGroup"/>
+                        </fx:define>
+                        <RadioButton fx:id="facultyTeacherRadio" text="Faculty Teacher"
+                                     toggleGroup="$teacherTypeGroup" selected="true"/>
+                        <RadioButton fx:id="guestTeacherRadio" text="Guest Teacher"
+                                     toggleGroup="$teacherTypeGroup"/>
+                    </HBox>
+
+                    <PasswordField fx:id="teacherPasswordField"
+                                   promptText="Password"/>
+                </VBox>
 
                 <Button text="Sign Up"
                         onAction="#handleSignup"
