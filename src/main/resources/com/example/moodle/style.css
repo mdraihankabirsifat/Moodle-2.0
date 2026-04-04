@@ -180,6 +180,19 @@
 
 .home-content {
     -fx-padding: 8 20 8 20;
+    -fx-font-size: 16px;
+}
+
+.home-content .label {
+    -fx-font-size: 16px;
+}
+
+.home-content .title-label {
+    -fx-font-size: 40px;
+}
+
+.home-content .section-title {
+    -fx-font-size: 28px;
 }
 
 .hero-card {
@@ -193,7 +206,7 @@
 }
 
 .hero-subtitle {
-    -fx-font-size: 16px;
+    -fx-font-size: 20px;
     -fx-font-weight: 700;
     -fx-text-fill: -m-muted;
 }
@@ -365,7 +378,7 @@
 }
 
 .search-field {
-    -fx-font-size: 14px;
+    -fx-font-size: 16px;
     -fx-padding: 10 16 10 16;
     -fx-background-radius: 20;
     -fx-border-radius: 20;
@@ -376,7 +389,7 @@
 .search-result-btn {
     -fx-background-color: -m-surface-strong;
     -fx-text-fill: -m-text;
-    -fx-font-size: 13px;
+    -fx-font-size: 15px;
     -fx-cursor: hand;
     -fx-padding: 8 12 8 12;
     -fx-border-color: -m-border;

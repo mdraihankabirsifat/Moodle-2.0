@@ -33,6 +33,12 @@ public class CampusAccessController {
     public void initialize() {
         studentRadio.setSelected(true);
 
+        // Keep button click and Enter key submit available.
+        campusIdField.setOnAction(e -> verifyCampus());
+        campusPassField.setOnAction(e -> verifyCampus());
+        staffEmailField.setOnAction(e -> verifyCampus());
+        staffPassField.setOnAction(e -> verifyCampus());
+
         roleGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
             boolean isStudent = (newVal == studentRadio);
             boolean isTeacher = (newVal == teacherRadio);

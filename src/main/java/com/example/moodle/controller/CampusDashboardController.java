@@ -40,6 +40,9 @@ public class CampusDashboardController {
     @FXML
     private StackPane contentArea;
 
+    private static final String ATTACHMENT_MARKER = "[FILE:";
+    private static final String LEGACY_PDF_MARKER = "[PDF:";
+
     // Persistent data stores for simulation
     private static final List<String> submittedProjects = new ArrayList<>();
     private static final List<String> notices = new ArrayList<>();
@@ -739,34 +742,17 @@ public class CampusDashboardController {
                             aTitle.setStyle("-fx-font-weight: bold;");
 
                             String rawDesc = a.getDescription();
-                            String displayDesc = rawDesc;
-                            String pdfFile = "";
-                            if (rawDesc.contains("[PDF:")) {
-                                int idx = rawDesc.indexOf("[PDF:");
-                                int end = rawDesc.indexOf("]", idx);
-                                if (end > idx) {
-                                    pdfFile = rawDesc.substring(idx + 5, end);
-                                    displayDesc = rawDesc.substring(0, idx).trim();
-                                }
-                            }
+                            String[] parsedAssignment = splitContentAndAttachment(rawDesc);
+                            String displayDesc = parsedAssignment[0];
+                            String attachmentFile = parsedAssignment[1];
                             Label aDesc = new Label(displayDesc);
                             aDesc.setWrapText(true);
                             aDesc.setStyle("-fx-text-fill: #555;");
                             aBox.getChildren().addAll(aTitle, aDesc);
 
-                            // PDF open button
-                            if (!pdfFile.isEmpty()) {
-                                final String fp = pdfFile;
-                                Button openPdf = new Button("\uD83D\uDCC4 Open PDF");
-                                openPdf.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
-                                openPdf.setOnAction(ev -> {
-                                    try {
-                                        java.awt.Desktop.getDesktop().open(new File(fp));
-                                    } catch (Exception ex) {
-                                        // fallback
-                                    }
-                                });
-                                aBox.getChildren().add(openPdf);
+                            if (!attachmentFile.isEmpty()) {
+                                final String fp = attachmentFile;
+                                aBox.getChildren().add(createAttachmentActions(fp));
                             }
 
                             // Check if already submitted
@@ -790,47 +776,43 @@ public class CampusDashboardController {
                                 subArea.setPromptText("Your submission...");
                                 subArea.setPrefRowCount(2);
 
-                                Label pdfLabel = new Label("No PDF attached");
-                                pdfLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
-                                final String[] pdfPath = {""};
-                                Button pdfBtn = new Button("\uD83D\uDCC2 Attach PDF");
-                                pdfBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
-                                pdfBtn.setOnAction(ev2 -> {
-                                    FileChooser fc = new FileChooser();
-                                    fc.setTitle("Select PDF File");
-                                    fc.getExtensionFilters().add(
-                                            new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
-                                    File file = fc.showOpenDialog(contentArea.getScene().getWindow());
+                                Label fileLabel = new Label("No file attached");
+                                fileLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
+                                final String[] attachmentPath = {""};
+                                Button fileBtn = new Button("\uD83D\uDCC2 Attach File");
+                                fileBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
+                                fileBtn.setOnAction(ev2 -> {
+                                    File file = chooseAttachmentFile("Select File");
                                     if (file != null) {
-                                        pdfPath[0] = file.getAbsolutePath();
-                                        pdfLabel.setText("\u2705 " + file.getName());
-                                        pdfLabel.setStyle("-fx-text-fill: green; -fx-font-size: 11px;");
+                                        attachmentPath[0] = file.getAbsolutePath();
+                                        fileLabel.setText("\u2705 " + file.getName());
+                                        fileLabel.setStyle("-fx-text-fill: green; -fx-font-size: 11px;");
                                     }
                                 });
-                                HBox pdfRow = new HBox(8, pdfBtn, pdfLabel);
-                                pdfRow.setAlignment(Pos.CENTER_LEFT);
+                                HBox fileRow = new HBox(8, fileBtn, fileLabel);
+                                fileRow.setAlignment(Pos.CENTER_LEFT);
 
                                 Button subBtn = new Button("Submit");
                                 Label subMsg = new Label();
                                 final String assignmentTitle = a.getTitle();
                                 subBtn.setOnAction(ev -> {
                                     String content = subArea.getText().trim();
-                                    if (content.isEmpty() && pdfPath[0].isEmpty()) {
+                                    if (content.isEmpty() && attachmentPath[0].isEmpty()) {
                                         subMsg.setStyle("-fx-text-fill: red;");
-                                        subMsg.setText("Enter your submission or attach a PDF.");
+                                        subMsg.setText("Enter your submission or attach a file.");
                                     } else {
                                         String submission = content
-                                                + (pdfPath[0].isEmpty() ? "" : " [PDF:" + pdfPath[0] + "]");
+                                                + (attachmentPath[0].isEmpty() ? "" : " " + ATTACHMENT_MARKER + attachmentPath[0] + "]");
                                         DataStore.submitAssignment(Session.getStudentId(),
                                                 courseCode, assignmentTitle, submission);
                                         subMsg.setStyle("-fx-text-fill: green;");
-                                        subMsg.setText("Submitted!" + (pdfPath[0].isEmpty() ? "" : " (with PDF)"));
+                                        subMsg.setText("Submitted!" + (attachmentPath[0].isEmpty() ? "" : " (with attachment)"));
                                         subArea.setDisable(true);
                                         subBtn.setDisable(true);
-                                        pdfBtn.setDisable(true);
+                                        fileBtn.setDisable(true);
                                     }
                                 });
-                                aBox.getChildren().addAll(subArea, pdfRow, subBtn, subMsg);
+                                aBox.getChildren().addAll(subArea, fileRow, subBtn, subMsg);
                             }
                             detailBox.getChildren().add(aBox);
                         }
@@ -848,33 +830,17 @@ public class CampusDashboardController {
                             sBox.setStyle("-fx-padding: 8; -fx-background-color: #e8f5e9; -fx-background-radius: 6;");
                             Label sTitle = new Label("\uD83D\uDCCA " + s[1]);
                             sTitle.setStyle("-fx-font-weight: bold;");
-                            String rawSlide = s[2];
-                            String displaySlide = rawSlide;
-                            String slidePdf = "";
-                            if (rawSlide.contains("[PDF:")) {
-                                int idx = rawSlide.indexOf("[PDF:");
-                                int end = rawSlide.indexOf("]", idx);
-                                if (end > idx) {
-                                    slidePdf = rawSlide.substring(idx + 5, end);
-                                    displaySlide = rawSlide.substring(0, idx).trim();
-                                }
-                            }
+                            String[] parsedSlide = splitContentAndAttachment(s[2]);
+                            String displaySlide = parsedSlide[0];
+                            String slideAttachment = parsedSlide[1];
                             Label sDesc = new Label(displaySlide);
                             sDesc.setWrapText(true);
                             sDesc.setStyle("-fx-text-fill: #555;");
                             sBox.getChildren().addAll(sTitle, sDesc);
 
-                            if (!slidePdf.isEmpty()) {
-                                final String fp = slidePdf;
-                                Button openPdf = new Button("\uD83D\uDCC4 Open PDF");
-                                openPdf.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
-                                openPdf.setOnAction(ev -> {
-                                    try {
-                                        java.awt.Desktop.getDesktop().open(new File(fp));
-                                    } catch (Exception ex) {
-                                        /* ignore */ }
-                                });
-                                sBox.getChildren().add(openPdf);
+                            if (!slideAttachment.isEmpty()) {
+                                final String fp = slideAttachment;
+                                sBox.getChildren().add(createAttachmentActions(fp));
                             }
 
                             detailBox.getChildren().add(sBox);
@@ -1551,6 +1517,89 @@ public class CampusDashboardController {
     }
 
     // ===================== UTILITY =====================
+    private HBox createAttachmentActions(String filePath) {
+        Button openFile = new Button("\uD83D\uDCC4 Open File");
+        openFile.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
+        openFile.setOnAction(ev -> {
+            try {
+                java.awt.Desktop.getDesktop().open(new File(filePath));
+            } catch (Exception ex) {
+                // ignore open errors
+            }
+        });
+
+        Button downloadFile = new Button("\u2B07 Download File");
+        downloadFile.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
+        downloadFile.setOnAction(ev -> downloadAttachmentFile(filePath));
+
+        HBox actions = new HBox(8, openFile, downloadFile);
+        actions.setAlignment(Pos.CENTER_LEFT);
+        return actions;
+    }
+
+    private void downloadAttachmentFile(String filePath) {
+        try {
+            File source = new File(filePath);
+            if (!source.exists()) {
+                return;
+            }
+
+            FileChooser saveDialog = new FileChooser();
+            saveDialog.setTitle("Save File");
+            saveDialog.setInitialFileName(source.getName());
+            saveDialog.getExtensionFilters().add(new FileChooser.ExtensionFilter("All Files", "*.*"));
+
+            File destination = saveDialog.showSaveDialog(contentArea.getScene().getWindow());
+            if (destination != null) {
+                java.nio.file.Files.copy(source.toPath(), destination.toPath(),
+                        java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (Exception ex) {
+            // ignore download errors
+        }
+    }
+
+    private File chooseAttachmentFile(String title) {
+        FileChooser fc = new FileChooser();
+        fc.setTitle(title);
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(
+                "Allowed Files",
+                "*.pdf", "*.zip", "*.jpg", "*.jpeg", "*.png", "*.gif",
+                "*.cpp", "*.c", "*.h", "*.hpp", "*.java",
+                "*.pptx", "*.xlsx", "*.xls", "*.doc", "*.docx", "*.txt"));
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("All Files", "*.*"));
+        return fc.showOpenDialog(contentArea.getScene().getWindow());
+    }
+
+    private String[] splitContentAndAttachment(String rawContent) {
+        String raw = rawContent == null ? "" : rawContent;
+        int fileIdx = raw.indexOf(ATTACHMENT_MARKER);
+        int legacyIdx = raw.indexOf(LEGACY_PDF_MARKER);
+
+        int markerIdx = -1;
+        int markerLength = 0;
+        if (fileIdx >= 0 && (legacyIdx < 0 || fileIdx < legacyIdx)) {
+            markerIdx = fileIdx;
+            markerLength = ATTACHMENT_MARKER.length();
+        } else if (legacyIdx >= 0) {
+            markerIdx = legacyIdx;
+            markerLength = LEGACY_PDF_MARKER.length();
+        }
+
+        if (markerIdx < 0) {
+            return new String[]{raw, ""};
+        }
+
+        int endIdx = raw.indexOf("]", markerIdx);
+        if (endIdx <= markerIdx + markerLength) {
+            return new String[]{raw, ""};
+        }
+
+        String text = raw.substring(0, markerIdx).trim();
+        String attachmentPath = raw.substring(markerIdx + markerLength, endIdx).trim();
+        return new String[]{text, attachmentPath};
+    }
+
     private void setScrollContent(VBox content) {
         if (refreshTimeline != null) {
             refreshTimeline.stop();
