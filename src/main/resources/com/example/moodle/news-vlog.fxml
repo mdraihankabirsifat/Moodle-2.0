@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.NewsVlogController">
+
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar" style="-fx-padding: 15;">
+            <Label text="NEWS VLOG" styleClass="title-label"/>
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true">
+            <VBox spacing="16" maxWidth="1080" alignment="TOP_CENTER" styleClass="vlog-page" style="-fx-padding: 34 28 34 28;">
+                <ImageView fx:id="vlogImage" fitWidth="1020" fitHeight="520" preserveRatio="true" smooth="true" styleClass="vlog-image"/>
+
+                <VBox spacing="12" styleClass="glass-card" maxWidth="1020">
+                    <Label fx:id="vlogTitle" styleClass="vlog-title" wrapText="true"/>
+                    <Label fx:id="vlogSummary" styleClass="vlog-summary" wrapText="true"/>
+                    <Label fx:id="vlogStory" styleClass="vlog-story" wrapText="true"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

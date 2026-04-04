@@ -197,4 +197,29 @@ public class HomeController {
     private void goBack() {
         SceneManager.goBack();
     }
+
+    @FXML
+    private void openBuetVlog() {
+        openVlogPage("buet-icpc");
+    }
+
+    @FXML
+    private void openDhakaMedicalVlog() {
+        openVlogPage("dhaka-medical-beds");
+    }
+
+    @FXML
+    private void openFutureVlogOne() {
+        openVlogPage("future-vlog-1");
+    }
+
+    @FXML
+    private void openFutureVlogTwo() {
+        openVlogPage("future-vlog-2");
+    }
+
+    private void openVlogPage(String vlogId) {
+        Session.setSelectedNewsVlog(vlogId);
+        SceneManager.switchScene("news-vlog.fxml");
+    }
 }

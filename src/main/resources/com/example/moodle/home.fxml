@@ -3,6 +3,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
@@ -107,12 +109,77 @@
             </VBox>
 
             <!-- LATEST NEWS -->
-            <VBox spacing="15" maxWidth="800" styleClass="glass-card">
+            <VBox spacing="16" maxWidth="1100" prefWidth="1100" styleClass="news-wall">
                 <Label text="🗞 Latest News"
                        styleClass="section-title"/>
-                <Label text="• BUET wins International Robotics Competition"/>
-                <Label text="• Medical Research Breakthrough"/>
-                <Label text="• Agricultural Fair 2026 Announced"/>
+
+                <GridPane hgap="20" vgap="20" styleClass="news-grid-wide">
+
+                    <VBox spacing="10" styleClass="news-card-large" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                        <ImageView fitWidth="420" fitHeight="230" preserveRatio="false" styleClass="news-image"
+                                   onMouseClicked="#openBuetVlog">
+                            <image>
+                                <Image url="@news/BUET_Team_BUET_Silver_hawks.jpg"/>
+                            </image>
+                        </ImageView>
+                        <Label text="BUET Participated in ICPC Regional Final"
+                               wrapText="true"
+                               onMouseClicked="#openBuetVlog"
+                               styleClass="news-headline news-clickable"/>
+                        <Label text="ICPC regional final journey and team highlights."
+                               onMouseClicked="#openBuetVlog"
+                               styleClass="news-meta news-clickable"/>
+                    </VBox>
+
+                    <VBox spacing="10" styleClass="news-card-large" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                        <ImageView fitWidth="420" fitHeight="230" preserveRatio="false" styleClass="news-image"
+                                   onMouseClicked="#openDhakaMedicalVlog">
+                            <image>
+                                <Image url="@news/dhaka-medical-beds.png"/>
+                            </image>
+                        </ImageView>
+                           <Label text="Dhaka Medical to Become 5,000-Bed State-of-the-Art Hospital"
+                               wrapText="true"
+                               onMouseClicked="#openDhakaMedicalVlog"
+                               styleClass="news-headline news-clickable"/>
+                           <Label text="27 new multi-storey buildings will modernize treatment and medical education."
+                               onMouseClicked="#openDhakaMedicalVlog"
+                               styleClass="news-meta news-clickable"/>
+                    </VBox>
+
+                    <VBox spacing="10" styleClass="news-card-large" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <ImageView fitWidth="420" fitHeight="230" preserveRatio="false" styleClass="news-image"
+                                   onMouseClicked="#openFutureVlogOne">
+                            <image>
+                                <Image url="@news/future-vlog-1.jpg"/>
+                            </image>
+                        </ImageView>
+                           <Label text="KUET Graduate Mahin Rahman Starts Master's at ASU"
+                               wrapText="true"
+                               onMouseClicked="#openFutureVlogOne"
+                               styleClass="news-headline news-clickable"/>
+                           <Label text="Fully funded scholarship recipient now serving as a Graduate Research Assistant."
+                               onMouseClicked="#openFutureVlogOne"
+                               styleClass="news-meta news-clickable"/>
+                    </VBox>
+
+                    <VBox spacing="10" styleClass="news-card-large" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                        <ImageView fitWidth="420" fitHeight="230" preserveRatio="false" styleClass="news-image"
+                                   onMouseClicked="#openFutureVlogTwo">
+                            <image>
+                                <Image url="@news/future-vlog-2.jpg"/>
+                            </image>
+                        </ImageView>
+                           <Label text="BAU Student Develops Sensor-Based AI for Livestock Farms"
+                               wrapText="true"
+                               onMouseClicked="#openFutureVlogTwo"
+                               styleClass="news-headline news-clickable"/>
+                           <Label text="Innovation monitors farm climate to reduce animal heat stress and improve productivity."
+                               onMouseClicked="#openFutureVlogTwo"
+                               styleClass="news-meta news-clickable"/>
+                    </VBox>
+
+                </GridPane>
             </VBox>
 
             <!-- UPCOMING EVENTS -->

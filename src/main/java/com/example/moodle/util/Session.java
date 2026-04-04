@@ -21,6 +21,7 @@ public class Session {
         String studentId;
         String email;
         String selectedUniversity;
+        String selectedNewsVlog;
         String role = "STUDENT";
         String department;
         String designation;
@@ -54,6 +55,9 @@ public class Session {
     public static void setSelectedUniversity(String uni) { current().selectedUniversity = uni; }
     public static String getSelectedUniversity() { return current().selectedUniversity; }
 
+    public static void setSelectedNewsVlog(String vlogId) { current().selectedNewsVlog = vlogId; }
+    public static String getSelectedNewsVlog() { return current().selectedNewsVlog; }
+
     public static void setRole(String r) { current().role = r; }
     public static String getRole() { return current().role; }
 
@@ -84,6 +88,7 @@ public class Session {
         s.loggedIn = false;
         s.campusVerified = false;
         s.selectedUniversity = null;
+        s.selectedNewsVlog = null;
         s.role = "STUDENT";
         s.name = null;
         s.university = null;
