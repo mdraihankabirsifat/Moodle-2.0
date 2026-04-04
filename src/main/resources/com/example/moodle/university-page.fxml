@@ -9,7 +9,7 @@
 
     <!-- ================= TOP NAV ================= -->
     <top>
-        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar" style="-fx-padding: 15;">
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
             <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
         </HBox>
@@ -51,7 +51,7 @@
 
     <!-- ================= BOTTOM NAV ================= -->
     <bottom>
-        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+        <HBox alignment="CENTER_RIGHT" styleClass="bottom-bar" style="-fx-padding: 15;">
             <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
         </HBox>
     </bottom>

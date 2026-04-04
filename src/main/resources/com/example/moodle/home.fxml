@@ -10,8 +10,9 @@
 
     <!-- ================= NAVBAR ================= -->
     <top>
-        <HBox spacing="20"
+          <HBox spacing="20"
               alignment="CENTER_LEFT"
+              styleClass="top-bar"
               style="-fx-padding: 15;">
 
             <Label text="MOODLE 2.0"
@@ -39,6 +40,15 @@
                     visible="false"
                     style="-fx-background-color: #c0392b; -fx-text-fill: white;"/>
 
+            <MenuButton fx:id="themeMenuButton"
+                        text="Mode"
+                        styleClass="mode-menu">
+                <items>
+                    <MenuItem text="Dark" onAction="#setDarkMode"/>
+                    <MenuItem text="Light" onAction="#setLightMode"/>
+                </items>
+            </MenuButton>
+
             <!-- Sign Up Button -->
             <Button fx:id="signupButton"
                     text="Sign Up"
@@ -59,19 +69,22 @@
 
     <ScrollPane fitToWidth="true">
 
-        <VBox spacing="60"
-              alignment="TOP_CENTER">
+          <VBox fx:id="homeContentBox"
+              spacing="60"
+              alignment="TOP_CENTER"
+              styleClass="home-content">
 
             <padding>
                 <Insets top="60" bottom="60"/>
             </padding>
 
             <!-- HERO -->
-            <VBox spacing="15" alignment="CENTER">
-                <Label text="Integrated University Platform"
+                 <VBox fx:id="heroBox" spacing="15" alignment="CENTER" styleClass="hero-card">
+                  <Label text="🌍 Integrated University Platform"
                        styleClass="title-label"/>
 
                 <Label text="Connecting Engineering, Medical, Agricultural and All Universities in One Smart System"
+                      styleClass="hero-subtitle"
                        wrapText="true"
                        maxWidth="700"/>
             </VBox>
@@ -81,21 +94,21 @@
                 <TextField fx:id="searchField"
                            promptText="🔍  Search University (e.g. BUET, DU, BAU...)"
                            styleClass="search-field"/>
-                <VBox fx:id="searchResults" spacing="4" visible="false"
-                      style="-fx-background-color: white; -fx-background-radius: 8; -fx-padding: 8; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 10, 0, 0, 3);"/>
+                    <VBox fx:id="searchResults" spacing="4" visible="false"
+                        styleClass="search-results-panel"/>
             </VBox>
 
             <!-- ABOUT -->
-            <VBox spacing="15" maxWidth="800">
-                <Label text="About"
+                 <VBox spacing="15" maxWidth="800" styleClass="glass-card">
+                  <Label text="✨ About"
                        styleClass="section-title"/>
                 <Label wrapText="true"
                        text="Moodle 2.0 is a unified digital platform designed to manage and simulate university life across all institutions."/>
             </VBox>
 
             <!-- LATEST NEWS -->
-            <VBox spacing="15" maxWidth="800">
-                <Label text="Latest News"
+            <VBox spacing="15" maxWidth="800" styleClass="glass-card">
+                <Label text="🗞 Latest News"
                        styleClass="section-title"/>
                 <Label text="• BUET wins International Robotics Competition"/>
                 <Label text="• Medical Research Breakthrough"/>
@@ -103,39 +116,38 @@
             </VBox>
 
             <!-- UPCOMING EVENTS -->
-            <VBox spacing="15" maxWidth="800">
-                <Label text="Upcoming Events"
+            <VBox spacing="15" maxWidth="800" styleClass="glass-card">
+                <Label text="🎉 Upcoming Events"
                        styleClass="section-title"/>
                 <Label text="• Inter University Hackathon"/>
                 <Label text="• National Conference"/>
                 <Label text="• Debate Championship"/>
             </VBox>
 
-                 <!-- ABOUT PROJECT (BOTTOM) -->
-                 <VBox spacing="10" maxWidth="800"
-                    style="-fx-padding: 18; -fx-background-color: #f8f9ff; -fx-background-radius: 12;">
-                  <Label text="About Project"
-                      styleClass="section-title"/>
+            <!-- BOTTOM TWO-COLUMN FOOTER -->
+            <HBox spacing="20" maxWidth="1060" alignment="TOP_CENTER" styleClass="footer-row">
+                <VBox spacing="10" maxWidth="500" styleClass="footer-card" HBox.hgrow="ALWAYS">
+                    <Label text="🚀 About Project"
+                           styleClass="section-title"/>
 
-                  <Label wrapText="true"
-                      text="Goal: Build one simple, student-friendly platform where academic tools, campus services, and communication stay connected in one place."/>
+                    <Label wrapText="true"
+                           text="Goal: Build one simple, student-friendly platform where academic tools, campus services, and communication stay connected in one place."/>
 
-                  <Label text="Developers"
-                      style="-fx-font-weight: bold; -fx-padding: 4 0 0 0;"/>
-                  <Label text="Md. Raihan Kabir Sifat"/>
-                  <Label text="CSE, BUET" style="-fx-text-fill: #666;"/>
-                  <Label text="Khandokar Naeemul Haque" style="-fx-padding: 8 0 0 0;"/>
-                  <Label text="CSE, BUET" style="-fx-text-fill: #666;"/>
-                 </VBox>
+                    <Label text="Developers"
+                           style="-fx-font-weight: bold; -fx-padding: 4 0 0 0;"/>
+                    <Label text="Md. Raihan Kabir Sifat"/>
+                    <Label text="CSE, BUET" style="-fx-text-fill: #666;"/>
+                    <Label text="Khandokar Naeemul Haque" style="-fx-padding: 8 0 0 0;"/>
+                    <Label text="CSE, BUET" style="-fx-text-fill: #666;"/>
+                </VBox>
 
-                 <!-- CONTACT (BOTTOM) -->
-                 <VBox spacing="10" maxWidth="800"
-                    style="-fx-padding: 18; -fx-background-color: #ffffff; -fx-background-radius: 12;">
-                  <Label text="Contact"
-                      styleClass="section-title"/>
-                  <Label wrapText="true"
-                      text="For project queries or collaboration, please contact the Moodle 2.0 team through CSE, BUET channels."/>
-                 </VBox>
+                <VBox spacing="10" maxWidth="500" styleClass="footer-card" HBox.hgrow="ALWAYS">
+                    <Label text="📬 Contact"
+                           styleClass="section-title"/>
+                    <Label wrapText="true"
+                           text="For project queries or collaboration, please contact the Moodle 2.0 team through CSE, BUET channels."/>
+                </VBox>
+            </HBox>
 
         </VBox>
 
@@ -145,7 +157,7 @@
 
     <!-- ================= BOTTOM NAV ================= -->
     <bottom>
-        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+        <HBox alignment="CENTER_RIGHT" styleClass="bottom-bar" style="-fx-padding: 15;">
             <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
         </HBox>
     </bottom>

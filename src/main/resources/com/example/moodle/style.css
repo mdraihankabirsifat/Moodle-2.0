@@ -1,46 +1,213 @@
 /* =====================================================
-   GLOBAL THEME
+   THEME TOKENS
 ===================================================== */
 
 .root {
-    -fx-font-family: "Segoe UI", "Calibri", "Helvetica Neue", "Arial", sans-serif;
-    -fx-background-color: linear-gradient(to bottom right, #eef2f3, #8e9eab);
+    -fx-font-family: "Trebuchet MS", "Century Gothic", "Segoe UI", sans-serif;
+}
+
+.root.normal-theme {
+    -m-bg-a: #fff8de;
+    -m-bg-b: #dff4ff;
+    -m-bg-c: #ffe1f3;
+    -m-surface: rgba(255, 255, 255, 0.84);
+    -m-surface-strong: rgba(255, 255, 255, 0.95);
+    -m-text: #1f2044;
+    -m-muted: #5f5f79;
+    -m-primary: #ff5a78;
+    -m-secondary: #22a7f0;
+    -m-accent: #7a6dff;
+    -m-success: #1ea368;
+    -m-border: rgba(76, 66, 124, 0.24);
+}
+
+.root.dark-theme {
+    -m-bg-a: #0f172b;
+    -m-bg-b: #172640;
+    -m-bg-c: #1d1b3c;
+    -m-surface: rgba(243, 248, 255, 0.88);
+    -m-surface-strong: rgba(252, 254, 255, 0.97);
+    -m-text: #1e2646;
+    -m-muted: #566082;
+    -m-primary: #ff6e86;
+    -m-secondary: #39c5ff;
+    -m-accent: #988dff;
+    -m-success: #44d18f;
+    -m-border: rgba(79, 97, 143, 0.28);
+}
+
+.root.white-theme {
+    -m-bg-a: #ffffff;
+    -m-bg-b: #f4f8ff;
+    -m-bg-c: #ffffff;
+    -m-surface: rgba(255, 255, 255, 0.96);
+    -m-surface-strong: #ffffff;
+    -m-text: #22253e;
+    -m-muted: #6a6f86;
+    -m-primary: #ff466a;
+    -m-secondary: #1aa9f5;
+    -m-accent: #6159ff;
+    -m-success: #16975f;
+    -m-border: rgba(117, 128, 168, 0.22);
+}
+
+.root {
+    -fx-background-color:
+        radial-gradient(center 18% 8%, radius 55%, rgba(34, 167, 240, 0.24), transparent 70%),
+        radial-gradient(center 88% 14%, radius 52%, rgba(255, 90, 120, 0.23), transparent 72%),
+        linear-gradient(to bottom right, -m-bg-a 0%, -m-bg-b 58%, -m-bg-c 100%);
 }
 
 /* =====================================================
    TYPOGRAPHY
 ===================================================== */
 
+.label {
+    -fx-text-fill: -m-text;
+}
+
 .title-label {
-    -fx-font-size: 35px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #1e3c72;
+    -fx-font-size: 30px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -m-text;
 }
 
 .section-title {
-    -fx-font-size: 28px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #2a5298;
+    -fx-font-size: 23px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -m-accent;
 }
 
-.label {
-    -fx-text-fill: #333333;
+.field-label {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -m-muted;
 }
 
 /* =====================================================
-   CARD STYLE (Login / Campus Access / Panels)
+   TOP/BOTTOM BARS
 ===================================================== */
 
-.card {
-    -fx-background-color: white;
-    -fx-background-radius: 14;
-    -fx-padding: 30;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 25, 0, 0, 8);
-    -fx-transition: all 0.3s ease;
+.top-bar {
+    -fx-background-color: linear-gradient(to right, derive(-m-accent, -12%), derive(-m-secondary, -18%));
+    -fx-background-radius: 0 0 18 18;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 16, 0.15, 0, 3);
 }
 
-.card:hover {
-    -fx-translate-y: -5;
+.root.dark-theme .top-bar {
+    -fx-background-color: linear-gradient(to right, #24395d, #2a4a70);
+}
+
+.top-bar .label {
+    -fx-text-fill: white;
+}
+
+.top-bar .title-label {
+    -fx-text-fill: white;
+    -fx-font-size: 27px;
+}
+
+.top-bar .button {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-text-fill: white;
+    -fx-border-color: rgba(255, 255, 255, 0.38);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.top-bar .button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.32);
+}
+
+.bottom-bar {
+    -fx-background-color: linear-gradient(to right, rgba(0, 0, 0, 0.07), rgba(0, 0, 0, 0));
+    -fx-background-radius: 16 16 0 0;
+}
+
+/* =====================================================
+   SIDEBAR
+===================================================== */
+
+.side-nav {
+    -fx-background-color: linear-gradient(to bottom, derive(-m-accent, -16%), derive(-m-primary, -14%));
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 15, 0.1, 0, 4);
+}
+
+.root.dark-theme .side-nav {
+    -fx-background-color: linear-gradient(to bottom, #263f67, #2f4d78);
+}
+
+.side-nav .button {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-text-fill: white;
+    -fx-border-color: rgba(255, 255, 255, 0.24);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-weight: 700;
+    -fx-padding: 9 12 9 12;
+}
+
+.side-nav .button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.18);
+    -fx-scale-x: 1.02;
+    -fx-scale-y: 1.02;
+}
+
+.nav-section-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.75);
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+}
+
+/* =====================================================
+   CARDS
+===================================================== */
+
+.card,
+.glass-card {
+    -fx-background-color: -m-surface;
+    -fx-background-radius: 16;
+    -fx-border-color: -m-border;
+    -fx-border-radius: 16;
+    -fx-padding: 22;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.14), 18, 0.08, 0, 4);
+}
+
+.glass-card {
+    -fx-padding: 18;
+}
+
+.home-content {
+    -fx-padding: 8 20 8 20;
+}
+
+.hero-card {
+    -fx-background-color: linear-gradient(to right, rgba(255, 255, 255, 0.8), rgba(229, 246, 255, 0.8));
+    -fx-background-radius: 24;
+    -fx-border-color: rgba(255, 255, 255, 0.5);
+    -fx-border-radius: 24;
+    -fx-padding: 26;
+    -fx-max-width: 860;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.16), 20, 0.08, 0, 6);
+}
+
+.hero-subtitle {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -m-muted;
+}
+
+.root.dark-theme .hero-card {
+    -fx-background-color: linear-gradient(to right, rgba(251, 252, 255, 0.9), rgba(240, 247, 255, 0.9));
+}
+
+#contentArea {
+    -fx-background-color: -m-surface-strong;
+    -fx-background-radius: 16;
+    -fx-border-color: -m-border;
+    -fx-border-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.14), 14, 0.08, 0, 4);
 }
 
 /* =====================================================
@@ -48,241 +215,200 @@
 ===================================================== */
 
 .button {
-    -fx-background-color: #2a5298;
+    -fx-background-color: linear-gradient(to right, #0b9e93, #2f7fe7);
     -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-background-radius: 8;
+    -fx-font-weight: 800;
+    -fx-background-radius: 10;
     -fx-cursor: hand;
-    -fx-padding: 8 18 8 18;
+    -fx-padding: 8 16 8 16;
 }
 
 .button:hover {
-    -fx-background-color: #122a56;
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
+    -fx-scale-x: 1.03;
+    -fx-scale-y: 1.03;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 10, 0.08, 0, 2);
 }
 
 .button:pressed {
-    -fx-scale-x: 0.97;
-    -fx-scale-y: 0.97;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
 }
 
-/* =====================================================
-   SIDEBAR (ERP STYLE)
-===================================================== */
-
-.vbox {
-    -fx-background-color: linear-gradient(to bottom, #1e3c72, #2a5298);
-}
-
-.vbox .button {
-    -fx-background-color: transparent;
-    -fx-text-fill: white;
-    -fx-border-color: rgba(255, 255, 255, 0.3);
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
-}
-
-.vbox .button:hover {
+.nav-btn {
     -fx-background-color: rgba(255, 255, 255, 0.2);
-}
-
-/* =====================================================
-   NAVBAR
-===================================================== */
-
-.hbox {
-    -fx-background-color: linear-gradient(to right, #1e3c72, #2a5298);
-}
-
-.hbox .label {
+    -fx-border-color: rgba(255, 255, 255, 0.44);
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
     -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-padding: 6 14 6 14;
+}
+
+.nav-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.32);
 }
 
 /* =====================================================
-   INPUT FIELDS
+   INPUTS
 ===================================================== */
 
 .text-field,
 .password-field,
-.combo-box {
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
+.text-area,
+.combo-box,
+.choice-box,
+.menu-button {
+    -fx-background-color: -m-surface-strong;
+    -fx-text-fill: -m-text;
+    -fx-border-color: -m-border;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
     -fx-padding: 8;
-    -fx-background-color: #f9f9f9;
-    -fx-border-color: #cccccc;
+}
+
+.text-area .content {
+    -fx-background-color: -m-surface-strong;
+    -fx-background-radius: 10;
 }
 
 .text-field:focused,
 .password-field:focused,
-.combo-box:focused {
-    -fx-border-color: #2a5298;
-    -fx-effect: dropshadow(gaussian, rgba(42, 82, 152, 0.3), 8, 0, 0, 0);
+.text-area:focused,
+.combo-box:focused,
+.choice-box:focused {
+    -fx-border-color: -m-secondary;
+    -fx-effect: dropshadow(gaussian, rgba(34, 167, 240, 0.28), 9, 0.08, 0, 0);
+}
+
+.radio-button {
+    -fx-text-fill: -m-text;
+    -fx-font-weight: 700;
+}
+
+.radio-button .radio {
+    -fx-background-color: -m-surface-strong;
+    -fx-border-color: -m-secondary;
+    -fx-border-radius: 10;
+}
+
+.radio-button:selected .radio .dot {
+    -fx-background-color: -m-secondary;
 }
 
 /* =====================================================
-   MENU BUTTON (Profile)
+   SCROLLS
 ===================================================== */
 
-.menu-button {
-    -fx-background-radius: 8;
-    -fx-background-color: white;
-}
-
-.menu-button:hover {
-    -fx-background-color: #f2f2f2;
-}
-
-/* =====================================================
-   SCROLL PANE CLEAN LOOK
-===================================================== */
-
-.scroll-pane {
+.scroll-pane,
+.scroll-pane > .viewport {
     -fx-background-color: transparent;
 }
 
-.scroll-pane>.viewport {
-    -fx-background-color: transparent;
-}
-
 /* =====================================================
-   SPLASH SCREEN
+   HOME MODE SWITCHER
 ===================================================== */
 
-.splash-title {
-    -fx-font-size: 56px;
-    -fx-font-weight: bold;
-    -fx-text-fill: white;
+.mode-menu {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-text-fill: rgb(255, 255, 255);
+    -fx-font-weight: 800;
+    -fx-padding: 8 16 8 16;
+    -fx-border-color: rgba(255, 255, 255, 0.38);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
 }
 
-.splash-subtitle {
-    -fx-font-size: 18px;
-    -fx-text-fill: rgba(255, 255, 255, 0.7);
+.mode-menu:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.32);
 }
 
-/* =====================================================
-   SHADOW UTILITY
-===================================================== */
-
-.shadow-soft {
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 20, 0, 0, 5);
-}
-
-/* =====================================================
-   CONTENT AREA
-===================================================== */
-
-#contentArea {
+.mode-menu .arrow {
     -fx-background-color: rgb(255, 255, 255);
-    -fx-background-radius: 12;
-    -fx-padding: 30;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.12), 20, 0, 0, 5);
 }
 
-/* =====================================================
-   FLOATING OBJECTS SUPPORT
-===================================================== */
-
-.pane {
-    -fx-background-color: transparent;
+.context-menu {
+    -fx-background-color: linear-gradient(to bottom, #2c4b76, #274163);
+    -fx-background-radius: 10;
+    -fx-border-color: rgba(255, 255, 255, 0.34);
+    -fx-border-radius: 10;
+    -fx-padding: 4;
 }
 
-/* =====================================================
-   NAVIGATION BUTTONS (Home / My Campus / Back)
-===================================================== */
-
-.nav-btn {
-    -fx-background-color: rgb(53, 206, 248);
-    -fx-text-fill: rgb(80, 80, 80);
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-background-radius: 6;
-    -fx-border-radius: 6;
-    -fx-border-color: rgba(255, 255, 255, 0.3);
-    -fx-cursor: hand;
-    -fx-padding: 5 14 5 14;
+.context-menu .menu-item {
+    -fx-background-color: rgba(255, 255, 255, 0.14);
+    -fx-background-radius: 8;
+    -fx-padding: 8 14 8 14;
 }
 
-.nav-btn:hover {
+.context-menu .menu-item .label {
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+}
+
+.context-menu .menu-item:focused,
+.context-menu .menu-item:hover {
     -fx-background-color: rgba(255, 255, 255, 0.3);
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
 }
 
-/* =====================================================
-   SEARCH FIELD
-===================================================== */
+.footer-row {
+    -fx-padding: 6 0 6 0;
+}
+
+.footer-card {
+    -fx-background-color: -m-surface;
+    -fx-background-radius: 16;
+    -fx-border-color: -m-border;
+    -fx-border-radius: 16;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.14), 14, 0.08, 0, 4);
+}
 
 .search-field {
     -fx-font-size: 14px;
     -fx-padding: 10 16 10 16;
     -fx-background-radius: 20;
     -fx-border-radius: 20;
-    -fx-background-color: white;
-    -fx-border-color: #ccc;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+    -fx-background-color: -m-surface-strong;
+    -fx-border-color: -m-border;
 }
 
-.search-field:focused {
-    -fx-border-color: #2a5298;
-    -fx-effect: dropshadow(gaussian, rgba(42, 82, 152, 0.25), 12, 0, 0, 0);
-}
-
-/* =====================================================
-   FIELD LABELS (Profile page)
-===================================================== */
-
-.field-label {
-    -fx-font-size: 12px;
-    -fx-font-weight: bold;
-    -fx-text-fill: #666;
-}
-
-/* =====================================================
-   RADIO BUTTONS (Campus Access)
-===================================================== */
-
-.radio-button {
-    -fx-text-fill: #333;
-    -fx-font-size: 14px;
+.search-result-btn {
+    -fx-background-color: -m-surface-strong;
+    -fx-text-fill: -m-text;
+    -fx-font-size: 13px;
     -fx-cursor: hand;
+    -fx-padding: 8 12 8 12;
+    -fx-border-color: -m-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-weight: 700;
 }
 
-.radio-button .radio {
-    -fx-border-color: #2a5298;
-    -fx-border-radius: 10;
-    -fx-background-color: white;
+.search-result-btn:hover {
+    -fx-background-color: linear-gradient(to right, derive(-m-secondary, 55%), derive(-m-accent, 55%));
 }
 
-.radio-button:selected .radio .dot {
-    -fx-background-color: #2a5298;
-    -fx-background-radius: 10;
-}
-
-/* =====================================================
-   DASHBOARD STAT CARDS
-===================================================== */
-
-.stat-card {
-    -fx-background-color: white;
+.search-results-panel {
+    -fx-background-color: -m-surface-strong;
     -fx-background-radius: 12;
-    -fx-padding: 20;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 8, 0, 0, 2);
+    -fx-border-color: -m-border;
+    -fx-border-radius: 12;
+    -fx-padding: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.16), 10, 0.08, 0, 3);
 }
 
 /* =====================================================
-   TABLE-LIKE ROWS (Authority / Teacher)
+   SPLASH
 ===================================================== */
 
-.table-header-cell {
-    -fx-font-weight: bold;
-    -fx-background-color: #1e3c72;
+.splash-title {
+    -fx-font-size: 56px;
+    -fx-font-weight: 900;
     -fx-text-fill: white;
-    -fx-padding: 10 16 10 16;
 }
 
-.table-data-cell {
-    -fx-padding: 8 16 8 16;
-    -fx-background-color: white;
-    -fx-border-color: #eee;
+.splash-subtitle {
+    -fx-font-size: 18px;
+    -fx-text-fill: rgba(255, 255, 255, 0.75);
 }

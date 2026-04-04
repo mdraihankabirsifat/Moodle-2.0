@@ -135,6 +135,8 @@ public class SceneManager {
                 scene.getStylesheets().add(css.toExternalForm());
             }
 
+            ThemeManager.applyTheme(scene);
+
             stage.setScene(scene);
 
             // Restore maximized state after setting the scene

@@ -4,14 +4,20 @@ import java.util.List;
 
 import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
+import com.example.moodle.util.ThemeManager;
 import com.example.moodle.util.UniversityDatabase;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class HomeController {
 
@@ -19,10 +25,14 @@ public class HomeController {
     @FXML private Button campusButton;
     @FXML private Button profileButton;
     @FXML private Button logoutButton;
-    @FXML private Pane floatingLayer;
     @FXML private Button signupButton;
     @FXML private TextField searchField;
     @FXML private VBox searchResults;
+    @FXML private MenuButton themeMenuButton;
+    @FXML private VBox homeContentBox;
+    @FXML private VBox heroBox;
+
+    private Timeline heroGradientTimeline;
 
     @FXML
     public void initialize() {
@@ -58,15 +68,89 @@ public class HomeController {
                 for (String uni : matches) {
                     Button btn = new Button(uni);
                     btn.setMaxWidth(Double.MAX_VALUE);
-                    btn.setStyle("-fx-background-color: white; -fx-text-fill: #1e3c72; " +
-                            "-fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 8 12 8 12; " +
-                            "-fx-border-color: #eee; -fx-border-radius: 4; -fx-background-radius: 4;");
+                    btn.getStyleClass().add("search-result-btn");
                     btn.setOnAction(e -> openUniversity(uni));
                     searchResults.getChildren().add(btn);
                 }
             }
             searchResults.setVisible(true);
         });
+
+        updateThemeMenuButtonText();
+
+        setupHeroAnimation();
+        setupResponsiveLayout();
+    }
+
+    private void setupHeroAnimation() {
+        if (heroBox == null) {
+            return;
+        }
+
+        String styleA = "-fx-background-color: linear-gradient(to right, rgba(255,255,255,0.82), rgba(224,246,255,0.84), rgba(255,233,244,0.82));"
+                + "-fx-background-radius: 24; -fx-border-color: rgba(255,255,255,0.55); -fx-border-radius: 24;"
+                + "-fx-padding: 26; -fx-max-width: 860;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 20, 0.08, 0, 6);";
+
+        String styleB = "-fx-background-color: linear-gradient(to right, rgba(255,255,255,0.8), rgba(237,241,255,0.86), rgba(223,251,246,0.84));"
+                + "-fx-background-radius: 24; -fx-border-color: rgba(255,255,255,0.55); -fx-border-radius: 24;"
+                + "-fx-padding: 26; -fx-max-width: 860;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 20, 0.08, 0, 6);";
+
+        heroGradientTimeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(heroBox.styleProperty(), styleA)),
+                new KeyFrame(Duration.seconds(8), new KeyValue(heroBox.styleProperty(), styleB))
+        );
+        heroGradientTimeline.setAutoReverse(true);
+        heroGradientTimeline.setCycleCount(Animation.INDEFINITE);
+        heroGradientTimeline.play();
+    }
+
+    private void setupResponsiveLayout() {
+        searchField.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null) {
+                applyResponsiveLayout(newScene.getWidth());
+                newScene.widthProperty().addListener((o, oldW, newW) -> applyResponsiveLayout(newW.doubleValue()));
+            }
+        });
+    }
+
+    private void applyResponsiveLayout(double width) {
+        if (homeContentBox == null || heroBox == null) {
+            return;
+        }
+
+        if (width < 760) {
+            homeContentBox.setSpacing(30);
+            heroBox.setMaxWidth(560);
+            themeMenuButton.setPrefWidth(96);
+        } else if (width < 980) {
+            homeContentBox.setSpacing(42);
+            heroBox.setMaxWidth(680);
+            themeMenuButton.setPrefWidth(108);
+        } else {
+            homeContentBox.setSpacing(60);
+            heroBox.setMaxWidth(860);
+            themeMenuButton.setPrefWidth(120);
+        }
+    }
+
+    private void updateThemeMenuButtonText() {
+        if (themeMenuButton != null) {
+            themeMenuButton.setText("Mode");
+        }
+    }
+
+    @FXML
+    private void setDarkMode() {
+        ThemeManager.setThemeByLabel("Dark");
+        updateThemeMenuButtonText();
+    }
+
+    @FXML
+    private void setLightMode() {
+        ThemeManager.setThemeByLabel("Light");
+        updateThemeMenuButtonText();
     }
 
     private void openUniversity(String name) {

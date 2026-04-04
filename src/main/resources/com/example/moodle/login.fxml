@@ -8,14 +8,14 @@
             fx:controller="com.example.moodle.controller.LoginController">
 
     <top>
-        <HBox spacing="15" alignment="CENTER_LEFT" style="-fx-padding: 15;">
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar" style="-fx-padding: 15;">
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
             <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
         </HBox>
     </top>
 
     <center>
-        <VBox spacing="15" alignment="CENTER" maxWidth="400">
+        <VBox spacing="15" alignment="CENTER" maxWidth="400" styleClass="card">
 
             <Label text="Portal Login" styleClass="title-label"/>
 
@@ -49,7 +49,7 @@
 
     <!-- ================= BOTTOM NAV ================= -->
     <bottom>
-        <HBox alignment="CENTER_RIGHT" style="-fx-padding: 15;">
+        <HBox alignment="CENTER_RIGHT" styleClass="bottom-bar" style="-fx-padding: 15;">
             <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
         </HBox>
     </bottom>
