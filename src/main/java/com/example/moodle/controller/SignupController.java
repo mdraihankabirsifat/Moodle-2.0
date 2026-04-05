@@ -134,12 +134,19 @@ public class SignupController {
 
         if (name.isEmpty() || university == null || id.isEmpty()
                 || email.isEmpty() || password.isEmpty()) {
-
+            messageLabel.setStyle("-fx-text-fill: #ff3366;");
             messageLabel.setText("Please fill all fields.");
             return;
         }
 
+        if (!isValidEmail(email)) {
+            messageLabel.setStyle("-fx-text-fill: #ff3366;");
+            messageLabel.setText("Please enter a valid email address.");
+            return;
+        }
+
         if (UserStore.emailExists(email)) {
+            messageLabel.setStyle("-fx-text-fill: #ff3366;");
             messageLabel.setText("Email already registered.");
             return;
         }
@@ -150,7 +157,7 @@ public class SignupController {
                 )
         );
 
-        messageLabel.setStyle("-fx-text-fill: green;");
+        messageLabel.setStyle("-fx-text-fill: #00ff88;");
         messageLabel.setText("Account created! Please login.");
 
         SceneManager.switchScene("login.fxml");
@@ -174,22 +181,34 @@ public class SignupController {
 
         if (name.isEmpty() || email.isEmpty() || dept.isEmpty()
                 || designation.isEmpty() || password.isEmpty()) {
-            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setStyle("-fx-text-fill: #ff3366;");
             messageLabel.setText("Please fill all fields.");
             return;
         }
 
+        if (!isValidEmail(email)) {
+            messageLabel.setStyle("-fx-text-fill: #ff3366;");
+            messageLabel.setText("Please enter a valid email address.");
+            return;
+        }
+
         if (UserStore.emailExists(email) || DataStore.getTeacherProfileByEmail(email) != null) {
-            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setStyle("-fx-text-fill: #ff3366;");
             messageLabel.setText("Email already registered.");
             return;
         }
 
         DataStore.saveTeacherProfile(name, dept, designation, type, password, email);
 
-        messageLabel.setStyle("-fx-text-fill: green;");
+        messageLabel.setStyle("-fx-text-fill: #00ff88;");
         messageLabel.setText("Teacher account created! Please login.");
 
         SceneManager.switchScene("login.fxml");
+    }
+
+    private boolean isValidEmail(String email) {
+        if (email == null || email.isEmpty()) return false;
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return email.matches(emailRegex);
     }
 }

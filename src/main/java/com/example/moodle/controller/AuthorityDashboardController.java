@@ -697,6 +697,211 @@ public class AuthorityDashboardController {
         setScrollContent(box);
     }
 
+    // ===================== MANAGE USERS =====================
+
+    @FXML
+    private void showManageUsers() {
+        VBox box = new VBox(16);
+        box.setPadding(new Insets(20));
+
+        Label title = new Label("👥 USER MANAGEMENT");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        // === STUDENTS SECTION ===
+        Label studentHeader = new Label("📋 STUDENTS");
+        studentHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: #ffb300; -fx-padding: 10 0 4 0;");
+
+        VBox studentList = new VBox(8);
+        List<User> allUsers = UserStore.getAllUsers();
+
+        for (User u : allUsers) {
+            if (!"STUDENT".equalsIgnoreCase(u.getRole())) continue;
+
+            VBox card = new VBox(8);
+            card.setStyle("-fx-background-color: #111a2e; -fx-background-radius: 8; "
+                    + "-fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 8; -fx-padding: 12;");
+
+            HBox nameRow = new HBox(8);
+            nameRow.setAlignment(Pos.CENTER_LEFT);
+            Label nameLabel = new Label("Name:");
+            nameLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField nameField = new TextField(u.getName());
+            nameField.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            nameRow.getChildren().addAll(nameLabel, nameField);
+
+            HBox emailRow = new HBox(8);
+            emailRow.setAlignment(Pos.CENTER_LEFT);
+            Label emailLabel = new Label("Email:");
+            emailLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField emailField = new TextField(u.getEmail());
+            emailField.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            emailRow.getChildren().addAll(emailLabel, emailField);
+
+            HBox passRow = new HBox(8);
+            passRow.setAlignment(Pos.CENTER_LEFT);
+            Label passLabel = new Label("Password:");
+            passLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField passField = new TextField(u.getPassword());
+            passField.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            passRow.getChildren().addAll(passLabel, passField);
+
+            HBox uniRow = new HBox(8);
+            uniRow.setAlignment(Pos.CENTER_LEFT);
+            Label uniLabel = new Label("University:");
+            uniLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField uniField = new TextField(u.getUniversity());
+            uniField.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            uniRow.getChildren().addAll(uniLabel, uniField);
+
+            HBox idRow = new HBox(8);
+            idRow.setAlignment(Pos.CENTER_LEFT);
+            Label idLabel = new Label("Student ID:");
+            idLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField idField = new TextField(u.getStudentId());
+            idField.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            idRow.getChildren().addAll(idLabel, idField);
+
+            Label saveMsg = new Label();
+            saveMsg.setStyle("-fx-font-size: 11px;");
+
+            Button saveBtn = new Button("Save Changes");
+            saveBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #00ff88; "
+                    + "-fx-border-color: #00ff88; -fx-border-radius: 6; -fx-background-radius: 6; "
+                    + "-fx-font-weight: 800; -fx-cursor: hand;");
+
+            final String oldEmail = u.getEmail();
+            saveBtn.setOnAction(e -> {
+                String newName = nameField.getText().trim();
+                String newEmail = emailField.getText().trim();
+                String newPass = passField.getText().trim();
+                String newUni = uniField.getText().trim();
+                String newId = idField.getText().trim();
+
+                if (newName.isEmpty() || newEmail.isEmpty() || newPass.isEmpty()) {
+                    saveMsg.setStyle("-fx-text-fill: #ff3366; -fx-font-size: 11px;");
+                    saveMsg.setText("Name, email and password cannot be empty.");
+                    return;
+                }
+
+                // Remove old entry and add updated
+                UserStore.removeUser(oldEmail);
+                User updated = new User(newName, newUni, newId, newEmail, newPass);
+                updated.setRole("STUDENT");
+                UserStore.addUser(updated);
+
+                saveMsg.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
+                saveMsg.setText("✓ Saved");
+            });
+
+            card.getChildren().addAll(nameRow, emailRow, passRow, uniRow, idRow, saveBtn, saveMsg);
+            studentList.getChildren().add(card);
+        }
+
+        if (studentList.getChildren().isEmpty()) {
+            studentList.getChildren().add(new Label("No students registered."));
+        }
+
+        // === TEACHERS SECTION ===
+        Label teacherHeader = new Label("📋 TEACHERS");
+        teacherHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: #ffb300; -fx-padding: 10 0 4 0;");
+
+        VBox teacherList = new VBox(8);
+        List<String[]> teachers = DataStore.getAllTeacherProfiles();
+
+        for (String[] t : teachers) {
+            // Format: name|dept|designation|type|password|email
+            String tName = t[0];
+            String tDept = t[1];
+            String tDesig = t.length > 2 ? t[2] : "";
+            String tType = t.length > 3 ? t[3] : "";
+            String tPass = t.length > 4 ? t[4] : "";
+            String tEmail = t.length > 5 ? t[5] : "";
+
+            VBox card = new VBox(8);
+            card.setStyle("-fx-background-color: #111a2e; -fx-background-radius: 8; "
+                    + "-fx-border-color: rgba(255,179,0,0.2); -fx-border-radius: 8; -fx-padding: 12;");
+
+            HBox tnameRow = new HBox(8);
+            tnameRow.setAlignment(Pos.CENTER_LEFT);
+            Label tnl = new Label("Name:");
+            tnl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField tnf = new TextField(tName);
+            tnf.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            tnameRow.getChildren().addAll(tnl, tnf);
+
+            HBox temailRow = new HBox(8);
+            temailRow.setAlignment(Pos.CENTER_LEFT);
+            Label tel = new Label("Email:");
+            tel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField tef = new TextField(tEmail);
+            tef.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            temailRow.getChildren().addAll(tel, tef);
+
+            HBox tpassRow = new HBox(8);
+            tpassRow.setAlignment(Pos.CENTER_LEFT);
+            Label tpl = new Label("Password:");
+            tpl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField tpf = new TextField(tPass);
+            tpf.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            tpassRow.getChildren().addAll(tpl, tpf);
+
+            HBox tdeptRow = new HBox(8);
+            tdeptRow.setAlignment(Pos.CENTER_LEFT);
+            Label tdl = new Label("Dept:");
+            tdl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField tdf = new TextField(tDept);
+            tdf.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            tdeptRow.getChildren().addAll(tdl, tdf);
+
+            HBox tdesigRow = new HBox(8);
+            tdesigRow.setAlignment(Pos.CENTER_LEFT);
+            Label tdesl = new Label("Designation:");
+            tdesl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-min-width: 80;");
+            TextField tdesf = new TextField(tDesig);
+            tdesf.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; -fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 4; -fx-background-radius: 4;");
+            tdesigRow.getChildren().addAll(tdesl, tdesf);
+
+            Label tMsg = new Label();
+            tMsg.setStyle("-fx-font-size: 11px;");
+
+            Button tSaveBtn = new Button("Save Changes");
+            tSaveBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #00ff88; "
+                    + "-fx-border-color: #00ff88; -fx-border-radius: 6; -fx-background-radius: 6; "
+                    + "-fx-font-weight: 800; -fx-cursor: hand;");
+
+            tSaveBtn.setOnAction(e -> {
+                String nName = tnf.getText().trim();
+                String nEmail = tef.getText().trim();
+                String nPass = tpf.getText().trim();
+                String nDept = tdf.getText().trim();
+                String nDesig = tdesf.getText().trim();
+
+                if (nName.isEmpty() || nPass.isEmpty()) {
+                    tMsg.setStyle("-fx-text-fill: #ff3366; -fx-font-size: 11px;");
+                    tMsg.setText("Name and password cannot be empty.");
+                    return;
+                }
+
+                DataStore.saveTeacherProfile(nName, nDept, nDesig, tType, nPass, nEmail);
+
+                tMsg.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
+                tMsg.setText("✓ Saved");
+            });
+
+            card.getChildren().addAll(tnameRow, temailRow, tpassRow, tdeptRow, tdesigRow, tSaveBtn, tMsg);
+            teacherList.getChildren().add(card);
+        }
+
+        if (teacherList.getChildren().isEmpty()) {
+            teacherList.getChildren().add(new Label("No teachers registered."));
+        }
+
+        box.getChildren().addAll(title, new Separator(), studentHeader, studentList,
+                new Separator(), teacherHeader, teacherList);
+
+        setScrollContent(box);
+    }
+
     // ===================== UTILITY =====================
     private void setScrollContent(VBox content) {
         ScrollPane scroll = new ScrollPane(content);

@@ -289,4 +289,67 @@ public class HomeController {
         Session.setSelectedNewsVlog(vlogId);
         SceneManager.switchScene("news-vlog.fxml");
     }
+
+    @FXML
+    private void showAbout() {
+        javafx.stage.Stage aboutStage = new javafx.stage.Stage();
+        aboutStage.setTitle("About — Moodle 2.0");
+
+        VBox root = new VBox(20);
+        root.setAlignment(javafx.geometry.Pos.CENTER);
+        root.setStyle("-fx-background-color: #0d1b2a; -fx-padding: 40;");
+
+        Label title = new Label("MOODLE 2.0");
+        title.setStyle("-fx-font-size: 32px; -fx-font-weight: 900; -fx-text-fill: #00e5ff; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.4), 12, 0.3, 0, 0);");
+
+        Label subtitle = new Label("Varsity Simulator");
+        subtitle.setStyle("-fx-font-size: 16px; -fx-text-fill: #5a6a7e; -fx-font-weight: 600;");
+
+        Label goal = new Label("A student-friendly platform where academic tools,\ncampus services, and communication stay connected.");
+        goal.setWrapText(true);
+        goal.setStyle("-fx-text-fill: #d0d8e8; -fx-font-size: 13px; -fx-text-alignment: center;");
+        goal.setMaxWidth(400);
+
+        javafx.scene.control.Separator sep1 = new javafx.scene.control.Separator();
+        sep1.setStyle("-fx-border-color: rgba(0,229,255,0.2);");
+
+        // Developers section
+        Label devTitle = new Label("⚡ DEVELOPERS");
+        devTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: #ffb300; -fx-letter-spacing: 2;");
+
+        VBox dev1 = createPersonCard("Md. Raihan Kabir Sifat", "CSE, BUET");
+        VBox dev2 = createPersonCard("Khandokar Naeemul Haque", "CSE, BUET");
+
+        javafx.scene.control.Separator sep2 = new javafx.scene.control.Separator();
+        sep2.setStyle("-fx-border-color: rgba(0,229,255,0.2);");
+
+        // Advisor section
+        Label advTitle = new Label("🎓 ADVISOR");
+        advTitle.setStyle("-fx-font-size: 14px; -fx-font-weight: 800; -fx-text-fill: #00ff88; -fx-letter-spacing: 2;");
+
+        VBox advisor = createPersonCard("Md. Nurul Muttakin", "Lecturer, CSE, BUET");
+
+        root.getChildren().addAll(title, subtitle, goal, sep1, devTitle, dev1, dev2, sep2, advTitle, advisor);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root, 480, 560);
+        aboutStage.setScene(scene);
+        aboutStage.setResizable(false);
+        aboutStage.show();
+    }
+
+    private VBox createPersonCard(String name, String role) {
+        VBox card = new VBox(4);
+        card.setAlignment(javafx.geometry.Pos.CENTER);
+        card.setStyle("-fx-padding: 10 20 10 20; -fx-background-color: #111a2e; "
+                + "-fx-background-radius: 8; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 8;");
+        card.setMaxWidth(320);
+
+        Label nameLabel = new Label(name);
+        nameLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+        Label roleLabel = new Label(role);
+        roleLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #5a6a7e;");
+        card.getChildren().addAll(nameLabel, roleLabel);
+        return card;
+    }
 }

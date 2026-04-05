@@ -1625,9 +1625,20 @@ public class CampusDashboardController {
         Label title = new Label("\uD83C\uDF10 Students Community");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
-        // New Post Form
-        Label formTitle = new Label("Share something with your community");
-        formTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #8a9ab0;");
+        // === CREATE POST FORM (Facebook-style) ===
+        VBox formBox = new VBox(10);
+        formBox.setStyle("-fx-padding: 16; -fx-background-color: #111a2e; -fx-background-radius: 10; "
+                + "-fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 10; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.06), 8, 0, 0, 2);");
+
+        HBox topRow = new HBox(10);
+        topRow.setAlignment(Pos.CENTER_LEFT);
+        Label userAvatar = new Label("\uD83D\uDC64");
+        userAvatar.setStyle("-fx-font-size: 28px; -fx-background-color: #0a1628; "
+                + "-fx-padding: 6 10 6 10; -fx-background-radius: 50; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 50;");
+        Label userName = new Label(Session.getName() != null ? Session.getName() : "You");
+        userName.setStyle("-fx-font-weight: bold; -fx-text-fill: #00e5ff; -fx-font-size: 14px;");
+        topRow.getChildren().addAll(userAvatar, userName);
 
         TextArea postArea = new TextArea();
         postArea.setPromptText("What's on your mind?");
@@ -1638,8 +1649,10 @@ public class CampusDashboardController {
         final String[] attachedImage = {""};
         Label imgLabel = new Label("No image attached");
         imgLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
-        Button imgBtn = new Button("\uD83D\uDCF7 Attach Photo");
-        imgBtn.setStyle("-fx-background-color: #bf40ff; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;");
+
+        Button imgBtn = new Button("\uD83D\uDCF7 Photo");
+        imgBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #bf40ff; -fx-border-color: #bf40ff; "
+                + "-fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: 700;");
         imgBtn.setOnAction(e -> {
             javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
             fc.setTitle("Select Image");
@@ -1651,12 +1664,235 @@ public class CampusDashboardController {
                 imgLabel.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
             }
         });
-        HBox imgRow = new HBox(10, imgBtn, imgLabel);
-        imgRow.setAlignment(Pos.CENTER_LEFT);
 
         Label postMsg = new Label();
         Button postBtn = new Button("\uD83D\uDCE8 Post");
-        postBtn.setStyle("-fx-background-color: #0d2a4a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 8 20 8 20; -fx-cursor: hand;");
+        postBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-weight: 900; "
+                + "-fx-background-radius: 8; -fx-padding: 8 24 8 24; -fx-cursor: hand; -fx-font-size: 13px;");
+
+        HBox actionRow = new HBox(12, imgBtn, imgLabel, new Region(), postBtn, postMsg);
+        actionRow.setAlignment(Pos.CENTER_LEFT);
+        javafx.scene.layout.HBox.setHgrow(actionRow.getChildren().get(2), javafx.scene.layout.Priority.ALWAYS);
+
+        formBox.getChildren().addAll(topRow, postArea, actionRow);
+
+        // Feed
+        VBox feed = new VBox(12);
+        feed.setId("community-feed");
+
+        Runnable refreshFeed = () -> {
+            feed.getChildren().clear();
+            List<String[]> posts = DataStore.getAllCommunityPosts();
+            String currentUser = Session.getIdentifier();
+            if (posts.isEmpty()) {
+                Label noPost = new Label("No posts yet. Be the first to share!");
+                noPost.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20; -fx-font-size: 14px;");
+                feed.getChildren().add(noPost);
+            } else {
+                for (int i = posts.size() - 1; i >= 0; i--) {
+                    String[] p = posts.get(i);
+                    final int postIndex = i;
+                    String postAuthorId = p[0];
+                    String postAuthorName = p[1];
+                    String postContent = p[2];
+                    String postTime = p[3];
+                    String postImage = p.length >= 5 ? p[4] : "";
+
+                    VBox postCard = new VBox(8);
+                    postCard.setStyle("-fx-padding: 16; -fx-background-color: #111a2e; -fx-background-radius: 10; "
+                            + "-fx-border-color: rgba(0,229,255,0.12); -fx-border-radius: 10; "
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.06), 6, 0, 0, 2);");
+
+                    // === POST HEADER (avatar + name + time + delete) ===
+                    HBox header = new HBox(10);
+                    header.setAlignment(Pos.CENTER_LEFT);
+                    Label avatar = new Label("\uD83D\uDC64");
+                    avatar.setStyle("-fx-font-size: 24px; -fx-background-color: #0a1628; "
+                            + "-fx-padding: 4 8 4 8; -fx-background-radius: 50; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 50;");
+                    VBox nameTime = new VBox(1);
+                    Label authorLabel = new Label(postAuthorName);
+                    authorLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #00e5ff;");
+                    Label timeLabel = new Label(postTime);
+                    timeLabel.setStyle("-fx-text-fill: #4a5a6e; -fx-font-size: 10px;");
+                    nameTime.getChildren().addAll(authorLabel, timeLabel);
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
+
+                    header.getChildren().addAll(avatar, nameTime, spacer);
+
+                    // Delete button (only for own posts)
+                    if (postAuthorId.equals(currentUser)) {
+                        Button deleteBtn = new Button("\uD83D\uDDD1");
+                        deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff3366; "
+                                + "-fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 2 6 2 6;");
+                        deleteBtn.setOnAction(e -> {
+                            DataStore.deleteCommunityPost(postIndex);
+                            showCommunity();
+                        });
+                        header.getChildren().add(deleteBtn);
+                    }
+
+                    // === POST CONTENT ===
+                    Label contentLabel = new Label(postContent);
+                    contentLabel.setWrapText(true);
+                    contentLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #d0d8e8; -fx-padding: 4 0 0 0;");
+
+                    postCard.getChildren().addAll(header, contentLabel);
+
+                    // === POST IMAGE ===
+                    if (postImage != null && !postImage.isEmpty()) {
+                        try {
+                            javafx.scene.image.Image img = new javafx.scene.image.Image(postImage, 500, 350, true, true);
+                            javafx.scene.image.ImageView imgView = new javafx.scene.image.ImageView(img);
+                            imgView.setPreserveRatio(true);
+                            imgView.setFitWidth(500);
+                            imgView.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2);");
+
+                            imgView.setOnMouseClicked(ev -> {
+                                javafx.scene.image.Image fullImg = new javafx.scene.image.Image(postImage);
+                                javafx.scene.image.ImageView fullView = new javafx.scene.image.ImageView(fullImg);
+                                fullView.setPreserveRatio(true);
+                                fullView.fitWidthProperty().bind(contentArea.widthProperty().multiply(0.85));
+                                fullView.fitHeightProperty().bind(contentArea.heightProperty().multiply(0.85));
+
+                                Button closeBtn = new Button("\u2715 Close");
+                                closeBtn.setStyle("-fx-background-color: #ff3366; -fx-text-fill: white; -fx-font-weight: bold; "
+                                        + "-fx-background-radius: 20; -fx-padding: 8 20 8 20; -fx-cursor: hand;");
+
+                                VBox overlayContent = new VBox(10, fullView, closeBtn);
+                                overlayContent.setAlignment(Pos.CENTER);
+
+                                StackPane overlay = new StackPane(overlayContent);
+                                overlay.setStyle("-fx-background-color: rgba(0,0,0,0.9);");
+                                overlay.setAlignment(Pos.CENTER);
+                                closeBtn.setOnAction(ce -> contentArea.getChildren().remove(overlay));
+                                overlay.setOnMouseClicked(oe -> {
+                                    if (oe.getTarget() == overlay) contentArea.getChildren().remove(overlay);
+                                });
+                                contentArea.getChildren().add(overlay);
+                            });
+
+                            postCard.getChildren().add(imgView);
+                        } catch (Exception ex) { /* skip */ }
+                    }
+
+                    // === LIKE / COMMENT / SHARE BAR (Facebook-style) ===
+                    Separator actionSep = new Separator();
+                    actionSep.setStyle("-fx-border-color: rgba(0,229,255,0.08);");
+
+                    int likeCount = DataStore.getLikeCount(postIndex);
+                    boolean liked = DataStore.hasLiked(postIndex, currentUser);
+
+                    Label likeCountLabel = new Label(likeCount > 0 ? "\uD83D\uDC4D " + likeCount : "");
+                    likeCountLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-padding: 0 0 4 0;");
+
+                    Button likeBtn = new Button(liked ? "\uD83D\uDC4D Liked" : "\uD83D\uDC4D Like");
+                    likeBtn.setStyle(liked
+                            ? "-fx-background-color: transparent; -fx-text-fill: #00e5ff; -fx-font-weight: 800; -fx-cursor: hand; -fx-font-size: 12px;"
+                            : "-fx-background-color: transparent; -fx-text-fill: #5a6a7e; -fx-font-weight: 700; -fx-cursor: hand; -fx-font-size: 12px;");
+                    likeBtn.setOnAction(e -> {
+                        DataStore.toggleLike(postIndex, currentUser);
+                        showCommunity();
+                    });
+
+                    Button commentBtn = new Button("\uD83D\uDCAC Comment");
+                    commentBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #5a6a7e; -fx-font-weight: 700; -fx-cursor: hand; -fx-font-size: 12px;");
+
+                    Button shareBtn = new Button("\uD83D\uDD17 Share");
+                    shareBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #5a6a7e; -fx-font-weight: 700; -fx-cursor: hand; -fx-font-size: 12px;");
+                    shareBtn.setOnAction(e -> {
+                        javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
+                        javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
+                        cc.putString(postAuthorName + ": " + postContent);
+                        clipboard.setContent(cc);
+                        shareBtn.setText("\u2705 Copied!");
+                    });
+
+                    HBox buttonBar = new HBox(20, likeBtn, commentBtn, shareBtn);
+                    buttonBar.setAlignment(Pos.CENTER_LEFT);
+                    buttonBar.setStyle("-fx-padding: 4 0 4 0;");
+
+                    // === COMMENTS SECTION ===
+                    VBox commentsSection = new VBox(6);
+                    commentsSection.setStyle("-fx-padding: 4 0 0 0;");
+                    commentsSection.setVisible(false);
+                    commentsSection.setManaged(false);
+
+                    // Load existing comments
+                    List<String[]> comments = DataStore.getComments(postIndex);
+                    int commentCount = comments.size();
+
+                    Label commentCountLabel = new Label(commentCount > 0 ? commentCount + " comments" : "");
+                    commentCountLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px; -fx-cursor: hand;");
+
+                    // Toggle comments visibility
+                    commentBtn.setText(commentCount > 0 ? "\uD83D\uDCAC " + commentCount + " Comments" : "\uD83D\uDCAC Comment");
+                    commentBtn.setOnAction(e -> {
+                        boolean show = !commentsSection.isVisible();
+                        commentsSection.setVisible(show);
+                        commentsSection.setManaged(show);
+                    });
+
+                    // Existing comments
+                    VBox commentsList = new VBox(4);
+                    for (String[] c : comments) {
+                        HBox commentRow = new HBox(8);
+                        commentRow.setAlignment(Pos.TOP_LEFT);
+                        commentRow.setStyle("-fx-padding: 6 8 6 8; -fx-background-color: #0a1628; "
+                                + "-fx-background-radius: 8;");
+
+                        Label commentAvatar = new Label("\uD83D\uDC64");
+                        commentAvatar.setStyle("-fx-font-size: 14px;");
+
+                        VBox commentBody = new VBox(2);
+                        Label commenterName = new Label(c[2]);
+                        commenterName.setStyle("-fx-font-weight: bold; -fx-text-fill: #00e5ff; -fx-font-size: 11px;");
+                        Label commentText = new Label(c[3]);
+                        commentText.setWrapText(true);
+                        commentText.setStyle("-fx-text-fill: #d0d8e8; -fx-font-size: 12px;");
+                        Label commentTime = new Label(c[4]);
+                        commentTime.setStyle("-fx-text-fill: #3a4a5e; -fx-font-size: 9px;");
+                        commentBody.getChildren().addAll(commenterName, commentText, commentTime);
+
+                        commentRow.getChildren().addAll(commentAvatar, commentBody);
+                        commentsList.getChildren().add(commentRow);
+                    }
+
+                    // Add comment input
+                    HBox addCommentRow = new HBox(8);
+                    addCommentRow.setAlignment(Pos.CENTER_LEFT);
+                    TextField commentInput = new TextField();
+                    commentInput.setPromptText("Write a comment...");
+                    commentInput.setStyle("-fx-background-color: #0a1628; -fx-text-fill: #d0d8e8; "
+                            + "-fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 20; "
+                            + "-fx-background-radius: 20; -fx-padding: 6 12 6 12; -fx-font-size: 12px;");
+                    HBox.setHgrow(commentInput, javafx.scene.layout.Priority.ALWAYS);
+
+                    Button sendCommentBtn = new Button("➤");
+                    sendCommentBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; "
+                            + "-fx-background-radius: 50; -fx-font-weight: 900; -fx-cursor: hand; -fx-padding: 4 8 4 8;");
+                    sendCommentBtn.setOnAction(e -> {
+                        String commentText2 = commentInput.getText().trim();
+                        if (!commentText2.isEmpty()) {
+                            DataStore.addComment(postIndex, currentUser,
+                                    Session.getName() != null ? Session.getName() : "Anonymous", commentText2);
+                            showCommunity();
+                        }
+                    });
+
+                    // Also submit on Enter
+                    commentInput.setOnAction(e -> sendCommentBtn.fire());
+
+                    addCommentRow.getChildren().addAll(commentInput, sendCommentBtn);
+
+                    commentsSection.getChildren().addAll(commentsList, addCommentRow);
+
+                    postCard.getChildren().addAll(likeCountLabel, actionSep, buttonBar, commentsSection);
+                    feed.getChildren().add(postCard);
+                }
+            }
+        };
 
         postBtn.setOnAction(e -> {
             String content = postArea.getText().trim();
@@ -1668,122 +1904,13 @@ public class CampusDashboardController {
                         Session.getName() != null ? Session.getName() : "Anonymous",
                         content.isEmpty() ? "\uD83D\uDCF7 Photo" : content, attachedImage[0]);
                 postMsg.setStyle("-fx-text-fill: #00ff88;");
-                postMsg.setText("Posted successfully! \u2705");
                 postArea.clear();
                 attachedImage[0] = "";
                 imgLabel.setText("No image attached");
                 imgLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
+                refreshFeed.run();
             }
         });
-
-        VBox formBox = new VBox(8, formTitle, postArea, imgRow, new HBox(10, postBtn, postMsg));
-        formBox.setStyle("-fx-padding: 15; -fx-background-color: #111a2e; -fx-background-radius: 10; "
-                + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 8, 0, 0, 2);");
-
-        // Feed (dynamic, auto-refreshed)
-        VBox feed = new VBox(10);
-        feed.setId("community-feed");
-
-        Runnable refreshFeed = () -> {
-            feed.getChildren().clear();
-            List<String[]> posts = DataStore.getAllCommunityPosts();
-            if (posts.isEmpty()) {
-                Label noPost = new Label("No posts yet. Be the first to share!");
-                noPost.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
-                feed.getChildren().add(noPost);
-            } else {
-                for (int i = posts.size() - 1; i >= 0; i--) {
-                    String[] p = posts.get(i);
-                    VBox postCard = new VBox(6);
-                    postCard.setStyle("-fx-padding: 14; -fx-background-color: #111a2e; -fx-background-radius: 10; "
-                            + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2);");
-
-                    HBox header = new HBox(10);
-                    header.setAlignment(Pos.CENTER_LEFT);
-                    Label avatar = new Label("\uD83D\uDC64");
-                    avatar.setStyle("-fx-font-size: 22px;");
-                    VBox nameTime = new VBox(2);
-                    Label authorLabel = new Label(p[1]);
-                    authorLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #00e5ff;");
-                    Label timeLabel = new Label(p[3]);
-                    timeLabel.setStyle("-fx-text-fill: #4a5a6e; -fx-font-size: 11px;");
-                    nameTime.getChildren().addAll(authorLabel, timeLabel);
-                    header.getChildren().addAll(avatar, nameTime);
-
-                    Label contentLabel = new Label(p[2]);
-                    contentLabel.setWrapText(true);
-                    contentLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #d0d8e8; -fx-padding: 5 0 0 32;");
-
-                    postCard.getChildren().addAll(header, contentLabel);
-
-                    // Display attached image if present
-                    if (p.length >= 5 && p[4] != null && !p[4].isEmpty()) {
-                        try {
-                            String imageUri = p[4];
-                            javafx.scene.image.Image img = new javafx.scene.image.Image(imageUri, 400, 300, true, true);
-                            javafx.scene.image.ImageView imgView = new javafx.scene.image.ImageView(img);
-                            imgView.setPreserveRatio(true);
-                            imgView.setFitWidth(400);
-                            imgView.setStyle("-fx-cursor: hand;");
-
-                            // Click to maximize
-                            imgView.setOnMouseClicked(ev -> {
-                                javafx.scene.image.Image fullImg = new javafx.scene.image.Image(imageUri);
-                                javafx.scene.image.ImageView fullView = new javafx.scene.image.ImageView(fullImg);
-                                fullView.setPreserveRatio(true);
-                                fullView.fitWidthProperty().bind(contentArea.widthProperty().multiply(0.85));
-                                fullView.fitHeightProperty().bind(contentArea.heightProperty().multiply(0.85));
-
-                                Button closeBtn = new Button("\u2715 Close");
-                                closeBtn.setStyle("-fx-background-color: #ff3366; -fx-text-fill: white; -fx-font-weight: bold; "
-                                        + "-fx-background-radius: 20; -fx-padding: 8 20 8 20; -fx-cursor: hand;");
-
-                                Button downloadBtn = new Button("\u2B07 Download");
-                                downloadBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; "
-                                        + "-fx-background-radius: 20; -fx-padding: 8 20 8 20; -fx-cursor: hand;");
-                                downloadBtn.setOnAction(de -> {
-                                    try {
-                                        java.net.URI uri = new java.net.URI(imageUri);
-                                        java.io.File srcFile = new java.io.File(uri);
-                                        FileChooser saveDlg = new FileChooser();
-                                        saveDlg.setTitle("Save Image");
-                                        saveDlg.setInitialFileName(srcFile.getName());
-                                        saveDlg.getExtensionFilters().add(
-                                                new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"));
-                                        java.io.File dest = saveDlg.showSaveDialog(contentArea.getScene().getWindow());
-                                        if (dest != null) {
-                                            java.nio.file.Files.copy(srcFile.toPath(), dest.toPath(),
-                                                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                                        }
-                                    } catch (Exception ex) { /* ignore errors */ }
-                                });
-
-                                HBox btnRow = new HBox(15, closeBtn, downloadBtn);
-                                btnRow.setAlignment(Pos.CENTER);
-
-                                VBox overlayContent = new VBox(10, fullView, btnRow);
-                                overlayContent.setAlignment(Pos.CENTER);
-
-                                StackPane overlay = new StackPane(overlayContent);
-                                overlay.setStyle("-fx-background-color: rgba(0,0,0,0.85);");
-                                overlay.setAlignment(Pos.CENTER);
-
-                                closeBtn.setOnAction(ce -> contentArea.getChildren().remove(overlay));
-                                overlay.setOnMouseClicked(oe -> {
-                                    if (oe.getTarget() == overlay) contentArea.getChildren().remove(overlay);
-                                });
-
-                                contentArea.getChildren().add(overlay);
-                            });
-
-                            postCard.getChildren().add(imgView);
-                        } catch (Exception ex) { /* invalid image, skip */ }
-                    }
-
-                    feed.getChildren().add(postCard);
-                }
-            }
-        };
 
         refreshFeed.run();
 

@@ -10,7 +10,7 @@ public final class ThemeManager {
     public static final String CYBER_DARK = "cyber-dark";
     public static final String CYBER_LIGHT = "cyber-light";
 
-    private static String currentTheme = CYBER_DARK;
+    private static String currentTheme = CYBER_LIGHT;
 
     private ThemeManager() {
     }

@@ -21,7 +21,8 @@
                    styleClass="title-label"/>
 
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
-                 <Button text="+ Connect" styleClass="nav-btn" onAction="#showNetworkPanel"/>
+            <Button text="+ Connect" styleClass="nav-btn" onAction="#showNetworkPanel"/>
+            <Button text="ℹ About" styleClass="nav-btn" onAction="#showAbout"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
@@ -214,30 +215,7 @@
                 <Label text="• Debate Championship"/>
             </VBox>
 
-            <!-- BOTTOM TWO-COLUMN FOOTER -->
-            <HBox spacing="20" maxWidth="1060" alignment="TOP_CENTER" styleClass="footer-row">
-                <VBox spacing="10" maxWidth="500" styleClass="footer-card" HBox.hgrow="ALWAYS">
-                    <Label text="🚀 About Project"
-                           styleClass="section-title"/>
 
-                    <Label wrapText="true"
-                           text="Goal: Build one simple, student-friendly platform where academic tools, campus services, and communication stay connected in one place."/>
-
-                    <Label text="Developers"
-                           style="-fx-font-weight: bold; -fx-padding: 4 0 0 0; -fx-text-fill: #ffb300;"/>
-                    <Label text="Md. Raihan Kabir Sifat"/>
-                    <Label text="CSE, BUET" style="-fx-text-fill: #5a6a7e;"/>
-                    <Label text="Khandokar Naeemul Haque" style="-fx-padding: 8 0 0 0;"/>
-                    <Label text="CSE, BUET" style="-fx-text-fill: #5a6a7e;"/>
-                </VBox>
-
-                <VBox spacing="10" maxWidth="500" styleClass="footer-card" HBox.hgrow="ALWAYS">
-                    <Label text="📬 Contact"
-                           styleClass="section-title"/>
-                    <Label wrapText="true"
-                           text="For project queries or collaboration, please contact the Moodle 2.0 team through CSE, BUET channels."/>
-                </VBox>
-            </HBox>
 
         </VBox>
 
@@ -245,11 +223,6 @@
 
 </center>
 
-    <!-- ================= BOTTOM NAV ================= -->
-    <bottom>
-        <HBox alignment="CENTER_RIGHT" styleClass="bottom-bar" style="-fx-padding: 15;">
-            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
-        </HBox>
-    </bottom>
+
 
 </BorderPane>

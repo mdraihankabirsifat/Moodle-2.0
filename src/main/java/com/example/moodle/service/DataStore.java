@@ -695,6 +695,15 @@ public class DataStore {
         return d.isEmpty() ? n + "@campus" : n + "@" + d + ".campus";
     }
 
+    public static List<String[]> getAllTeacherProfiles() {
+        List<String[]> result = new java.util.ArrayList<>();
+        for (String line : FileStore.loadLines(TEACHER_PROFILES_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 5) result.add(p);
+        }
+        return result;
+    }
+
     // ==================== PROFILE PHOTOS ====================
     // Format: userId|photoPath
 
@@ -927,5 +936,63 @@ public class DataStore {
         FileStore.appendLine(COMMUNITY_FILE,
                 authorId + "|" + authorName + "|" + content + "|" + ts + "|"
                         + (imagePath != null ? imagePath : ""));
+    }
+
+    // ==================== COMMUNITY LIKES ====================
+    private static final String COMMUNITY_LIKES_FILE = "community_likes.txt";
+    // Format: postIndex|userId
+
+    public static void toggleLike(int postIndex, String userId) {
+        List<String> lines = FileStore.loadLines(COMMUNITY_LIKES_FILE);
+        String entry = postIndex + "|" + userId;
+        if (lines.contains(entry)) {
+            lines.remove(entry);
+            FileStore.saveLines(COMMUNITY_LIKES_FILE, lines);
+        } else {
+            FileStore.appendLine(COMMUNITY_LIKES_FILE, entry);
+        }
+    }
+
+    public static int getLikeCount(int postIndex) {
+        int count = 0;
+        for (String line : FileStore.loadLines(COMMUNITY_LIKES_FILE)) {
+            if (line.startsWith(postIndex + "|")) count++;
+        }
+        return count;
+    }
+
+    public static boolean hasLiked(int postIndex, String userId) {
+        String entry = postIndex + "|" + userId;
+        return FileStore.loadLines(COMMUNITY_LIKES_FILE).contains(entry);
+    }
+
+    // ==================== COMMUNITY COMMENTS ====================
+    private static final String COMMUNITY_COMMENTS_FILE = "community_comments.txt";
+    // Format: postIndex|userId|userName|comment|timestamp
+
+    public static void addComment(int postIndex, String userId, String userName, String comment) {
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        FileStore.appendLine(COMMUNITY_COMMENTS_FILE,
+                postIndex + "|" + userId + "|" + userName + "|" + comment + "|" + ts);
+    }
+
+    public static List<String[]> getComments(int postIndex) {
+        List<String[]> result = new ArrayList<>();
+        for (String line : FileStore.loadLines(COMMUNITY_COMMENTS_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 5 && p[0].equals(String.valueOf(postIndex))) {
+                result.add(p);
+            }
+        }
+        return result;
+    }
+
+    // ==================== COMMUNITY DELETE ====================
+    public static void deleteCommunityPost(int postIndex) {
+        List<String> lines = FileStore.loadLines(COMMUNITY_FILE);
+        if (postIndex >= 0 && postIndex < lines.size()) {
+            lines.remove(postIndex);
+            FileStore.saveLines(COMMUNITY_FILE, lines);
+        }
     }
 }
