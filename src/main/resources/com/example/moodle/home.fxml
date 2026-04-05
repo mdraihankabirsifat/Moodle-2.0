@@ -129,14 +129,6 @@
                       wrapText="true"/>
                  </VBox>
 
-            <!-- ABOUT -->
-                 <VBox spacing="15" maxWidth="800" styleClass="glass-card">
-                  <Label text="✨ About"
-                       styleClass="section-title"/>
-                <Label wrapText="true"
-                       text="Moodle 2.0 is a unified digital platform designed to manage and simulate university life across all institutions."/>
-            </VBox>
-
             <!-- LATEST NEWS -->
             <VBox spacing="16" maxWidth="1100" prefWidth="1100" styleClass="news-wall">
                 <Label text="🗞 Latest News"

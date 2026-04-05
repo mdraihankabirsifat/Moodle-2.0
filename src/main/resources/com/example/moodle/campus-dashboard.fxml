@@ -39,6 +39,10 @@
                         onAction="#showCourses"
                         maxWidth="Infinity"/>
 
+                <Button text="Gradesheet"
+                        onAction="#showGradesheet"
+                        maxWidth="Infinity"/>
+
                 <Button text="Messages"
                         onAction="#showMessages"
                         maxWidth="Infinity"/>
