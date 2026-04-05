@@ -19,6 +19,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.util.Duration;
 
 public class SplashController {
@@ -35,8 +36,8 @@ public class SplashController {
     @FXML
     public void initialize() {
 
-        // Add floating particles
-        addSplashParticles();
+        // Add cyber particles
+        addCyberParticles();
 
         // Typewriter effect for title
         String fullTitle = "MOODLE 2.0";
@@ -44,9 +45,9 @@ public class SplashController {
         titleLabel.setOpacity(1);
         subtitleLabel.setOpacity(0);
 
-        // Glow effect on title
+        // Neon cyan glow effect on title
         DropShadow glow = new DropShadow();
-        glow.setColor(Color.web("#4fc3f7"));
+        glow.setColor(Color.web("#00e5ff"));
         glow.setRadius(0);
         titleLabel.setEffect(glow);
 
@@ -76,7 +77,7 @@ public class SplashController {
                     new KeyFrame(Duration.ZERO,
                             new KeyValue(glow.radiusProperty(), 0)),
                     new KeyFrame(Duration.seconds(1),
-                            new KeyValue(glow.radiusProperty(), 25))
+                            new KeyValue(glow.radiusProperty(), 30))
             );
             glowAnim.play();
 
@@ -90,14 +91,14 @@ public class SplashController {
 
         typewriter.play();
 
-        // Animated gradient background
+        // Animated dark gradient background
         Timeline gradientAnimation = new Timeline(
                 new KeyFrame(Duration.ZERO,
                         new KeyValue(rootPane.styleProperty(),
-                                "-fx-background-color: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);")),
+                                "-fx-background-color: linear-gradient(to bottom right, #050810, #0a1628, #060c1a);")),
                 new KeyFrame(Duration.seconds(4),
                         new KeyValue(rootPane.styleProperty(),
-                                "-fx-background-color: linear-gradient(to bottom right, #1e3c72, #2a5298, #0f2027);"))
+                                "-fx-background-color: linear-gradient(to bottom right, #0a1628, #0d2847, #050810);"))
         );
         gradientAnimation.setAutoReverse(true);
         gradientAnimation.setCycleCount(Animation.INDEFINITE);
@@ -109,12 +110,14 @@ public class SplashController {
         delay.play();
     }
 
-    private void addSplashParticles() {
+    private void addCyberParticles() {
         Random rand = new Random();
-        for (int i = 0; i < 25; i++) {
-            Circle dot = new Circle(1.5 + rand.nextDouble() * 3.5);
-            dot.setFill(Color.WHITE);
-            dot.setOpacity(0.08 + rand.nextDouble() * 0.15);
+
+        // Floating cyan dots
+        for (int i = 0; i < 30; i++) {
+            Circle dot = new Circle(1 + rand.nextDouble() * 3);
+            dot.setFill(Color.web("#00e5ff"));
+            dot.setOpacity(0.04 + rand.nextDouble() * 0.1);
             dot.setMouseTransparent(true);
             dot.setTranslateX(-500 + rand.nextDouble() * 1000);
             dot.setTranslateY(-325 + rand.nextDouble() * 650);
@@ -123,7 +126,7 @@ public class SplashController {
 
             TranslateTransition moveY = new TranslateTransition(
                     Duration.seconds(3 + rand.nextDouble() * 5), dot);
-            moveY.setByY(-40 - rand.nextDouble() * 60);
+            moveY.setByY(-30 - rand.nextDouble() * 50);
             moveY.setAutoReverse(true);
             moveY.setCycleCount(Animation.INDEFINITE);
             moveY.setInterpolator(Interpolator.EASE_BOTH);
@@ -132,10 +135,29 @@ public class SplashController {
             FadeTransition fade = new FadeTransition(
                     Duration.seconds(2 + rand.nextDouble() * 3), dot);
             fade.setFromValue(dot.getOpacity());
-            fade.setToValue(0.03);
+            fade.setToValue(0.01);
             fade.setAutoReverse(true);
             fade.setCycleCount(Animation.INDEFINITE);
             fade.play();
+        }
+
+        // Horizontal scan lines for cyber effect
+        for (int i = 0; i < 5; i++) {
+            Line scanLine = new Line(-500, 0, 500, 0);
+            scanLine.setStroke(Color.web("#00e5ff"));
+            scanLine.setOpacity(0.02 + rand.nextDouble() * 0.03);
+            scanLine.setStrokeWidth(0.5);
+            scanLine.setMouseTransparent(true);
+            scanLine.setTranslateY(-200 + i * 100);
+            rootPane.getChildren().add(0, scanLine);
+
+            FadeTransition lineFade = new FadeTransition(
+                    Duration.seconds(2 + rand.nextDouble() * 4), scanLine);
+            lineFade.setFromValue(scanLine.getOpacity());
+            lineFade.setToValue(0.005);
+            lineFade.setAutoReverse(true);
+            lineFade.setCycleCount(Animation.INDEFINITE);
+            lineFade.play();
         }
     }
 }

@@ -3,6 +3,7 @@ package com.example.moodle.util;
 import java.util.Random;
 
 import javafx.animation.Animation;
+import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
@@ -23,24 +24,24 @@ public class BackgroundAnimator {
         layer.setMouseTransparent(true);
         layer.setPickOnBounds(false);
 
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 25; i++) {
 
             Node shape;
 
             if (rand.nextBoolean()) {
-                Circle c = new Circle(8 + rand.nextDouble() * 25);
-                c.setFill(Color.web("#2a5298"));
+                Circle c = new Circle(4 + rand.nextDouble() * 12);
+                c.setFill(Color.web("#00e5ff"));
                 shape = c;
             } else {
-                double size = 12 + rand.nextDouble() * 30;
+                double size = 6 + rand.nextDouble() * 16;
                 Rectangle r = new Rectangle(size, size);
-                r.setArcWidth(8);
-                r.setArcHeight(8);
-                r.setFill(Color.web("#1e3c72"));
+                r.setArcWidth(3);
+                r.setArcHeight(3);
+                r.setFill(Color.web("#0088cc"));
                 shape = r;
             }
 
-            shape.setOpacity(0.045 + rand.nextDouble() * 0.055);
+            shape.setOpacity(0.025 + rand.nextDouble() * 0.04);
             shape.setMouseTransparent(true);
             shape.setLayoutX(rand.nextDouble() * width);
             shape.setLayoutY(rand.nextDouble() * height);
@@ -48,21 +49,29 @@ public class BackgroundAnimator {
             layer.getChildren().add(shape);
 
             TranslateTransition moveY = new TranslateTransition(
-                    Duration.seconds(4 + rand.nextDouble() * 6), shape);
-            moveY.setByY(-25 - rand.nextDouble() * 35);
+                    Duration.seconds(5 + rand.nextDouble() * 8), shape);
+            moveY.setByY(-20 - rand.nextDouble() * 30);
             moveY.setAutoReverse(true);
             moveY.setCycleCount(Animation.INDEFINITE);
             moveY.setInterpolator(Interpolator.EASE_BOTH);
 
             TranslateTransition moveX = new TranslateTransition(
-                    Duration.seconds(6 + rand.nextDouble() * 8), shape);
-            moveX.setByX(-15 + rand.nextDouble() * 30);
+                    Duration.seconds(7 + rand.nextDouble() * 10), shape);
+            moveX.setByX(-10 + rand.nextDouble() * 20);
             moveX.setAutoReverse(true);
             moveX.setCycleCount(Animation.INDEFINITE);
             moveX.setInterpolator(Interpolator.EASE_BOTH);
 
+            FadeTransition fade = new FadeTransition(
+                    Duration.seconds(3 + rand.nextDouble() * 5), shape);
+            fade.setFromValue(shape.getOpacity());
+            fade.setToValue(0.01);
+            fade.setAutoReverse(true);
+            fade.setCycleCount(Animation.INDEFINITE);
+
             moveY.play();
             moveX.play();
+            fade.play();
         }
     }
 

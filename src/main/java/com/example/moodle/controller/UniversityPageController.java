@@ -39,7 +39,7 @@ public class UniversityPageController {
             Label notice = new Label((i + 1) + ".  " + info.getNotices().get(i));
             notice.setWrapText(true);
             notice.setStyle("-fx-font-size: 14px; -fx-padding: 8 12 8 12; " +
-                    "-fx-background-color: #f0f4ff; -fx-background-radius: 8;");
+                    "-fx-background-color: #0d1b2a; -fx-background-radius: 8;");
             noticesBox.getChildren().add(notice);
         }
     }

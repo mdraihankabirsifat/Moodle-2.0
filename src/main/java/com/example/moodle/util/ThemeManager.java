@@ -7,11 +7,10 @@ import javafx.stage.Window;
 
 public final class ThemeManager {
 
-    public static final String NORMAL_THEME = "normal-theme";
-    public static final String DARK_THEME = "dark-theme";
-    public static final String WHITE_THEME = "white-theme";
+    public static final String CYBER_DARK = "cyber-dark";
+    public static final String CYBER_LIGHT = "cyber-light";
 
-    private static String currentTheme = DARK_THEME;
+    private static String currentTheme = CYBER_DARK;
 
     private ThemeManager() {
     }
@@ -27,9 +26,9 @@ public final class ThemeManager {
     public static void setThemeByLabel(String label) {
         if (label == null) return;
         switch (label.trim().toLowerCase()) {
-            case "dark" -> setTheme(DARK_THEME);
-            case "light" -> setTheme(WHITE_THEME);
-            default -> setTheme(DARK_THEME);
+            case "dark" -> setTheme(CYBER_DARK);
+            case "light" -> setTheme(CYBER_LIGHT);
+            default -> setTheme(CYBER_DARK);
         }
     }
 
@@ -51,7 +50,7 @@ public final class ThemeManager {
             return;
         }
 
-        root.getStyleClass().removeAll(NORMAL_THEME, DARK_THEME, WHITE_THEME);
+        root.getStyleClass().removeAll(CYBER_DARK, CYBER_LIGHT);
         if (!root.getStyleClass().contains(currentTheme)) {
             root.getStyleClass().add(currentTheme);
         }
@@ -67,13 +66,12 @@ public final class ThemeManager {
     }
 
     private static String normalize(String themeClass) {
-        if (DARK_THEME.equals(themeClass)) return DARK_THEME;
-        if (WHITE_THEME.equals(themeClass)) return WHITE_THEME;
-        return DARK_THEME;
+        if (CYBER_LIGHT.equals(themeClass)) return CYBER_LIGHT;
+        return CYBER_DARK;
     }
 
     private static String toLabel(String themeClass) {
-        if (DARK_THEME.equals(themeClass)) return "Dark";
-        return "Light";
+        if (CYBER_LIGHT.equals(themeClass)) return "Light";
+        return "Dark";
     }
 }

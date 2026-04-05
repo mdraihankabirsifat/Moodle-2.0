@@ -83,10 +83,10 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDC64 My Profile");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
         // Photo section
         javafx.scene.layout.StackPane photoArea = new javafx.scene.layout.StackPane();
-        photoArea.setStyle("-fx-min-width: 120; -fx-min-height: 120; -fx-background-color: #e8e8e8; -fx-background-radius: 60;");
+        photoArea.setStyle("-fx-min-width: 120; -fx-min-height: 120; -fx-background-color: #0a1628; -fx-background-radius: 60;");
 
         String photoPath = DataStore.getProfilePhoto(teacherEmail());
         if (photoPath != null && !photoPath.isEmpty()) {
@@ -110,7 +110,7 @@ public class TeacherDashboardController {
         }
 
         Button uploadPhotoBtn = new Button("\uD83D\uDCF7 Upload Photo");
-        uploadPhotoBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;");
+        uploadPhotoBtn.setStyle("-fx-background-color: #0d2a4a; -fx-text-fill: white; -fx-background-radius: 8;");
         uploadPhotoBtn.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.setTitle("Select Profile Photo");
@@ -124,7 +124,7 @@ public class TeacherDashboardController {
 
         // Info
         Label nameLabel = new Label("Name: " + Session.getName());
-        nameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        nameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
         Label deptLabel = new Label("Department: " + (Session.getDepartment() != null ? Session.getDepartment() : "N/A"));
         deptLabel.setStyle("-fx-font-size: 14px;");
         Label desigLabel = new Label("Designation: " + (Session.getDesignation() != null ? Session.getDesignation() : "N/A"));
@@ -132,7 +132,7 @@ public class TeacherDashboardController {
         Label typeLabel = new Label("Type: " + (Session.getTeacherType() != null ? Session.getTeacherType() : "N/A"));
         typeLabel.setStyle("-fx-font-size: 14px;");
         Label emailLabel = new Label("Identifier: " + teacherEmail());
-        emailLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #666;");
+        emailLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7a8a9e;");
 
         // Change campus password
         Label passTitle = new Label("Change Campus Password");
@@ -145,12 +145,12 @@ public class TeacherDashboardController {
         Label passMsg = new Label();
 
         Button changePassBtn = new Button("Change Password");
-        changePassBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        changePassBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         changePassBtn.setOnAction(e -> {
             String current = currentPassField.getText().trim();
             String newPass = newPassField.getText().trim();
             if (current.isEmpty() || newPass.isEmpty()) {
-                passMsg.setStyle("-fx-text-fill: red;");
+                passMsg.setStyle("-fx-text-fill: #ff3366;");
                 passMsg.setText("Fill both fields.");
                 return;
             }
@@ -158,7 +158,7 @@ public class TeacherDashboardController {
                     Session.getDepartment() != null ? Session.getDepartment() : "");
             String expected = (profile != null) ? profile[4] : "teacher2026";
             if (!expected.equals(current)) {
-                passMsg.setStyle("-fx-text-fill: red;");
+                passMsg.setStyle("-fx-text-fill: #ff3366;");
                 passMsg.setText("Current password is incorrect.");
                 return;
             }
@@ -171,7 +171,7 @@ public class TeacherDashboardController {
                         Session.getTeacherType() != null ? Session.getTeacherType() : "Faculty Teacher",
                         newPass);
             }
-            passMsg.setStyle("-fx-text-fill: green;");
+            passMsg.setStyle("-fx-text-fill: #00ff88;");
             passMsg.setText("Password changed! \u2705");
             currentPassField.clear();
             newPassField.clear();
@@ -189,7 +189,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("My Courses");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         // Add course form
         Label formTitle = new Label("Add New Course");
@@ -215,11 +215,11 @@ public class TeacherDashboardController {
             String facName = facultyNameField.getText().trim();
             String batch = batchField.getText().trim();
             if (code.isEmpty() || name.isEmpty() || sem.isEmpty()) {
-                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setStyle("-fx-text-fill: #ff3366;");
                 msgLabel.setText("Fill code, name and semester.");
             } else {
                 DataStore.addCourse(new Course(code, name, teacherEmail(), sem, facName, batch));
-                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setStyle("-fx-text-fill: #00ff88;");
                 msgLabel.setText("Course added!");
                 codeField.clear();
                 nameField.clear();
@@ -245,7 +245,7 @@ public class TeacherDashboardController {
             for (Course c : courses) {
                 HBox row = new HBox(15);
                 row.setAlignment(Pos.CENTER_LEFT);
-                row.setStyle("-fx-padding: 10; -fx-background-color: #f0f4ff; -fx-background-radius: 8;");
+                row.setStyle("-fx-padding: 10; -fx-background-color: #0d1b2a; -fx-background-radius: 8;");
                 Label info = new Label(c.getCode() + " - " + c.getName()
                         + " (" + c.getSemester() + ")"
                         + (c.getBatch().isEmpty() ? "" : " [Batch " + c.getBatch() + "]"));
@@ -253,7 +253,7 @@ public class TeacherDashboardController {
                 String teacherDisplay = c.getTeacherName().isEmpty() ? c.getTeacherEmail()
                         : c.getTeacherName() + " (" + c.getTeacherEmail() + ")";
                 Label teacher = new Label("by " + teacherDisplay);
-                teacher.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
+                teacher.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
                 row.getChildren().addAll(info, teacher);
                 box.getChildren().add(row);
             }
@@ -269,7 +269,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Upload Assignment");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         ComboBox<String> courseBox = new ComboBox<>();
         courseBox.setPromptText("Select Course");
@@ -286,16 +286,16 @@ public class TeacherDashboardController {
 
         // File upload
         Label fileLabel = new Label("No file selected");
-        fileLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
+        fileLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 12px;");
         final String[] attachmentPath = {""};
         Button fileBtn = new Button("\uD83D\uDCC2 Attach File");
-        fileBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6;");
+        fileBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #ffb300; -fx-text-fill: white; -fx-background-radius: 6;");
         fileBtn.setOnAction(e -> {
             File file = chooseAttachmentFile("Select File");
             if (file != null) {
                 attachmentPath[0] = file.getAbsolutePath();
                 fileLabel.setText("\u2705 " + file.getName());
-                fileLabel.setStyle("-fx-text-fill: green; -fx-font-size: 12px;");
+                fileLabel.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 12px;");
             }
         });
         HBox fileRow = new HBox(10, fileBtn, fileLabel);
@@ -308,19 +308,19 @@ public class TeacherDashboardController {
             String t = titleField.getText().trim();
             String d = descField.getText().trim();
             if (sel == null || t.isEmpty()) {
-                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setStyle("-fx-text-fill: #ff3366;");
                 msgLabel.setText("Select course and enter title.");
             } else {
                 String code = sel.split(" - ")[0];
                 String desc = d + (attachmentPath[0].isEmpty() ? "" : " " + ATTACHMENT_MARKER + attachmentPath[0] + "]");
                 DataStore.addAssignment(new Assignment(code, t, desc, teacherEmail()));
-                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setStyle("-fx-text-fill: #00ff88;");
                 msgLabel.setText("Assignment uploaded!" + (attachmentPath[0].isEmpty() ? "" : " (with attachment)"));
                 titleField.clear();
                 descField.clear();
                 attachmentPath[0] = "";
                 fileLabel.setText("No file selected");
-                fileLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
+                fileLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 12px;");
             }
         });
 
@@ -336,7 +336,7 @@ public class TeacherDashboardController {
             String[] parsed = splitContentAndAttachment(a.getDescription());
             Label item = new Label("\uD83D\uDCDD [" + a.getCourseCode() + "] "
                     + a.getTitle() + " — " + parsed[0]);
-            item.setStyle("-fx-padding: 6; -fx-background-color: #fff8e1; -fx-background-radius: 6;");
+            item.setStyle("-fx-padding: 6; -fx-background-color: #1a1a0a; -fx-background-radius: 6;");
             item.setWrapText(true);
 
             VBox itemBox = new VBox(6, item);
@@ -356,7 +356,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Evaluate Submissions");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         ComboBox<String> courseBox = new ComboBox<>();
         courseBox.setPromptText("Select Course");
@@ -385,13 +385,13 @@ public class TeacherDashboardController {
                     List<String[]> subs = DataStore.getSubmissionsForAssignment(code, a.getTitle());
                     if (subs.isEmpty()) {
                         Label noSub = new Label("   No submissions yet.");
-                        noSub.setStyle("-fx-text-fill: #888;");
+                        noSub.setStyle("-fx-text-fill: #5a6a7e;");
                         submissionsBox.getChildren().add(noSub);
                     } else {
                         for (String[] sub : subs) {
                             HBox row = new HBox(10);
                             row.setAlignment(Pos.CENTER_LEFT);
-                            row.setStyle("-fx-padding: 8; -fx-background-color: #f8f9ff; -fx-background-radius: 6;");
+                            row.setStyle("-fx-padding: 8; -fx-background-color: #0a1628; -fx-background-radius: 6;");
 
                             VBox info = new VBox(3);
                             Label sId = new Label("Student: " + sub[0]);
@@ -403,7 +403,7 @@ public class TeacherDashboardController {
                             Label sContent = new Label("Answer: " + displayContent);
                             sContent.setWrapText(true);
                             Label sMarks = new Label("Current Marks: " + sub[4]);
-                            sMarks.setStyle("-fx-text-fill: #2a5298;");
+                            sMarks.setStyle("-fx-text-fill: #0088cc;");
                             info.getChildren().addAll(sId, sContent, sMarks);
 
                             if (!submissionAttachment.isEmpty()) {
@@ -423,7 +423,7 @@ public class TeacherDashboardController {
                                 String marks = marksField.getText().trim();
                                 if (!marks.isEmpty()) {
                                     DataStore.gradeSubmission(studentId, courseCode, aTitle, marks);
-                                    msgLabel.setStyle("-fx-text-fill: green;");
+                                    msgLabel.setStyle("-fx-text-fill: #00ff88;");
                                     msgLabel.setText("Graded " + studentId + " with " + marks);
                                 }
                             });
@@ -446,7 +446,7 @@ public class TeacherDashboardController {
         courseBox.setOnAction(e -> loadSubmissions.run());
 
         Label liveHint = new Label("\uD83D\uDFE2 Submissions auto-refresh every 3 seconds");
-        liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+        liveHint.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
 
         box.getChildren().addAll(title, courseBox, loadBtn, msgLabel,
                 liveHint, new Separator(), submissionsBox);
@@ -466,7 +466,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Upload Slides");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         ComboBox<String> courseBox = new ComboBox<>();
         courseBox.setPromptText("Select Course");
@@ -483,16 +483,16 @@ public class TeacherDashboardController {
 
         // File upload
         Label fileLabel = new Label("No file selected");
-        fileLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
+        fileLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 12px;");
         final String[] attachmentPath = {""};
         Button fileBtn = new Button("\uD83D\uDCC2 Attach File");
-        fileBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6;");
+        fileBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #ffb300; -fx-text-fill: white; -fx-background-radius: 6;");
         fileBtn.setOnAction(e -> {
             File file = chooseAttachmentFile("Select File");
             if (file != null) {
                 attachmentPath[0] = file.getAbsolutePath();
                 fileLabel.setText("\u2705 " + file.getName());
-                fileLabel.setStyle("-fx-text-fill: green; -fx-font-size: 12px;");
+                fileLabel.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 12px;");
             }
         });
         HBox fileRow = new HBox(10, fileBtn, fileLabel);
@@ -505,19 +505,19 @@ public class TeacherDashboardController {
             String t = titleField.getText().trim();
             String d = descField.getText().trim();
             if (sel == null || t.isEmpty()) {
-                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setStyle("-fx-text-fill: #ff3366;");
                 msgLabel.setText("Select course and enter title.");
             } else {
                 String code = sel.split(" - ")[0];
                 String desc = d + (attachmentPath[0].isEmpty() ? "" : " " + ATTACHMENT_MARKER + attachmentPath[0] + "]");
                 DataStore.addSlide(code, t, desc, teacherEmail());
-                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setStyle("-fx-text-fill: #00ff88;");
                 msgLabel.setText("Slide uploaded!" + (attachmentPath[0].isEmpty() ? "" : " (with attachment)"));
                 titleField.clear();
                 descField.clear();
                 attachmentPath[0] = "";
                 fileLabel.setText("No file selected");
-                fileLabel.setStyle("-fx-text-fill: #888; -fx-font-size: 12px;");
+                fileLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 12px;");
                 showSlides();
             }
         });
@@ -538,7 +538,7 @@ public class TeacherDashboardController {
                 String[] parsed = splitContentAndAttachment(s[2]);
                 Label item = new Label("\uD83D\uDCCA [" + s[0] + "] " + s[1]
                         + (parsed[0].isEmpty() ? "" : " — " + parsed[0]));
-                item.setStyle("-fx-padding: 6; -fx-background-color: #e8f5e9; -fx-background-radius: 6;");
+                item.setStyle("-fx-padding: 6; -fx-background-color: #0a1a12; -fx-background-radius: 6;");
                 item.setWrapText(true);
 
                 VBox itemBox = new VBox(6, item);
@@ -560,7 +560,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Post Course Notice");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         ComboBox<String> courseBox = new ComboBox<>();
         courseBox.setPromptText("Select Course");
@@ -579,12 +579,12 @@ public class TeacherDashboardController {
             String sel = courseBox.getValue();
             String content = noticeField.getText().trim();
             if (sel == null || content.isEmpty()) {
-                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setStyle("-fx-text-fill: #ff3366;");
                 msgLabel.setText("Select course and enter notice.");
             } else {
                 String code = sel.split(" - ")[0];
                 DataStore.addCourseNotice(code, content, teacherEmail());
-                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setStyle("-fx-text-fill: #00ff88;");
                 msgLabel.setText("Notice posted!");
                 noticeField.clear();
                 showNotices();
@@ -605,7 +605,7 @@ public class TeacherDashboardController {
         } else {
             for (String[] n : notices) {
                 Label item = new Label("\uD83D\uDCCC [" + n[0] + "] " + n[1] + " (" + n[3] + ")");
-                item.setStyle("-fx-padding: 8; -fx-background-color: #fff8e1; -fx-background-radius: 6;");
+                item.setStyle("-fx-padding: 8; -fx-background-color: #1a1a0a; -fx-background-radius: 6;");
                 item.setWrapText(true);
                 box.getChildren().add(item);
             }
@@ -621,7 +621,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDCE8 Messages");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         String myId = teacherEmail();
 
@@ -632,9 +632,9 @@ public class TeacherDashboardController {
         newChatField.setPromptText("Start new chat (enter email or ID)...");
         HBox.setHgrow(newChatField, Priority.ALWAYS);
         Button newChatBtn = new Button("\uD83D\uDCAC Open Chat");
-        newChatBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;");
+        newChatBtn.setStyle("-fx-background-color: #0d2a4a; -fx-text-fill: white; -fx-background-radius: 8;");
         Button groupChatBtn = new Button("\uD83D\uDC65 Group Chat");
-        groupChatBtn.setStyle("-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-background-radius: 8;");
+        groupChatBtn.setStyle("-fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-background-radius: 8;");
         groupChatBtn.setOnAction(e -> showGroupChat());
         composeRow.getChildren().addAll(newChatField, newChatBtn, groupChatBtn);
 
@@ -645,11 +645,11 @@ public class TeacherDashboardController {
         convScroll.setFitToWidth(true);
         convScroll.setPrefWidth(300);
         convScroll.setMinWidth(260);
-        convScroll.setStyle("-fx-background-color: #f8f9ff; -fx-background-radius: 10;");
+        convScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
 
         // Right: active chat panel
         Label chatTitle = new Label("Select a conversation");
-        chatTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        chatTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         VBox chatMessages = new VBox(8);
         chatMessages.setStyle("-fx-padding: 10;");
@@ -657,7 +657,7 @@ public class TeacherDashboardController {
         ScrollPane chatScroll = new ScrollPane(chatMessages);
         chatScroll.setFitToWidth(true);
         chatScroll.setPrefHeight(420);
-        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        chatScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
 
         TextArea chatInput = new TextArea();
         chatInput.setPromptText("Type a message...");
@@ -666,7 +666,7 @@ public class TeacherDashboardController {
         chatInput.setDisable(true);
 
         Button sendBtn = new Button("Send \u27A1");
-        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
         sendBtn.setDisable(true);
 
         Label statusLabel = new Label();
@@ -675,7 +675,7 @@ public class TeacherDashboardController {
         inputRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox chatPane = new VBox(10, chatTitle, chatScroll, inputRow, statusLabel);
-        chatPane.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 10;");
+        chatPane.setStyle("-fx-background-color: #111a2e; -fx-background-radius: 12; -fx-padding: 10;");
         HBox.setHgrow(chatPane, Priority.ALWAYS);
 
         HBox mainRow = new HBox(12, convScroll, chatPane);
@@ -693,7 +693,7 @@ public class TeacherDashboardController {
                 chatInput.setDisable(true);
                 sendBtn.setDisable(true);
                 Label hint = new Label("Choose a chat from the left, or start one above.");
-                hint.setStyle("-fx-text-fill: #777; -fx-padding: 20;");
+                hint.setStyle("-fx-text-fill: #6a7a8e; -fx-padding: 20;");
                 chatMessages.getChildren().add(hint);
                 return;
             }
@@ -723,18 +723,18 @@ public class TeacherDashboardController {
                 msgBox.setMaxWidth(320);
                 msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
                         + (isMine
-                        ? "-fx-background-color: #2a5298;"
-                        : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+                        ? "-fx-background-color: #0d2a4a;"
+                        : "-fx-background-color: #111a2e; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 14;"));
 
                 Label content = new Label(m.getContent());
                 content.setWrapText(true);
                 content.setStyle(isMine
-                        ? "-fx-text-fill: white; -fx-font-size: 13px;"
-                        : "-fx-text-fill: #333; -fx-font-size: 13px;");
+                        ? "-fx-text-fill: #00e5ff; -fx-font-size: 13px;"
+                        : "-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
 
                 Label ts = new Label(m.getTimestamp());
                 ts.setStyle("-fx-font-size: 10px; "
-                        + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+                        + (isMine ? "-fx-text-fill: rgba(0,229,255,0.5);" : "-fx-text-fill: #4a5a6e;"));
 
                 msgBox.getChildren().addAll(content, ts);
 
@@ -750,7 +750,7 @@ public class TeacherDashboardController {
 
             if (chatMessages.getChildren().isEmpty()) {
                 Label noMsg = new Label("No messages yet. Start the conversation!");
-                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
                 chatMessages.getChildren().add(noMsg);
             }
 
@@ -782,14 +782,14 @@ public class TeacherDashboardController {
 
         sendBtn.setOnAction(e -> {
             if (activePartner[0] == null || activePartner[0].isBlank()) {
-                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setStyle("-fx-text-fill: #ff3366;");
                 statusLabel.setText("Select a conversation first.");
                 return;
             }
 
             String content = chatInput.getText().trim();
             if (content.isEmpty()) {
-                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setStyle("-fx-text-fill: #ff3366;");
                 statusLabel.setText("Type a message.");
                 return;
             }
@@ -818,7 +818,7 @@ public class TeacherDashboardController {
 
             if (lastMessages.isEmpty()) {
                 Label noMsg = new Label("No conversations yet. Start one above!");
-                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
                 convList.getChildren().add(noMsg);
             } else {
                 List<java.util.Map.Entry<String, Message>> entries = new java.util.ArrayList<>(lastMessages.entrySet());
@@ -829,8 +829,8 @@ public class TeacherDashboardController {
 
                     HBox card = new HBox(12);
                     card.setAlignment(Pos.CENTER_LEFT);
-                    card.setStyle("-fx-padding: 12; -fx-background-color: white; -fx-background-radius: 10; "
-                            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2); -fx-cursor: hand;");
+                    card.setStyle("-fx-padding: 12; -fx-background-color: #111a2e; -fx-background-radius: 10; "
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
 
                     Label avatar = new Label("\uD83D\uDC64");
                     avatar.setStyle("-fx-font-size: 28px;");
@@ -838,20 +838,20 @@ public class TeacherDashboardController {
                     VBox info = new VBox(3);
                     HBox.setHgrow(info, Priority.ALWAYS);
                     Label nameLabel = new Label(partner);
-                    nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;");
+                    nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #00e5ff;");
                     boolean fromMe = DataStore.isSameMessagingUser(lastMsg.getFrom(), myId);
                     String preview = (fromMe ? "You: " : "") + lastMsg.getContent();
                     if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
                     Label previewLabel = new Label(preview);
-                    previewLabel.setStyle("-fx-text-fill: #666; -fx-font-size: 12px;");
+                    previewLabel.setStyle("-fx-text-fill: #7a8a9e; -fx-font-size: 12px;");
                     info.getChildren().addAll(nameLabel, previewLabel);
 
                     Label timeLabel = new Label(lastMsg.getTimestamp());
-                    timeLabel.setStyle("-fx-text-fill: #999; -fx-font-size: 11px;");
+                    timeLabel.setStyle("-fx-text-fill: #4a5a6e; -fx-font-size: 11px;");
 
                     if (activePartner[0] != null && DataStore.isSameMessagingUser(activePartner[0], partner)) {
-                        card.setStyle("-fx-padding: 12; -fx-background-color: #eaf2ff; -fx-background-radius: 10; "
-                                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 6, 0, 0, 2); -fx-cursor: hand;");
+                        card.setStyle("-fx-padding: 12; -fx-background-color: #0d1525; -fx-background-radius: 10; "
+                                + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
                     }
 
                     card.getChildren().addAll(avatar, info, timeLabel);
@@ -865,7 +865,7 @@ public class TeacherDashboardController {
         refreshChat.run();
 
         Label liveHint = new Label("\uD83D\uDFE2 Messages auto-refresh every 3 seconds");
-        liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+        liveHint.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
 
         box.getChildren().addAll(title, composeRow, new Separator(), mainRow, liveHint);
         setScrollContent(box);
@@ -888,11 +888,11 @@ public class TeacherDashboardController {
         String targetId = DataStore.canonicalMessageId(recipientId);
 
         Button backBtn = new Button("\u2190 Back to Messages");
-        backBtn.setStyle("-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-background-radius: 8;");
+        backBtn.setStyle("-fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-background-radius: 8;");
         backBtn.setOnAction(e -> showMessages());
 
         Label title = new Label("\uD83D\uDCAC Chat with " + targetId);
-        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         VBox chatMessages = new VBox(8);
         chatMessages.setStyle("-fx-padding: 10;");
@@ -900,7 +900,7 @@ public class TeacherDashboardController {
         ScrollPane chatScroll = new ScrollPane(chatMessages);
         chatScroll.setFitToWidth(true);
         chatScroll.setPrefHeight(350);
-        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        chatScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
 
         HBox inputRow = new HBox(10);
         inputRow.setAlignment(Pos.CENTER_LEFT);
@@ -911,7 +911,7 @@ public class TeacherDashboardController {
         HBox.setHgrow(chatInput, Priority.ALWAYS);
 
         Button sendBtn = new Button("Send \u27A1");
-        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
         Label statusLabel = new Label();
 
         Runnable refreshChat = () -> {
@@ -935,12 +935,12 @@ public class TeacherDashboardController {
                 VBox msgBox = new VBox(2);
                 msgBox.setMaxWidth(300);
                 msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
-                        + (isMine ? "-fx-background-color: #2a5298;" : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+                        + (isMine ? "-fx-background-color: #0d2a4a;" : "-fx-background-color: #111a2e; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 14;"));
                 Label content = new Label(m.getContent());
                 content.setWrapText(true);
-                content.setStyle(isMine ? "-fx-text-fill: white; -fx-font-size: 13px;" : "-fx-text-fill: #333; -fx-font-size: 13px;");
+                content.setStyle(isMine ? "-fx-text-fill: #00e5ff; -fx-font-size: 13px;" : "-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
                 Label ts = new Label(m.getTimestamp());
-                ts.setStyle("-fx-font-size: 10px; " + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+                ts.setStyle("-fx-font-size: 10px; " + (isMine ? "-fx-text-fill: rgba(0,229,255,0.5);" : "-fx-text-fill: #4a5a6e;"));
                 msgBox.getChildren().addAll(content, ts);
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -958,7 +958,7 @@ public class TeacherDashboardController {
 
         sendBtn.setOnAction(e -> {
             String content = chatInput.getText().trim();
-            if (content.isEmpty()) { statusLabel.setStyle("-fx-text-fill: red;"); statusLabel.setText("Type a message."); return; }
+            if (content.isEmpty()) { statusLabel.setStyle("-fx-text-fill: #ff3366;"); statusLabel.setText("Type a message."); return; }
             DataStore.sendMessage(myId, targetId, content);
             chatInput.clear();
             statusLabel.setText("");
@@ -968,7 +968,7 @@ public class TeacherDashboardController {
         refreshChat.run();
 
         Label onlineHint = new Label("\uD83D\uDFE2 Auto-refreshes every 3 seconds");
-        onlineHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+        onlineHint.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
 
         inputRow.getChildren().addAll(chatInput, sendBtn);
         box.getChildren().addAll(backBtn, title, onlineHint, chatScroll, inputRow, statusLabel);
@@ -984,7 +984,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDC65 Group Chat");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         String myId = teacherEmail();
 
@@ -1009,14 +1009,14 @@ public class TeacherDashboardController {
         groupScroll.setFitToWidth(true);
         groupScroll.setPrefWidth(300);
         groupScroll.setMinWidth(260);
-        groupScroll.setStyle("-fx-background-color: #f8f9ff; -fx-background-radius: 10;");
+        groupScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
 
         VBox leftPane = new VBox(8, groupsTitle, groupScroll);
         leftPane.setPrefWidth(300);
         leftPane.setMinWidth(260);
 
         Label activeGroupTitle = new Label("Select a group");
-        activeGroupTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        activeGroupTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         Button manageBtn = new Button("Join/Create Group");
         manageBtn.setStyle("-fx-font-size: 11px; -fx-padding: 6 10 6 10; -fx-background-radius: 8;");
@@ -1027,7 +1027,7 @@ public class TeacherDashboardController {
         rightHeader.setAlignment(Pos.CENTER_LEFT);
 
         VBox managePanel = new VBox(10);
-        managePanel.setStyle("-fx-padding: 12; -fx-background-color: #f8f9ff; -fx-background-radius: 10;");
+        managePanel.setStyle("-fx-padding: 12; -fx-background-color: #0a1628; -fx-background-radius: 10;");
         managePanel.setVisible(false);
         managePanel.setManaged(false);
 
@@ -1043,7 +1043,7 @@ public class TeacherDashboardController {
 
         Label createMsg = new Label();
         Button createBtn = new Button("Create Group");
-        createBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        createBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
 
         Label searchTitle = new Label("Search & Join Group");
         searchTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
@@ -1069,7 +1069,7 @@ public class TeacherDashboardController {
         ScrollPane chatScroll = new ScrollPane(chatMessages);
         chatScroll.setFitToWidth(true);
         chatScroll.setPrefHeight(360);
-        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        chatScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
 
         TextArea chatInput = new TextArea();
         chatInput.setPromptText("Type a message...");
@@ -1079,7 +1079,7 @@ public class TeacherDashboardController {
 
         Button sendBtn = new Button("Send \u27A1");
         sendBtn.setDisable(true);
-        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; "
+        sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; "
                 + "-fx-background-radius: 20; -fx-padding: 10 20 10 20;");
 
         Label chatStatus = new Label();
@@ -1087,7 +1087,7 @@ public class TeacherDashboardController {
         inputRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox rightPane = new VBox(10, rightHeader, managePanel, chatScroll, inputRow, chatStatus);
-        rightPane.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 10;");
+        rightPane.setStyle("-fx-background-color: #111a2e; -fx-background-radius: 12; -fx-padding: 10;");
         HBox.setHgrow(rightPane, Priority.ALWAYS);
 
         HBox mainRow = new HBox(12, leftPane, rightPane);
@@ -1104,13 +1104,13 @@ public class TeacherDashboardController {
             String gPass = groupPasswordField.getText().trim();
             String members = membersField.getText().trim();
             if (gName.isEmpty()) {
-                createMsg.setStyle("-fx-text-fill: red;");
+                createMsg.setStyle("-fx-text-fill: #ff3366;");
                 createMsg.setText("Enter a group name.");
                 return;
             }
             String memberList = members.isEmpty() ? myId : myId + "," + members;
             DataStore.createGroup(gName, myId, gPass, memberList);
-            createMsg.setStyle("-fx-text-fill: green;");
+            createMsg.setStyle("-fx-text-fill: #00ff88;");
             createMsg.setText("Group '" + gName + "' created! \u2705");
             groupNameField.clear();
             groupPasswordField.clear();
@@ -1130,7 +1130,7 @@ public class TeacherDashboardController {
                 for (String[] g : found) {
                     HBox row = new HBox(10);
                     row.setAlignment(Pos.CENTER_LEFT);
-                    row.setStyle("-fx-padding: 8; -fx-background-color: white; -fx-background-radius: 6;");
+                    row.setStyle("-fx-padding: 8; -fx-background-color: #111a2e; -fx-background-radius: 6;");
 
                     Label gLabel = new Label("\uD83D\uDC65 " + g[0] + " (by " + g[1] + ")"
                             + (g[2].isEmpty() ? "" : " \uD83D\uDD12"));
@@ -1147,11 +1147,11 @@ public class TeacherDashboardController {
                     joinBtn.setOnAction(ev -> {
                         boolean ok = DataStore.joinGroup(g[0], passField.getText().trim(), myId);
                         if (ok) {
-                            joinMsg.setStyle("-fx-text-fill: green;");
+                            joinMsg.setStyle("-fx-text-fill: #00ff88;");
                             joinMsg.setText("Joined '" + g[0] + "'!");
                             openGroup.accept(g[0]);
                         } else {
-                            joinMsg.setStyle("-fx-text-fill: red;");
+                            joinMsg.setStyle("-fx-text-fill: #ff3366;");
                             joinMsg.setText("Wrong password for '" + g[0] + "'.");
                         }
                     });
@@ -1169,7 +1169,7 @@ public class TeacherDashboardController {
             if (groups.isEmpty()) {
                 activeGroup[0] = null;
                 Label noGroup = new Label("No groups yet. Use Join/Create Group.");
-                noGroup.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                noGroup.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
                 groupList.getChildren().add(noGroup);
                 return;
             }
@@ -1181,19 +1181,19 @@ public class TeacherDashboardController {
 
                 HBox card = new HBox(10);
                 card.setAlignment(Pos.CENTER_LEFT);
-                card.setStyle("-fx-padding: 10; -fx-background-color: white; -fx-background-radius: 10; "
-                        + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1); -fx-cursor: hand;");
+                card.setStyle("-fx-padding: 10; -fx-background-color: #111a2e; -fx-background-radius: 10; "
+                        + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.06), 5, 0, 0, 1); -fx-cursor: hand;");
 
                 if (gName.equals(activeGroup[0])) {
-                    card.setStyle("-fx-padding: 10; -fx-background-color: #eaf2ff; -fx-background-radius: 10; "
-                            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 1); -fx-cursor: hand;");
+                    card.setStyle("-fx-padding: 10; -fx-background-color: #0d1525; -fx-background-radius: 10; "
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.06), 5, 0, 0, 1); -fx-cursor: hand;");
                 }
 
                 Label icon = new Label("\uD83D\uDC65");
                 icon.setStyle("-fx-font-size: 18px;");
 
                 Label name = new Label(gName + (g[2].isEmpty() ? "" : " \uD83D\uDD12"));
-                name.setStyle("-fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+                name.setStyle("-fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
                 card.getChildren().addAll(icon, name);
                 card.setOnMouseClicked(ev -> openGroup.accept(gName));
@@ -1213,7 +1213,7 @@ public class TeacherDashboardController {
                 chatInput.setDisable(true);
                 sendBtn.setDisable(true);
                 Label hint = new Label("Pick a group from the left to start chatting.");
-                hint.setStyle("-fx-text-fill: #777; -fx-padding: 20;");
+                hint.setStyle("-fx-text-fill: #6a7a8e; -fx-padding: 20;");
                 chatMessages.getChildren().add(hint);
                 return;
             }
@@ -1225,7 +1225,7 @@ public class TeacherDashboardController {
             List<String[]> msgs = DataStore.getGroupMessages(activeGroup[0]);
             if (msgs.isEmpty()) {
                 Label noMsg = new Label("No messages yet. Start the conversation!");
-                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
                 chatMessages.getChildren().add(noMsg);
             } else {
                 for (String[] m : msgs) {
@@ -1237,22 +1237,22 @@ public class TeacherDashboardController {
                     msgBox.setMaxWidth(320);
                     msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
                             + (isMine
-                            ? "-fx-background-color: #2a5298;"
-                            : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+                            ? "-fx-background-color: #0d2a4a;"
+                            : "-fx-background-color: #111a2e; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 14;"));
 
                     Label sender = new Label(isMine ? "You" : m[2]);
                     sender.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; "
-                            + (isMine ? "-fx-text-fill: rgba(255,255,255,0.7);" : "-fx-text-fill: #1e3c72;"));
+                            + (isMine ? "-fx-text-fill: rgba(0,229,255,0.6);" : "-fx-text-fill: #00e5ff;"));
 
                     Label content = new Label(m[3]);
                     content.setWrapText(true);
                     content.setStyle(isMine
-                            ? "-fx-text-fill: white; -fx-font-size: 13px;"
-                            : "-fx-text-fill: #333; -fx-font-size: 13px;");
+                            ? "-fx-text-fill: #00e5ff; -fx-font-size: 13px;"
+                            : "-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
 
                     Label ts = new Label(m[4]);
                     ts.setStyle("-fx-font-size: 10px; "
-                            + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+                            + (isMine ? "-fx-text-fill: rgba(0,229,255,0.5);" : "-fx-text-fill: #4a5a6e;"));
 
                     msgBox.getChildren().addAll(sender, content, ts);
 
@@ -1275,12 +1275,12 @@ public class TeacherDashboardController {
         sendBtn.setOnAction(e -> {
             String content = chatInput.getText().trim();
             if (activeGroup[0] == null || activeGroup[0].isEmpty()) {
-                chatStatus.setStyle("-fx-text-fill: red;");
+                chatStatus.setStyle("-fx-text-fill: #ff3366;");
                 chatStatus.setText("Select a group first.");
                 return;
             }
             if (content.isEmpty()) {
-                chatStatus.setStyle("-fx-text-fill: red;");
+                chatStatus.setStyle("-fx-text-fill: #ff3366;");
                 chatStatus.setText("Type a message.");
                 return;
             }
@@ -1297,7 +1297,7 @@ public class TeacherDashboardController {
         refreshChatRef[0].run();
 
         Label liveHint = new Label("\uD83D\uDFE2 Groups and chat auto-refresh every 3 seconds");
-        liveHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+        liveHint.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
 
         box.getChildren().addAll(title, mainRow, liveHint);
         setScrollContent(box);
@@ -1318,7 +1318,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Student List");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         GridPane grid = new GridPane();
         grid.setHgap(2);
@@ -1329,7 +1329,7 @@ public class TeacherDashboardController {
         for (int c = 0; c < headers.length; c++) {
             Label cell = new Label(headers[c]);
             cell.setStyle("-fx-font-weight: bold; -fx-padding: 10 16 10 16; "
-                    + "-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 150;");
+                    + "-fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-min-width: 150;");
             cell.setMaxWidth(Double.MAX_VALUE);
             grid.add(cell, c, 0);
         }
@@ -1340,7 +1340,7 @@ public class TeacherDashboardController {
             String[] vals = {u.getName(), u.getUniversity(), u.getStudentId(), u.getEmail()};
             for (int c = 0; c < vals.length; c++) {
                 Label cell = new Label(vals[c] != null ? vals[c] : "");
-                cell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: white; -fx-min-width: 150;");
+                cell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: #111a2e; -fx-min-width: 150;");
                 cell.setMaxWidth(Double.MAX_VALUE);
                 grid.add(cell, c, row);
             }
@@ -1348,7 +1348,7 @@ public class TeacherDashboardController {
         }
 
         Label countLabel = new Label("Total: " + users.size() + " students");
-        countLabel.setStyle("-fx-text-fill: #555; -fx-font-size: 13px;");
+        countLabel.setStyle("-fx-text-fill: #8a9ab0; -fx-font-size: 13px;");
 
         box.getChildren().addAll(title, countLabel, grid);
         if (users.isEmpty()) box.getChildren().add(new Label("No students registered yet."));
@@ -1373,7 +1373,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDCAC Live Chat");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         String myId = teacherEmail();
 
@@ -1387,7 +1387,7 @@ public class TeacherDashboardController {
         ScrollPane chatScroll = new ScrollPane(chatMessages);
         chatScroll.setFitToWidth(true);
         chatScroll.setPrefHeight(350);
-        chatScroll.setStyle("-fx-background-color: #f5f5f5; -fx-background-radius: 10;");
+        chatScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
         chatScroll.vvalueProperty().bind(chatMessages.heightProperty());
 
         HBox inputRow = new HBox(10);
@@ -1399,7 +1399,7 @@ public class TeacherDashboardController {
         HBox.setHgrow(chatInput, Priority.ALWAYS);
 
         Button sendBtn = new Button("Send \u27A1");
-        sendBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
 
         Label statusLabel = new Label();
 
@@ -1420,18 +1420,18 @@ public class TeacherDashboardController {
                     msgBox.setMaxWidth(300);
                     msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
                             + (isMine
-                            ? "-fx-background-color: #2a5298;"
-                            : "-fx-background-color: white; -fx-border-color: #ddd; -fx-border-radius: 14;"));
+                            ? "-fx-background-color: #0d2a4a;"
+                            : "-fx-background-color: #111a2e; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 14;"));
 
                     Label content = new Label(m.getContent());
                     content.setWrapText(true);
                     content.setStyle(isMine
-                            ? "-fx-text-fill: white; -fx-font-size: 13px;"
-                            : "-fx-text-fill: #333; -fx-font-size: 13px;");
+                            ? "-fx-text-fill: #00e5ff; -fx-font-size: 13px;"
+                            : "-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
 
                     Label ts = new Label(m.getTimestamp());
                     ts.setStyle("-fx-font-size: 10px; "
-                            + (isMine ? "-fx-text-fill: rgba(255,255,255,0.6);" : "-fx-text-fill: #999;"));
+                            + (isMine ? "-fx-text-fill: rgba(0,229,255,0.5);" : "-fx-text-fill: #4a5a6e;"));
 
                     msgBox.getChildren().addAll(content, ts);
 
@@ -1449,7 +1449,7 @@ public class TeacherDashboardController {
 
             if (chatMessages.getChildren().isEmpty()) {
                 Label noMsg = new Label("No messages yet. Start the conversation!");
-                noMsg.setStyle("-fx-text-fill: #888; -fx-padding: 20;");
+                noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
                 chatMessages.getChildren().add(noMsg);
             }
         };
@@ -1458,12 +1458,12 @@ public class TeacherDashboardController {
             String recipient = recipientField.getText().trim();
             String content = chatInput.getText().trim();
             if (recipient.isEmpty()) {
-                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setStyle("-fx-text-fill: #ff3366;");
                 statusLabel.setText("Enter a recipient first.");
                 return;
             }
             if (content.isEmpty()) {
-                statusLabel.setStyle("-fx-text-fill: red;");
+                statusLabel.setStyle("-fx-text-fill: #ff3366;");
                 statusLabel.setText("Type a message.");
                 return;
             }
@@ -1485,7 +1485,7 @@ public class TeacherDashboardController {
         inputRow.getChildren().addAll(chatInput, sendBtn);
 
         Label onlineHint = new Label("\uD83D\uDFE2 Auto-refreshes every 3 seconds");
-        onlineHint.setStyle("-fx-text-fill: #27ae60; -fx-font-size: 11px;");
+        onlineHint.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
 
         box.getChildren().addAll(title, recipientRow, onlineHint, chatScroll,
                 inputRow, statusLabel);
@@ -1509,7 +1509,7 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDCC5 Edit Class Schedule");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         // Batch selector
         HBox batchRow = new HBox(10);
@@ -1518,7 +1518,7 @@ public class TeacherDashboardController {
         batchField.setPromptText("Batch (e.g. 24)");
         batchField.setPrefWidth(120);
         Button loadGridBtn = new Button("Load Week Grid");
-        loadGridBtn.setStyle("-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;");
+        loadGridBtn.setStyle("-fx-background-color: #0d2a4a; -fx-text-fill: white; -fx-background-radius: 8;");
         Label batchMsg = new Label();
         batchRow.getChildren().addAll(new Label("Batch:"), batchField, loadGridBtn, batchMsg);
 
@@ -1530,7 +1530,7 @@ public class TeacherDashboardController {
             gridContainer.getChildren().clear();
             String batch = batchField.getText().trim();
             if (batch.isEmpty()) {
-                batchMsg.setStyle("-fx-text-fill: red;");
+                batchMsg.setStyle("-fx-text-fill: #ff3366;");
                 batchMsg.setText("Enter a batch number.");
                 return;
             }
@@ -1543,18 +1543,18 @@ public class TeacherDashboardController {
             grid.setHgap(2);
             grid.setVgap(2);
             Label corner = new Label("Time \\ Day");
-            corner.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 100;");
+            corner.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-min-width: 100;");
             corner.setMaxWidth(Double.MAX_VALUE);
             grid.add(corner, 0, 0);
             for (int d = 0; d < SCHED_DAYS.length; d++) {
                 Label dayLabel = new Label(SCHED_DAYS[d]);
-                dayLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 110; -fx-alignment: center;");
+                dayLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-min-width: 110; -fx-alignment: center;");
                 dayLabel.setMaxWidth(Double.MAX_VALUE);
                 grid.add(dayLabel, d + 1, 0);
             }
             for (int t = 0; t < SCHED_TIMES.length; t++) {
                 Label timeLabel = new Label(SCHED_TIMES[t]);
-                timeLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #34495e; -fx-text-fill: white; -fx-min-width: 100;");
+                timeLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8 10 8 10; -fx-background-color: #0a1225; -fx-text-fill: white; -fx-min-width: 100;");
                 timeLabel.setMaxWidth(Double.MAX_VALUE);
                 grid.add(timeLabel, 0, t + 1);
                 for (int d = 0; d < SCHED_DAYS.length; d++) {
@@ -1565,11 +1565,11 @@ public class TeacherDashboardController {
                     if (entry != null) {
                         VBox cell = new VBox(2);
                         cell.setAlignment(Pos.CENTER);
-                        cell.setStyle("-fx-padding: 6; -fx-background-color: #d4edda; -fx-min-width: 110;");
+                        cell.setStyle("-fx-padding: 6; -fx-background-color: #0a1a12; -fx-min-width: 110;");
                         Label code = new Label(entry[3]);
-                        code.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #155724;");
+                        code.setStyle("-fx-font-weight: bold; -fx-font-size: 11px; -fx-text-fill: #00ff88;");
                         Label cName = new Label(entry[4]);
-                        cName.setStyle("-fx-font-size: 10px; -fx-text-fill: #155724;");
+                        cName.setStyle("-fx-font-size: 10px; -fx-text-fill: #00ff88;");
                         cName.setWrapText(true);
                         Button delBtn = new Button("\u274C");
                         delBtn.setStyle("-fx-font-size: 9px; -fx-padding: 2 6 2 6;");
@@ -1583,7 +1583,7 @@ public class TeacherDashboardController {
                         Button voidCell = new Button("\u2014");
                         voidCell.setMaxWidth(Double.MAX_VALUE);
                         voidCell.setMaxHeight(Double.MAX_VALUE);
-                        voidCell.setStyle("-fx-background-color: #f8f9ff; -fx-min-width: 110; -fx-min-height: 50; -fx-cursor: hand; -fx-text-fill: #ccc;");
+                        voidCell.setStyle("-fx-background-color: #0a1628; -fx-min-width: 110; -fx-min-height: 50; -fx-cursor: hand; -fx-text-fill: #3a4a5e;");
                         voidCell.setOnAction(ev -> showAddClassDialog(batch, day, time, buildRef[0]));
                         grid.add(voidCell, d + 1, t + 1);
                     }
@@ -1591,7 +1591,7 @@ public class TeacherDashboardController {
             }
             gridContainer.getChildren().add(grid);
             Label hint = new Label("Click empty cells to add classes. Click \u274C to remove.");
-            hint.setStyle("-fx-text-fill: #888; -fx-font-size: 11px;");
+            hint.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
             gridContainer.getChildren().add(hint);
         };
 
@@ -1603,12 +1603,12 @@ public class TeacherDashboardController {
 
     private void showAddClassDialog(String batch, String day, String time, Runnable onDone) {
         VBox dialog = new VBox(10);
-        dialog.setStyle("-fx-padding: 20; -fx-background-color: white; -fx-background-radius: 12; "
-                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 12, 0, 0, 4);");
+        dialog.setStyle("-fx-padding: 20; -fx-background-color: #111a2e; -fx-background-radius: 12; "
+                + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.12), 12, 0, 0, 4);");
         dialog.setMaxWidth(350);
 
         Label dTitle = new Label("Add Class: " + day + " " + time);
-        dTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1e3c72;");
+        dTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #00e5ff;");
 
         TextField codeField = new TextField();
         codeField.setPromptText("Course Code (e.g. CSE101)");
@@ -1617,14 +1617,14 @@ public class TeacherDashboardController {
         Label dMsg = new Label();
 
         Button saveBtn = new Button("Add Class");
-        saveBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        saveBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         Button cancelBtn = new Button("Cancel");
 
         saveBtn.setOnAction(e -> {
             String code = codeField.getText().trim();
             String name = nameField.getText().trim();
             if (code.isEmpty()) {
-                dMsg.setStyle("-fx-text-fill: red;");
+                dMsg.setStyle("-fx-text-fill: #ff3366;");
                 dMsg.setText("Enter course code.");
                 return;
             }
@@ -1654,12 +1654,12 @@ public class TeacherDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83C\uDFE5 Medical Center");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         String myId = teacherEmail();
 
         Label docTitle = new Label("Available Doctors");
-        docTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #1e3c72;");
+        docTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00e5ff;");
 
         List<String[]> doctors = DataStore.getAllDoctors();
 
@@ -1669,7 +1669,7 @@ public class TeacherDashboardController {
         String[] docHeaders = {"Doctor", "Specialization", "Available Days", "Hours"};
         for (int c = 0; c < docHeaders.length; c++) {
             Label cell = new Label(docHeaders[c]);
-            cell.setStyle("-fx-font-weight: bold; -fx-padding: 8 12 8 12; -fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 140;");
+            cell.setStyle("-fx-font-weight: bold; -fx-padding: 8 12 8 12; -fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-min-width: 140;");
             cell.setMaxWidth(Double.MAX_VALUE);
             docGrid.add(cell, c, 0);
         }
@@ -1703,18 +1703,18 @@ public class TeacherDashboardController {
 
         Label bookMsg = new Label();
         Button bookBtn = new Button("Book Appointment");
-        bookBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        bookBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         bookBtn.setOnAction(e -> {
             String doc = doctorBox.getValue();
             String date = dateField.getText().trim();
             String time = timeField.getText().trim();
             String reason = reasonField.getText().trim();
             if (doc == null || date.isEmpty() || time.isEmpty()) {
-                bookMsg.setStyle("-fx-text-fill: red;");
+                bookMsg.setStyle("-fx-text-fill: #ff3366;");
                 bookMsg.setText("Select doctor, date and time.");
             } else {
                 DataStore.bookAppointment(myId, doc.split(" - ")[0], date, time, reason.isEmpty() ? "General Checkup" : reason);
-                bookMsg.setStyle("-fx-text-fill: green;");
+                bookMsg.setStyle("-fx-text-fill: #00ff88;");
                 bookMsg.setText("Appointment booked! \u2705");
                 dateField.clear();
                 timeField.clear();
@@ -1734,14 +1734,14 @@ public class TeacherDashboardController {
             for (String[] a : myAppts) {
                 Label aItem = new Label("\uD83D\uDCC5 " + a[1] + " | " + a[2] + " at " + a[3]
                         + " | Reason: " + a[4] + " | Status: " + a[5]);
-                aItem.setStyle("-fx-padding: 6; -fx-background-color: #fff8e1; -fx-background-radius: 6;");
+                aItem.setStyle("-fx-padding: 6; -fx-background-color: #1a1a0a; -fx-background-radius: 6;");
                 aItem.setWrapText(true);
                 apptList.getChildren().add(aItem);
             }
         }
 
         Label emergLabel = new Label("\uD83D\uDEA8 Emergency: Call 999 or visit Medical Center Ground Floor");
-        emergLabel.setStyle("-fx-text-fill: #c0392b; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 10 0 0 0;");
+        emergLabel.setStyle("-fx-text-fill: #ff3366; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 10 0 0 0;");
 
         box.getChildren().addAll(title, docTitle, docGrid, new Separator(),
                 bookTitle, doctorBox, dateField, timeField, reasonField, bookBtn, bookMsg,
@@ -1753,7 +1753,7 @@ public class TeacherDashboardController {
 
     private HBox createAttachmentActions(String filePath) {
         Button openFile = new Button("\uD83D\uDCC4 Open File");
-        openFile.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
+        openFile.setStyle("-fx-background-color: transparent; -fx-border-color: #ffb300; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
         openFile.setOnAction(ev -> {
             try {
                 java.awt.Desktop.getDesktop().open(new File(filePath));
@@ -1763,7 +1763,7 @@ public class TeacherDashboardController {
         });
 
         Button downloadFile = new Button("\u2B07 Download File");
-        downloadFile.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
+        downloadFile.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 11px;");
         downloadFile.setOnAction(ev -> downloadAttachmentFile(filePath));
 
         HBox actions = new HBox(8, openFile, downloadFile);

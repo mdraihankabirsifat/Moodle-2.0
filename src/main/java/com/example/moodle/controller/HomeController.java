@@ -32,6 +32,7 @@ public class HomeController {
     @FXML private MenuButton themeMenuButton;
     @FXML private VBox homeContentBox;
     @FXML private VBox heroBox;
+    @FXML private VBox networkPanel;
     @FXML private TextField serverAddressField;
     @FXML private Label networkStatusLabel;
     @FXML private Label localServerLabel;
@@ -88,6 +89,7 @@ public class HomeController {
         setupResponsiveLayout();
 
         MessageNetworkBridge.startServer();
+        setNetworkPanelVisible(false);
         refreshNetworkPanel();
     }
 
@@ -96,15 +98,15 @@ public class HomeController {
             return;
         }
 
-        String styleA = "-fx-background-color: linear-gradient(to right, rgba(255,255,255,0.82), rgba(224,246,255,0.84), rgba(255,233,244,0.82));"
-                + "-fx-background-radius: 24; -fx-border-color: rgba(255,255,255,0.55); -fx-border-radius: 24;"
-                + "-fx-padding: 26; -fx-max-width: 860;"
-                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 20, 0.08, 0, 6);";
+        String styleA = "-fx-background-color: linear-gradient(to right, rgba(0,229,255,0.05), rgba(13,27,42,0.92), rgba(0,229,255,0.05));"
+                + "-fx-background-radius: 12; -fx-border-color: rgba(0,229,255,0.3); -fx-border-radius: 12;"
+                + "-fx-padding: 30; -fx-max-width: 860;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.15), 16, 0.08, 0, 0);";
 
-        String styleB = "-fx-background-color: linear-gradient(to right, rgba(255,255,255,0.8), rgba(237,241,255,0.86), rgba(223,251,246,0.84));"
-                + "-fx-background-radius: 24; -fx-border-color: rgba(255,255,255,0.55); -fx-border-radius: 24;"
-                + "-fx-padding: 26; -fx-max-width: 860;"
-                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 20, 0.08, 0, 6);";
+        String styleB = "-fx-background-color: linear-gradient(to right, rgba(0,136,204,0.04), rgba(10,22,40,0.94), rgba(191,64,255,0.04));"
+                + "-fx-background-radius: 12; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 12;"
+                + "-fx-padding: 30; -fx-max-width: 860;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.1), 16, 0.08, 0, 0);";
 
         heroGradientTimeline = new Timeline(
                 new KeyFrame(Duration.ZERO, new KeyValue(heroBox.styleProperty(), styleA)),
@@ -150,20 +152,34 @@ public class HomeController {
         }
     }
 
+    private void setNetworkPanelVisible(boolean visible) {
+        if (networkPanel == null) {
+            return;
+        }
+        networkPanel.setVisible(visible);
+        networkPanel.setManaged(visible);
+    }
+
+    @FXML
+    private void showNetworkPanel() {
+        setNetworkPanelVisible(true);
+        refreshNetworkPanel();
+    }
+
     private void refreshNetworkPanel() {
         if (localServerLabel != null) {
-            localServerLabel.setText("Your server address: " + MessageNetworkBridge.getLocalAddressHint());
+            localServerLabel.setText("Local IP: " + MessageNetworkBridge.getLocalAddressHint());
         }
 
         if (networkStatusLabel != null) {
             if (!MessageNetworkBridge.isServerRunning()) {
-                networkStatusLabel.setStyle("-fx-text-fill: #c0392b; -fx-font-weight: bold;");
+                networkStatusLabel.setStyle("-fx-text-fill: #ff3366; -fx-font-weight: bold;");
                 networkStatusLabel.setText(MessageNetworkBridge.getServerStatus());
             } else if (MessageNetworkBridge.isConnected()) {
-                networkStatusLabel.setStyle("-fx-text-fill: #1e8449; -fx-font-weight: bold;");
+                networkStatusLabel.setStyle("-fx-text-fill: #00ff88; -fx-font-weight: bold;");
                 networkStatusLabel.setText(MessageNetworkBridge.getConnectionStatus());
             } else {
-                networkStatusLabel.setStyle("-fx-text-fill: #a04f00; -fx-font-weight: bold;");
+                networkStatusLabel.setStyle("-fx-text-fill: #ffb300; -fx-font-weight: bold;");
                 networkStatusLabel.setText(MessageNetworkBridge.getConnectionStatus());
             }
         }

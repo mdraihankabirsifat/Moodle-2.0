@@ -16,9 +16,9 @@
                    styleClass="title-label"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="🔲 New Window" onAction="#openNewWindow"
-                    style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 11px;"/>
+                    styleClass="cyber-btn-accent" style="-fx-font-size: 11px;"/>
             <Button text="Sign Out" onAction="#signOutCampus"
-                    style="-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand;"/>
+                    styleClass="cyber-btn-danger"/>
         </HBox>
     </top>
 

@@ -21,6 +21,7 @@
                    styleClass="title-label"/>
 
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+                 <Button text="+ Connect" styleClass="nav-btn" onAction="#showNetworkPanel"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
@@ -40,7 +41,7 @@
                     text="Logout"
                     onAction="#logout"
                     visible="false"
-                    style="-fx-background-color: #c0392b; -fx-text-fill: white;"/>
+                    styleClass="cyber-btn-danger"/>
 
             <MenuButton fx:id="themeMenuButton"
                         text="Mode"
@@ -101,7 +102,8 @@
             </VBox>
 
                  <!-- NETWORK MESSAGING CONNECT -->
-                 <VBox spacing="10" maxWidth="840" styleClass="glass-card">
+                     <VBox fx:id="networkPanel" spacing="10" maxWidth="840" styleClass="glass-card"
+                         visible="false" managed="false">
                   <Label text="Network Messaging"
                       styleClass="section-title"/>
                   <Label text="To chat across laptops, enter the other laptop server address and connect."
@@ -118,11 +120,11 @@
                       <Button fx:id="disconnectServerButton"
                         text="Disconnect"
                         onAction="#disconnectFromServer"
-                        style="-fx-background-color: #c0392b; -fx-text-fill: white;"/>
+                        styleClass="cyber-btn-danger"/>
                   </HBox>
 
                   <Label fx:id="localServerLabel"
-                      text="Your server address:"
+                      text="Local IP:"
                       wrapText="true"/>
                   <Label fx:id="networkStatusLabel"
                       text="Not connected"
@@ -222,11 +224,11 @@
                            text="Goal: Build one simple, student-friendly platform where academic tools, campus services, and communication stay connected in one place."/>
 
                     <Label text="Developers"
-                           style="-fx-font-weight: bold; -fx-padding: 4 0 0 0;"/>
+                           style="-fx-font-weight: bold; -fx-padding: 4 0 0 0; -fx-text-fill: #ffb300;"/>
                     <Label text="Md. Raihan Kabir Sifat"/>
-                    <Label text="CSE, BUET" style="-fx-text-fill: #666;"/>
+                    <Label text="CSE, BUET" style="-fx-text-fill: #5a6a7e;"/>
                     <Label text="Khandokar Naeemul Haque" style="-fx-padding: 8 0 0 0;"/>
-                    <Label text="CSE, BUET" style="-fx-text-fill: #666;"/>
+                    <Label text="CSE, BUET" style="-fx-text-fill: #5a6a7e;"/>
                 </VBox>
 
                 <VBox spacing="10" maxWidth="500" styleClass="footer-card" HBox.hgrow="ALWAYS">

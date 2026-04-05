@@ -45,7 +45,7 @@
                 <VBox fx:id="staffFields" spacing="10" visible="false" managed="false">
                     <TextField fx:id="staffEmailField" promptText="Teacher Email"/>
                     <PasswordField fx:id="staffPassField" promptText="Access Password"/>
-                    <Label fx:id="hintLabel" text="" style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                    <Label fx:id="hintLabel" text="" style="-fx-text-fill: #5a6a7e; -fx-font-size: 11px;"/>
                 </VBox>
 
                 <Button text="Enter Campus"

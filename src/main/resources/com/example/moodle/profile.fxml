@@ -29,13 +29,13 @@
                     <!-- Profile Photo -->
                     <HBox spacing="15" alignment="CENTER_LEFT">
                         <StackPane fx:id="photoContainer"
-                                   style="-fx-min-width: 100; -fx-min-height: 100; -fx-background-color: #e8e8e8; -fx-background-radius: 50;">
+                                   style="-fx-min-width: 100; -fx-min-height: 100; -fx-background-color: #0a1628; -fx-background-radius: 50; -fx-border-color: rgba(0,229,255,0.3); -fx-border-radius: 50;">
                             <Label fx:id="photoPlaceholder" text="👤"
                                    style="-fx-font-size: 40px; -fx-alignment: center;"/>
                         </StackPane>
                         <VBox spacing="8" alignment="CENTER_LEFT">
                             <Button text="📷 Upload Photo" onAction="#uploadPhoto"
-                                    style="-fx-background-color: #2a5298; -fx-text-fill: white; -fx-background-radius: 8;"/>
+                                    style="-fx-background-color: transparent; -fx-text-fill: #00e5ff; -fx-border-color: #00e5ff; -fx-border-radius: 6; -fx-background-radius: 6;"/>
                             <Label fx:id="photoMsg" text="" style="-fx-font-size: 11px;"/>
                         </VBox>
                     </HBox>
@@ -57,7 +57,7 @@
                     <HBox spacing="15" alignment="CENTER">
                         <Button text="Save Changes" onAction="#saveProfile" prefWidth="160"/>
                         <Button text="Cancel" onAction="#goHome" prefWidth="120"
-                                style="-fx-background-color: #888;"/>
+                                styleClass="cyber-btn-danger"/>
                     </HBox>
 
                     <Label fx:id="messageLabel"/>
@@ -66,23 +66,23 @@
 
                     <!-- Change Universal Password -->
                     <Label text="Change Universal Login Password"
-                           style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;"/>
+                           style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #ffb300;"/>
                     <PasswordField fx:id="currentPassField" promptText="Current Password"/>
                     <PasswordField fx:id="newPassField" promptText="New Password"/>
                     <Button text="Change Universal Password" onAction="#changeUniversalPassword"
-                            style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-background-radius: 8;"/>
+                            styleClass="cyber-btn-warning"/>
 
                     <Separator/>
 
                     <!-- Change Campus Password -->
                     <Label text="Change Campus Access Password"
-                           style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;"/>
+                           style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #00ff88;"/>
                     <Label text="Default campus password: 1234"
-                           style="-fx-text-fill: #888; -fx-font-size: 11px;"/>
+                           style="-fx-text-fill: #5a6a7e; -fx-font-size: 11px;"/>
                     <PasswordField fx:id="currentCampusPassField" promptText="Current Campus Password"/>
                     <PasswordField fx:id="newCampusPassField" promptText="New Campus Password"/>
                     <Button text="Change Campus Password" onAction="#changeCampusPassword"
-                            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 8;"/>
+                            styleClass="cyber-btn-success"/>
 
                     <Label fx:id="passMessage"/>
 

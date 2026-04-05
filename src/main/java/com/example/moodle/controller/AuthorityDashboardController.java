@@ -72,7 +72,7 @@ public class AuthorityDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Student Database");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         // Search
         TextField searchField = new TextField();
@@ -91,7 +91,7 @@ public class AuthorityDashboardController {
             for (String h : headers) {
                 Label cell = new Label(h);
                 cell.setStyle("-fx-font-weight: bold; -fx-padding: 10 16 10 16; "
-                        + "-fx-background-color: #1e3c72; -fx-text-fill: white; "
+                        + "-fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); "
                         + "-fx-min-width: 130; -fx-pref-width: 130;");
                 headerRow.getChildren().add(cell);
             }
@@ -120,7 +120,7 @@ public class AuthorityDashboardController {
                     String style = "-fx-padding: 8 16 8 16; -fx-background-color: " + bg
                             + "; -fx-min-width: 130; -fx-pref-width: 130;";
                     if (i == 0) {
-                        style += " -fx-font-weight: bold; -fx-text-fill: #1e3c72;"; // Name column bold
+                        style += " -fx-font-weight: bold; -fx-text-fill: #00e5ff;"; // Name column bold
 
                                         }cell.setStyle(style);
                     row.getChildren().add(cell);
@@ -134,7 +134,7 @@ public class AuthorityDashboardController {
         searchField.textProperty().addListener((obs, o, n) -> refreshTable.run());
 
         Label countLabel = new Label("Total Students: " + UserStore.getAllUsers().size());
-        countLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #555;");
+        countLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #8a9ab0;");
 
         box.getChildren().addAll(title, countLabel, searchField, tableBox);
         setScrollContent(box);
@@ -147,7 +147,7 @@ public class AuthorityDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Edit Student Record");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         TextField searchField = new TextField();
         searchField.setPromptText("Enter student email to find...");
@@ -161,14 +161,14 @@ public class AuthorityDashboardController {
             String email = searchField.getText().trim();
             User user = UserStore.getUser(email);
             if (user == null) {
-                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setStyle("-fx-text-fill: #ff3366;");
                 msgLabel.setText("Student not found.");
                 return;
             }
             msgLabel.setText("");
 
             Label editTitle = new Label("Editing: " + user.getName());
-            editTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #2a5298;");
+            editTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #0088cc;");
 
             TextField nameF = new TextField(user.getName());
             nameF.setPromptText("Name");
@@ -193,7 +193,7 @@ public class AuthorityDashboardController {
                 user.setStudentId(idF.getText().trim());
                 user.setRole(roleBox.getValue());
                 UserStore.updateUser(user);
-                editMsg.setStyle("-fx-text-fill: green;");
+                editMsg.setStyle("-fx-text-fill: #00ff88;");
                 editMsg.setText("Student record updated successfully!");
             });
 
@@ -214,7 +214,7 @@ public class AuthorityDashboardController {
         VBox quickList = new VBox(4);
         for (User u : UserStore.getAllUsers()) {
             Label item = new Label(u.getEmail() + " — " + u.getName() + " (" + u.getStudentId() + ")");
-            item.setStyle("-fx-padding: 4 8 4 8; -fx-background-color: #f0f4ff; -fx-background-radius: 4;");
+            item.setStyle("-fx-padding: 4 8 4 8; -fx-background-color: #0d1b2a; -fx-background-radius: 4;");
             quickList.getChildren().add(item);
         }
 
@@ -230,7 +230,7 @@ public class AuthorityDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Campus Notices Management");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         TextArea noticeArea = new TextArea();
         noticeArea.setPromptText("Enter new campus notice...");
@@ -250,11 +250,11 @@ public class AuthorityDashboardController {
             String content = noticeArea.getText().trim();
             String course = courseBox.getValue();
             if (content.isEmpty()) {
-                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setStyle("-fx-text-fill: #ff3366;");
                 msgLabel.setText("Enter notice content.");
             } else {
                 DataStore.addCourseNotice(course, content, "authority");
-                msgLabel.setStyle("-fx-text-fill: green;");
+                msgLabel.setStyle("-fx-text-fill: #00ff88;");
                 msgLabel.setText("Notice posted!");
                 noticeArea.clear();
                 showManageNotices();
@@ -274,7 +274,7 @@ public class AuthorityDashboardController {
         } else {
             for (String[] n : notices) {
                 Label item = new Label("\uD83D\uDCCC [" + n[0] + "] " + n[1] + " (" + n[3] + ")");
-                item.setStyle("-fx-padding: 8; -fx-background-color: #fff8e1; -fx-background-radius: 6;");
+                item.setStyle("-fx-padding: 8; -fx-background-color: #1a1a0a; -fx-background-radius: 6;");
                 item.setWrapText(true);
                 box.getChildren().add(item);
             }
@@ -289,7 +289,7 @@ public class AuthorityDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("Payment Overview");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         List<Payment> payments = DataStore.getAllPayments();
         int totalAmount = 0;
@@ -299,7 +299,7 @@ public class AuthorityDashboardController {
 
         Label summary = new Label("Total Collections: \u09F3" + totalAmount
                 + " from " + payments.size() + " payments");
-        summary.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: green;");
+        summary.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #00ff88;");
 
         GridPane grid = new GridPane();
         grid.setHgap(2);
@@ -310,7 +310,7 @@ public class AuthorityDashboardController {
         for (int c = 0; c < headers.length; c++) {
             Label cell = new Label(headers[c]);
             cell.setStyle("-fx-font-weight: bold; -fx-padding: 10 16 10 16; "
-                    + "-fx-background-color: #1e3c72; -fx-text-fill: white; -fx-min-width: 120;");
+                    + "-fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-min-width: 120;");
             cell.setMaxWidth(Double.MAX_VALUE);
             grid.add(cell, c, 0);
         }
@@ -321,7 +321,7 @@ public class AuthorityDashboardController {
                 "\u09F3" + p.getAmount(), p.getDate(), p.getStatus()};
             for (int c = 0; c < vals.length; c++) {
                 Label cell = new Label(vals[c]);
-                cell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: white; -fx-min-width: 120;");
+                cell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: #111a2e; -fx-min-width: 120;");
                 cell.setMaxWidth(Double.MAX_VALUE);
                 grid.add(cell, c, row);
             }
@@ -342,7 +342,7 @@ public class AuthorityDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("\uD83D\uDCDD Edit Gradesheet");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         // Search student
         TextField studentField = new TextField();
@@ -356,14 +356,14 @@ public class AuthorityDashboardController {
             gradeBox.getChildren().clear();
             String studentId = studentField.getText().trim();
             if (studentId.isEmpty()) {
-                msgLabel.setStyle("-fx-text-fill: red;");
+                msgLabel.setStyle("-fx-text-fill: #ff3366;");
                 msgLabel.setText("Enter a student ID.");
                 return;
             }
             msgLabel.setText("");
 
             Label studentTitle = new Label("Grades for: " + studentId);
-            studentTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #1e3c72;");
+            studentTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00e5ff;");
             gradeBox.getChildren().add(studentTitle);
 
             // Show existing grades
@@ -374,7 +374,7 @@ public class AuthorityDashboardController {
                 gradeBox.getChildren().add(existTitle);
                 for (String[] g : existing) {
                     Label gLabel = new Label("   " + g[1] + " — Grade: " + g[2]);
-                    gLabel.setStyle("-fx-padding: 4; -fx-background-color: #e8f5e9; -fx-background-radius: 4;");
+                    gLabel.setStyle("-fx-padding: 4; -fx-background-color: #0a1a12; -fx-background-radius: 4;");
                     gradeBox.getChildren().add(gLabel);
                 }
                 gradeBox.getChildren().add(new Separator());
@@ -396,12 +396,12 @@ public class AuthorityDashboardController {
 
             Label setMsg = new Label();
             Button setBtn = new Button("Set Grade");
-            setBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+            setBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
             setBtn.setOnAction(ev -> {
                 String course = courseBox.getValue();
                 String gp = gradeField.getText().trim();
                 if (course == null || gp.isEmpty()) {
-                    setMsg.setStyle("-fx-text-fill: red;");
+                    setMsg.setStyle("-fx-text-fill: #ff3366;");
                     setMsg.setText("Select course and enter grade.");
                     return;
                 }
@@ -409,13 +409,13 @@ public class AuthorityDashboardController {
                     double grade = Double.parseDouble(gp);
                     String courseCode = course.split(" - ")[0];
                     DataStore.setGrade(studentId, courseCode, grade);
-                    setMsg.setStyle("-fx-text-fill: green;");
+                    setMsg.setStyle("-fx-text-fill: #00ff88;");
                     setMsg.setText("Grade set for " + courseCode + ": " + grade + " \u2705");
                     gradeField.clear();
                     // Refresh view
                     loadBtn.fire();
                 } catch (NumberFormatException ex) {
-                    setMsg.setStyle("-fx-text-fill: red;");
+                    setMsg.setStyle("-fx-text-fill: #ff3366;");
                     setMsg.setText("Invalid grade point format.");
                 }
             });
@@ -435,7 +435,7 @@ public class AuthorityDashboardController {
         box.setPadding(new Insets(10));
 
         Label title = new Label("System Overview");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         int totalUsers = UserStore.getAllUsers().size();
         int totalCourses = DataStore.getAllCourses().size();
@@ -457,15 +457,15 @@ public class AuthorityDashboardController {
         for (int i = 0; i < stats.length; i++) {
             VBox card = new VBox(8);
             card.setAlignment(Pos.CENTER);
-            card.setStyle("-fx-background-color: white; -fx-background-radius: 12; -fx-padding: 20; "
-                    + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-min-width: 160;");
+            card.setStyle("-fx-background-color: #111a2e; -fx-background-radius: 12; -fx-padding: 20; "
+                    + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 8, 0, 0, 2); -fx-min-width: 160;");
 
             Label emoji = new Label(stats[i][0]);
             emoji.setStyle("-fx-font-size: 28px;");
             Label name = new Label(stats[i][1]);
-            name.setStyle("-fx-font-weight: bold; -fx-text-fill: #555;");
+            name.setStyle("-fx-font-weight: bold; -fx-text-fill: #8a9ab0;");
             Label value = new Label(stats[i][2]);
-            value.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+            value.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
             card.getChildren().addAll(emoji, name, value);
             grid.add(card, i % 3, i / 3);
         }
@@ -480,7 +480,7 @@ public class AuthorityDashboardController {
         VBox box = new VBox(15);
         box.setPadding(new Insets(10));
         Label title = new Label("\uD83C\uDFDF Manage Games & Sports");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         // Add form
         Label formLabel = new Label("Add New Sport");
@@ -491,12 +491,12 @@ public class AuthorityDashboardController {
         TextField venueField = new TextField(); venueField.setPromptText("Venue (e.g. Main Ground)");
         Label gMsg = new Label();
         Button addBtn = new Button("Add Sport");
-        addBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         addBtn.setOnAction(e -> {
             String sport = sportField.getText().trim();
-            if (sport.isEmpty()) { gMsg.setStyle("-fx-text-fill: red;"); gMsg.setText("Sport name required."); return; }
+            if (sport.isEmpty()) { gMsg.setStyle("-fx-text-fill: #ff3366;"); gMsg.setText("Sport name required."); return; }
             DataStore.addGame(sport, emojiField.getText().trim(), schedField.getText().trim(), venueField.getText().trim());
-            gMsg.setStyle("-fx-text-fill: green;"); gMsg.setText("Added!");
+            gMsg.setStyle("-fx-text-fill: #00ff88;"); gMsg.setText("Added!");
             sportField.clear(); emojiField.clear(); schedField.clear(); venueField.clear();
             showManageGames();
         });
@@ -514,7 +514,7 @@ public class AuthorityDashboardController {
             for (String[] g : games) {
                 HBox row = new HBox(10);
                 row.setAlignment(Pos.CENTER_LEFT);
-                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: white; -fx-background-radius: 8;");
+                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
                 Label info = new Label((g.length > 1 ? g[1] + " " : "") + g[0]
                         + (g.length > 2 ? " | " + g[2] : "") + (g.length > 3 ? " | " + g[3] : ""));
                 info.setWrapText(true);
@@ -534,7 +534,7 @@ public class AuthorityDashboardController {
         VBox box = new VBox(15);
         box.setPadding(new Insets(10));
         Label title = new Label("\uD83C\uDFE5 Manage Hospital Doctors");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         Label formLabel = new Label("Add Doctor");
         formLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
@@ -544,12 +544,12 @@ public class AuthorityDashboardController {
         TextField hoursField = new TextField(); hoursField.setPromptText("Hours (e.g. 9:00 AM - 1:00 PM)");
         Label hMsg = new Label();
         Button addBtn = new Button("Add Doctor");
-        addBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         addBtn.setOnAction(e -> {
             String name = nameField.getText().trim();
-            if (name.isEmpty()) { hMsg.setStyle("-fx-text-fill: red;"); hMsg.setText("Name required."); return; }
+            if (name.isEmpty()) { hMsg.setStyle("-fx-text-fill: #ff3366;"); hMsg.setText("Name required."); return; }
             DataStore.addDoctor(name, specField.getText().trim(), daysField.getText().trim(), hoursField.getText().trim());
-            hMsg.setStyle("-fx-text-fill: green;"); hMsg.setText("Added!");
+            hMsg.setStyle("-fx-text-fill: #00ff88;"); hMsg.setText("Added!");
             nameField.clear(); specField.clear(); daysField.clear(); hoursField.clear();
             showManageHospital();
         });
@@ -566,7 +566,7 @@ public class AuthorityDashboardController {
             for (String[] d : docs) {
                 HBox row = new HBox(10);
                 row.setAlignment(Pos.CENTER_LEFT);
-                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: white; -fx-background-radius: 8;");
+                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
                 Label info = new Label(d[0] + " | " + (d.length > 1 ? d[1] : "") + " | "
                         + (d.length > 2 ? d[2] : "") + " | " + (d.length > 3 ? d[3] : ""));
                 info.setWrapText(true);
@@ -586,7 +586,7 @@ public class AuthorityDashboardController {
         VBox box = new VBox(15);
         box.setPadding(new Insets(10));
         Label title = new Label("\uD83C\uDFE0 Manage Hall Rooms");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1e3c72;");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         Label formLabel = new Label("Add Hall Room");
         formLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
@@ -595,13 +595,13 @@ public class AuthorityDashboardController {
         TextField capField = new TextField(); capField.setPromptText("Capacity");
         Label rMsg = new Label();
         Button addBtn = new Button("Add Room");
-        addBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         addBtn.setOnAction(e -> {
             String hall = hallField.getText().trim();
             String room = roomField.getText().trim();
-            if (hall.isEmpty() || room.isEmpty()) { rMsg.setStyle("-fx-text-fill: red;"); rMsg.setText("Hall & room required."); return; }
+            if (hall.isEmpty() || room.isEmpty()) { rMsg.setStyle("-fx-text-fill: #ff3366;"); rMsg.setText("Hall & room required."); return; }
             DataStore.addHallRoom(hall, room, capField.getText().trim());
-            rMsg.setStyle("-fx-text-fill: green;"); rMsg.setText("Added!");
+            rMsg.setStyle("-fx-text-fill: #00ff88;"); rMsg.setText("Added!");
             hallField.clear(); roomField.clear(); capField.clear();
             showManageHall();
         });
@@ -618,7 +618,7 @@ public class AuthorityDashboardController {
             for (String[] h : halls) {
                 HBox row = new HBox(10);
                 row.setAlignment(Pos.CENTER_LEFT);
-                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: white; -fx-background-radius: 8;");
+                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
                 Label info = new Label(h[0] + " - " + (h.length > 1 ? h[1] : "")
                         + (h.length > 2 ? " (Capacity: " + h[2] + ")" : ""));
                 info.setWrapText(true);
@@ -654,7 +654,7 @@ public class AuthorityDashboardController {
 
                 HBox row = new HBox(10);
                 row.setAlignment(Pos.CENTER_LEFT);
-                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: #f8f9ff; -fx-background-radius: 8;");
+                row.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: #0a1628; -fx-background-radius: 8;");
 
                 Label info = new Label("Student: " + requesterName + " (" + requesterId + ")"
                         + " | Requested: " + hall + " - " + room
@@ -664,26 +664,26 @@ public class AuthorityDashboardController {
                 info.setMaxWidth(520);
 
                 Button approveBtn = new Button("Approve");
-                approveBtn.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 6;");
+                approveBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-background-radius: 6;");
                 approveBtn.setDisable(!hasCapacity);
                 approveBtn.setOnAction(ev -> {
                     if (!DataStore.hasHallCapacity(hall, room)) {
-                        evalMsg.setStyle("-fx-text-fill: red;");
+                        evalMsg.setStyle("-fx-text-fill: #ff3366;");
                         evalMsg.setText("Cannot approve " + requesterId + ": room is full.");
                         return;
                     }
                     DataStore.assignHallRoom(requesterId, hall, room);
                     DataStore.updateHallAvailabilityRequestStatus(requesterId, hall, room, "APPROVED");
-                    evalMsg.setStyle("-fx-text-fill: green;");
+                    evalMsg.setStyle("-fx-text-fill: #00ff88;");
                     evalMsg.setText("Approved request for " + requesterId + " (" + hall + " - " + room + ").");
                     showManageHall();
                 });
 
                 Button rejectBtn = new Button("Reject");
-                rejectBtn.setStyle("-fx-background-color: #c0392b; -fx-text-fill: white; -fx-background-radius: 6;");
+                rejectBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #ff3366; -fx-text-fill: white; -fx-background-radius: 6;");
                 rejectBtn.setOnAction(ev -> {
                     DataStore.updateHallAvailabilityRequestStatus(requesterId, hall, room, "REJECTED");
-                    evalMsg.setStyle("-fx-text-fill: #c0392b;");
+                    evalMsg.setStyle("-fx-text-fill: #ff3366;");
                     evalMsg.setText("Rejected request for " + requesterId + " (" + hall + " - " + room + ").");
                     showManageHall();
                 });
