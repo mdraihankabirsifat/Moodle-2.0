@@ -1,5 +1,6 @@
 package com.example.moodle.app;
 
+import com.example.moodle.service.MessageNetworkBridge;
 import com.example.moodle.util.SceneManager;
 
 import javafx.application.Application;
@@ -10,11 +11,18 @@ public class MoodleApp extends Application {
     @Override
     public void start(Stage stage) {
 
+        MessageNetworkBridge.startServer();
+
         SceneManager.setStage(stage);
         SceneManager.switchScene("splash.fxml");
 
         stage.setTitle("Moodle 2.0");
         stage.setResizable(true);
         stage.show();
+    }
+
+    @Override
+    public void stop() {
+        MessageNetworkBridge.shutdown();
     }
 }

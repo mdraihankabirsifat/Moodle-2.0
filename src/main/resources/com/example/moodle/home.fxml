@@ -100,6 +100,35 @@
                         styleClass="search-results-panel"/>
             </VBox>
 
+                 <!-- NETWORK MESSAGING CONNECT -->
+                 <VBox spacing="10" maxWidth="840" styleClass="glass-card">
+                  <Label text="Network Messaging"
+                      styleClass="section-title"/>
+                  <Label text="To chat across laptops, enter the other laptop server address and connect."
+                      wrapText="true"/>
+
+                  <HBox spacing="10" alignment="CENTER_LEFT">
+                      <TextField fx:id="serverAddressField"
+                           promptText="Server address (example: 192.168.0.42:50555)"
+                           HBox.hgrow="ALWAYS"
+                           onAction="#connectToServer"/>
+                      <Button fx:id="connectServerButton"
+                        text="Connect"
+                        onAction="#connectToServer"/>
+                      <Button fx:id="disconnectServerButton"
+                        text="Disconnect"
+                        onAction="#disconnectFromServer"
+                        style="-fx-background-color: #c0392b; -fx-text-fill: white;"/>
+                  </HBox>
+
+                  <Label fx:id="localServerLabel"
+                      text="Your server address:"
+                      wrapText="true"/>
+                  <Label fx:id="networkStatusLabel"
+                      text="Not connected"
+                      wrapText="true"/>
+                 </VBox>
+
             <!-- ABOUT -->
                  <VBox spacing="15" maxWidth="800" styleClass="glass-card">
                   <Label text="✨ About"

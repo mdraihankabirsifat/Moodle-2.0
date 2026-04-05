@@ -2,6 +2,7 @@ package com.example.moodle.controller;
 
 import java.util.List;
 
+import com.example.moodle.service.MessageNetworkBridge;
 import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
 import com.example.moodle.util.ThemeManager;
@@ -31,6 +32,11 @@ public class HomeController {
     @FXML private MenuButton themeMenuButton;
     @FXML private VBox homeContentBox;
     @FXML private VBox heroBox;
+    @FXML private TextField serverAddressField;
+    @FXML private Label networkStatusLabel;
+    @FXML private Label localServerLabel;
+    @FXML private Button connectServerButton;
+    @FXML private Button disconnectServerButton;
 
     private Timeline heroGradientTimeline;
 
@@ -80,6 +86,9 @@ public class HomeController {
 
         setupHeroAnimation();
         setupResponsiveLayout();
+
+        MessageNetworkBridge.startServer();
+        refreshNetworkPanel();
     }
 
     private void setupHeroAnimation() {
@@ -139,6 +148,48 @@ public class HomeController {
         if (themeMenuButton != null) {
             themeMenuButton.setText("Mode");
         }
+    }
+
+    private void refreshNetworkPanel() {
+        if (localServerLabel != null) {
+            localServerLabel.setText("Your server address: " + MessageNetworkBridge.getLocalAddressHint());
+        }
+
+        if (networkStatusLabel != null) {
+            if (!MessageNetworkBridge.isServerRunning()) {
+                networkStatusLabel.setStyle("-fx-text-fill: #c0392b; -fx-font-weight: bold;");
+                networkStatusLabel.setText(MessageNetworkBridge.getServerStatus());
+            } else if (MessageNetworkBridge.isConnected()) {
+                networkStatusLabel.setStyle("-fx-text-fill: #1e8449; -fx-font-weight: bold;");
+                networkStatusLabel.setText(MessageNetworkBridge.getConnectionStatus());
+            } else {
+                networkStatusLabel.setStyle("-fx-text-fill: #a04f00; -fx-font-weight: bold;");
+                networkStatusLabel.setText(MessageNetworkBridge.getConnectionStatus());
+            }
+        }
+
+        if (connectServerButton != null) {
+            connectServerButton.setDisable(!MessageNetworkBridge.isServerRunning());
+        }
+
+        if (disconnectServerButton != null) {
+            disconnectServerButton.setDisable(!MessageNetworkBridge.isConnected());
+        }
+    }
+
+    @FXML
+    private void connectToServer() {
+        if (serverAddressField == null) {
+            return;
+        }
+        MessageNetworkBridge.connectToPeer(serverAddressField.getText());
+        refreshNetworkPanel();
+    }
+
+    @FXML
+    private void disconnectFromServer() {
+        MessageNetworkBridge.disconnectPeer();
+        refreshNetworkPanel();
     }
 
     @FXML

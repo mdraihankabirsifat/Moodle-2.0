@@ -38,6 +38,7 @@ public class DataStore {
     private static final String HALLS_FILE = "hall_data.txt";
     private static final String HALL_REQUESTS_FILE = "hall_room_requests.txt";
     private static final String HALL_ALLOCATIONS_FILE = "hall_allocations.txt";
+    private static final Object MESSAGE_LOCK = new Object();
 
     static {
         seedDefaults();
@@ -195,23 +196,57 @@ public class DataStore {
     public static void sendMessage(String from, String to, String content) {
         String fromId = canonicalMessageId(from);
         String toId = canonicalMessageId(to);
-        String safeContent = content == null ? "" : content.trim();
+        String safeContent = normalizeDirectMessageContent(content);
         if (fromId.isEmpty() || toId.isEmpty() || safeContent.isEmpty()) return;
 
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        FileStore.appendLine(MESSAGES_FILE, fromId + "|" + toId + "|" + safeContent + "|" + ts);
+        synchronized (MESSAGE_LOCK) {
+            FileStore.appendLine(MESSAGES_FILE, fromId + "|" + toId + "|" + safeContent + "|" + ts);
+        }
+
+        MessageNetworkBridge.sendDirectMessage(fromId, toId, safeContent, ts);
+    }
+
+    public static void storeIncomingNetworkMessage(String from, String to,
+                                                   String content, String timestamp) {
+        String fromId = canonicalMessageId(from);
+        String toId = canonicalMessageId(to);
+        String safeContent = normalizeDirectMessageContent(content);
+        String safeTimestamp = normalizeMessageTimestamp(timestamp);
+        if (fromId.isEmpty() || toId.isEmpty() || safeContent.isEmpty()) return;
+
+        synchronized (MESSAGE_LOCK) {
+            FileStore.appendLine(MESSAGES_FILE,
+                    fromId + "|" + toId + "|" + safeContent + "|" + safeTimestamp);
+        }
     }
 
     public static List<Message> getMessagesFor(String identifier) {
         List<Message> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(MESSAGES_FILE)) {
-            String[] p = line.split("\\|", 4);
-            if (p.length >= 4 && (isSameMessagingUser(p[0], identifier)
-                    || isSameMessagingUser(p[1], identifier))) {
-                list.add(new Message(p[0], p[1], p[2], p[3]));
+        synchronized (MESSAGE_LOCK) {
+            for (String line : FileStore.loadLines(MESSAGES_FILE)) {
+                String[] p = line.split("\\|", 4);
+                if (p.length >= 4 && (isSameMessagingUser(p[0], identifier)
+                        || isSameMessagingUser(p[1], identifier))) {
+                    list.add(new Message(p[0], p[1], p[2], p[3]));
+                }
             }
         }
         return list;
+    }
+
+    private static String normalizeDirectMessageContent(String rawContent) {
+        String value = rawContent == null ? "" : rawContent.trim();
+        if (value.isEmpty()) return "";
+        return value.replace("\r", " ").replace("\n", " ");
+    }
+
+    private static String normalizeMessageTimestamp(String rawTimestamp) {
+        String value = rawTimestamp == null ? "" : rawTimestamp.trim();
+        if (value.isEmpty()) {
+            return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        }
+        return value;
     }
 
     public static String canonicalMessageId(String rawId) {
@@ -286,7 +321,9 @@ public class DataStore {
     }
 
     public static int getTotalMessageCount() {
-        return FileStore.loadLines(MESSAGES_FILE).size();
+        synchronized (MESSAGE_LOCK) {
+            return FileStore.loadLines(MESSAGES_FILE).size();
+        }
     }
 
     // ==================== PAYMENTS ====================
