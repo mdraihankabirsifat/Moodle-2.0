@@ -9,8 +9,8 @@
     <!-- ================= TOP NAV ================= -->
     <top>
         <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar" style="-fx-padding: 15;">
-            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
-            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome" style="-fx-font-size: 13px; -fx-padding: 8 15 8 15;"/>
+            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus" style="-fx-font-size: 13px; -fx-padding: 8 15 8 15;"/>
         </HBox>
     </top>
 

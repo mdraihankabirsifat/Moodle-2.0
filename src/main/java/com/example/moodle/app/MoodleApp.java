@@ -16,7 +16,7 @@ public class MoodleApp extends Application {
         SceneManager.setStage(stage);
         SceneManager.switchScene("splash.fxml");
 
-        stage.setTitle("Moodle 2.0");
+        stage.setTitle("Unimate");
         stage.setResizable(true);
         stage.setMaximized(true);
         stage.show();

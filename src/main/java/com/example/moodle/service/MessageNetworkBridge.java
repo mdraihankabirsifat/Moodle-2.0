@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 public final class MessageNetworkBridge {
 
     public static final int DEFAULT_PORT = 50555;
+    private static final int PORT_RANGE = 10; // try 50555..50565
 
     private static final int CONNECT_TIMEOUT_MS = 2500;
     private static final int IO_TIMEOUT_MS = 4000;
@@ -40,6 +41,7 @@ public final class MessageNetworkBridge {
     private static volatile ServerSocket serverSocket;
     private static volatile Thread serverThread;
     private static volatile boolean running;
+    private static volatile int runningPort = DEFAULT_PORT;
 
     private static volatile InetSocketAddress connectedPeer;
     private static volatile String connectionStatus = "Not connected";
@@ -69,18 +71,23 @@ public final class MessageNetworkBridge {
             return;
         }
 
-        try {
-            serverSocket = new ServerSocket(DEFAULT_PORT);
-            running = true;
-            serverStatus = "Listening on " + getLocalAddressHint();
+        for (int port = DEFAULT_PORT; port <= DEFAULT_PORT + PORT_RANGE; port++) {
+            try {
+                serverSocket = new ServerSocket(port);
+                runningPort = port;
+                running = true;
+                serverStatus = "Listening on " + getLocalAddressHint();
 
-            serverThread = new Thread(MessageNetworkBridge::acceptLoop, "moodle-message-server");
-            serverThread.setDaemon(true);
-            serverThread.start();
-        } catch (IOException e) {
-            running = false;
-            serverStatus = "Server start failed: " + safeError(e);
+                serverThread = new Thread(MessageNetworkBridge::acceptLoop, "moodle-message-server");
+                serverThread.setDaemon(true);
+                serverThread.start();
+                return; // bound successfully
+            } catch (IOException e) {
+                // port in use, try next
+            }
         }
+        running = false;
+        serverStatus = "Server start failed: all ports 50555-50565 in use";
     }
 
     public static synchronized void shutdown() {
@@ -116,7 +123,7 @@ public final class MessageNetworkBridge {
     }
 
     public static String getLocalAddressHint() {
-        return detectLocalIPv4() + ":" + DEFAULT_PORT;
+        return detectLocalIPv4() + ":" + runningPort;
     }
 
     public static synchronized boolean connectToPeer(String rawAddress) {

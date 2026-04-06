@@ -13,12 +13,13 @@
     <!-- ================= LEFT SIDEBAR ================= -->
     <left>
         <VBox spacing="15" styleClass="side-nav" prefWidth="250" style="-fx-padding: 30 20 30 20;">
-            <Label text="MOODLE 2.0" styleClass="title-label" style="-fx-padding: 0 0 20 0; -fx-font-size: 22px;"/>
+            <Label text="UNIMATE" styleClass="title-label" style="-fx-padding: 0 0 20 0; -fx-font-size: 22px;"/>
             <Button fx:id="loginButton" text="Login" styleClass="nav-btn" onAction="#goToLogin" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button fx:id="signupButton" text="Sign Up" styleClass="nav-btn" onAction="#goToSignup" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button fx:id="campusButton" text="My Campus" styleClass="nav-btn" onAction="#goToCampus" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button text="About" styleClass="nav-btn" onAction="#showAbout" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button text="Help" styleClass="nav-btn" onAction="#showHelp" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+            <Button fx:id="communityButton" text="Community" styleClass="nav-btn" visible="false" managed="false" onAction="#goToCommunity" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button text="Connect" styleClass="nav-btn" onAction="#showNetworkPanel" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <VBox fx:id="networkPanel" spacing="8" styleClass="glass-card" visible="false" managed="false" style="-fx-padding: 10;">
                 <TextField fx:id="serverAddressField" promptText="IP (e.g. 192.168.0.42:50555)" onAction="#connectToServer"/>
@@ -37,7 +38,8 @@
 
     <!-- ================= CENTER CONTENT ================= -->
     <center>
-        <BorderPane>
+        <StackPane alignment="TOP_CENTER">
+            <BorderPane>
             <!-- TOP HEADER -->
             <top>
                 <VBox>
@@ -52,13 +54,12 @@
                         
                         <Region HBox.hgrow="ALWAYS"/>
                         
-                        <!-- My Profile Button (visible when logged in) -->
-                        <Button fx:id="profileButton" text="My Profile" onAction="#goToProfile" visible="false" managed="false" styleClass="nav-btn"/>
+                        <Button fx:id="profileButton" text="My Profile" onAction="#goToProfile" visible="false" managed="false" styleClass="nav-btn" style="-fx-font-size: 13px; -fx-padding: 8 15 8 15;"/>
                         
                         <!-- Notification Menu -->
                         <MenuButton fx:id="notificationMenu" visible="false" managed="false" text="🔔 (3)" styleClass="mode-menu">
                             <items>
-                                <MenuItem text="System Admin: Welcome to Moodle 2.0!"/>
+                                <MenuItem text="System Admin: Welcome to Unimate!"/>
                                 <MenuItem text="Instructor: New assignment uploaded."/>
                                 <MenuItem text="Institutional Notice: Hackathon registration live!"/>
                             </items>
@@ -73,10 +74,6 @@
                         </MenuButton>
                     </HBox>
 
-                    <!-- SEARCH RESULTS PANEL -->
-                    <HBox alignment="CENTER">
-                        <VBox fx:id="searchResults" spacing="4" visible="false" managed="false" styleClass="search-results-panel" prefWidth="400" maxWidth="400"/>
-                    </HBox>
                 </VBox>
             </top>
 
@@ -85,7 +82,7 @@
                 <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
                     <VBox fx:id="homeContentBox" spacing="50" alignment="TOP_CENTER" styleClass="home-content">
                         <padding>
-                            <Insets top="60" bottom="60"/>
+                            <Insets top="120" bottom="150"/>
                         </padding>
 
                         <!-- HERO -->
@@ -194,5 +191,11 @@
                 </ScrollPane>
             </center>
         </BorderPane>
-    </center>
+
+        <VBox alignment="TOP_CENTER" pickOnBounds="false" mouseTransparent="true">
+            <padding><Insets top="70"/></padding>
+            <VBox fx:id="searchResults" spacing="4" visible="false" managed="false" styleClass="search-results-panel" style="-fx-background-color: rgba(17, 26, 46, 0.95);" prefWidth="400" maxWidth="400" mouseTransparent="false" pickOnBounds="true"/>
+        </VBox>
+    </StackPane>
+</center>
 </BorderPane>

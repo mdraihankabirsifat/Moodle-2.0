@@ -14,9 +14,9 @@
                 <Insets top="15" bottom="15" left="30" right="30"/>
             </padding>
             <HBox alignment="CENTER_LEFT">
-                <Button text="← Back" onAction="#goBack" styleClass="nav-btn"/>
+                <Button text="← Back" onAction="#goBack" styleClass="nav-btn" style="-fx-font-size: 13px; -fx-padding: 8 15 8 15;"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Moodle 2.0 Documentation &amp; Setup" styleClass="title-label"/>
+                <Label text="Unimate Documentation &amp; Setup" styleClass="title-label"/>
                 <Region HBox.hgrow="ALWAYS"/>
             </HBox>
         </VBox>
@@ -51,7 +51,7 @@
                 
                 <VBox spacing="15" styleClass="glass-card" maxWidth="800">
                     <Label text="🌐 Network Capabilities" styleClass="section-title"/>
-                    <Label text="• Moodle 2.0 offers synchronous P2P networking." wrapText="true"/>
+                    <Label text="• Unimate offers synchronous P2P networking." wrapText="true"/>
                     <Label text="• Connect via the network panel using IP Server Addresses on local subsets for cross-device experiences." wrapText="true"/>
                 </VBox>
                 

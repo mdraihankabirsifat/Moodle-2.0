@@ -40,7 +40,7 @@ public class SplashController {
         addCyberParticles();
 
         // Typewriter effect for title
-        String fullTitle = "MOODLE 2.0";
+        String fullTitle = "UNIMATE";
         titleLabel.setText("");
         titleLabel.setOpacity(1);
         subtitleLabel.setOpacity(0);

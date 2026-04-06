@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.CommunityDashboardController"
+            styleClass="root">
+
+    <!-- TOP -->
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar" style="-fx-padding: 15;">
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome" style="-fx-font-size: 13px; -fx-padding: 8 15 8 15;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Universal Community" styleClass="title-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🔲 New Window" onAction="#openNewWindow"
+                    styleClass="cyber-btn-accent" style="-fx-font-size: 11px;"/>
+            <Button text="Sign Out" onAction="#signOut"
+                    styleClass="cyber-btn-danger" style="-fx-font-size: 13px; -fx-padding: 8 15 8 15;"/>
+        </HBox>
+    </top>
+
+    <!-- SIDEBAR -->
+    <left>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER"
+                    style="-fx-background-color: transparent;">
+            <VBox spacing="10"
+                  prefWidth="220"
+                  styleClass="side-nav"
+                  style="-fx-padding: 20;">
+
+                <Button text="Messages"
+                        onAction="#showMessages"
+                        maxWidth="Infinity"/>
+
+                <Button text="🌐 Community"
+                        onAction="#showCommunity"
+                        maxWidth="Infinity"/>
+
+                <Button text="My Profile"
+                        onAction="#showProfile"
+                        maxWidth="Infinity"/>
+
+                <Button text="Friends"
+                        onAction="#showFriends"
+                        maxWidth="Infinity"/>
+
+            </VBox>
+        </ScrollPane>
+    </left>
+
+    <!-- DYNAMIC CONTENT -->
+    <center>
+        <StackPane fx:id="contentArea"
+                   style="-fx-padding: 30;"/>
+    </center>
+
+    <!-- BOTTOM NAV -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" styleClass="bottom-bar" style="-fx-padding: 15;">
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack" style="-fx-font-size: 13px; -fx-padding: 8 15 8 15;"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

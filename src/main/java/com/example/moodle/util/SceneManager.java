@@ -72,7 +72,7 @@ public class SceneManager {
     /** Open a brand-new independent window starting at home.fxml */
     public static Stage openNewWindow() {
         Stage newStage = new Stage();
-        newStage.setTitle("Moodle 2.0 — Window " + stages.size());
+        newStage.setTitle("Unimate — Window " + stages.size());
         setStage(newStage);
         switchScene("home.fxml");
         newStage.setResizable(true);

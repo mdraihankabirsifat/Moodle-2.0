@@ -43,6 +43,7 @@ public class HomeController {
     @FXML private VBox heroBox;
     @FXML private MenuButton notificationMenu;
     @FXML private ComboBox<String> activityRangeFilter;
+    @FXML private Button communityButton;
     @FXML private VBox networkPanel;
     @FXML private TextField serverAddressField;
     @FXML private Label networkStatusLabel;
@@ -68,6 +69,9 @@ public class HomeController {
             signupButton.setVisible(false); signupButton.setManaged(false);
             profileButton.setVisible(true); profileButton.setManaged(true);
             logoutButton.setVisible(true); logoutButton.setManaged(true);
+            if (communityButton != null) {
+                communityButton.setVisible(true); communityButton.setManaged(true);
+            }
             if (notificationMenu != null) {
                 notificationMenu.setVisible(true);
                 notificationMenu.setManaged(true);
@@ -87,6 +91,9 @@ public class HomeController {
             signupButton.setVisible(true); signupButton.setManaged(true);
             profileButton.setVisible(false); profileButton.setManaged(false);
             logoutButton.setVisible(false); logoutButton.setManaged(false);
+            if (communityButton != null) {
+                communityButton.setVisible(false); communityButton.setManaged(false);
+            }
             if (notificationMenu != null) { notificationMenu.setVisible(false); notificationMenu.setManaged(false); }
         }
 
@@ -323,6 +330,13 @@ public class HomeController {
     }
 
     @FXML
+    private void goToCommunity() {
+        if (Session.isLoggedIn()) {
+            SceneManager.switchScene("community-dashboard.fxml");
+        }
+    }
+
+    @FXML
     private void goToProfile() {
         SceneManager.switchScene("profile.fxml");
     }
@@ -385,9 +399,24 @@ public class HomeController {
         String myId = Session.getIdentifier();
         Map<LocalDate, Integer> counts = DataStore.getActivityCounts(myId);
         
+        int daysBack = 364;
+        String spanText = "in the last year";
+        if (activityRangeFilter != null && activityRangeFilter.getValue() != null) {
+            String filter = activityRangeFilter.getValue();
+            if (filter.equals("Last 7 Days")) { daysBack = 6; spanText = "in the last 7 days"; }
+            else if (filter.equals("Last 1 Month")) { daysBack = 29; spanText = "in the last month"; }
+            else if (filter.equals("Last 1 Year")) { daysBack = 364; spanText = "in the last year"; }
+        }
+
+        LocalDate rangeStart = LocalDate.now().minusDays(daysBack);
+        
         int total = 0;
-        for (int c : counts.values()) total += c;
-        activityTrackerTitle.setText(total + " contributions in the last year");
+        for (Map.Entry<LocalDate, Integer> entry : counts.entrySet()) {
+            if (!entry.getKey().isBefore(rangeStart)) {
+                total += entry.getValue();
+            }
+        }
+        activityTrackerTitle.setText(total + " activities " + spanText);
         
         activityDaysLabels.getChildren().clear();
         String[] days = {"Mon", "", "Wed", "", "Fri", "", ""};
@@ -401,16 +430,7 @@ public class HomeController {
         
         activityGridContainer.getChildren().clear();
         LocalDate today = LocalDate.now();
-        
-        int daysBack = 364;
-        if (activityRangeFilter != null && activityRangeFilter.getValue() != null) {
-            String filter = activityRangeFilter.getValue();
-            if (filter.equals("Last 7 Days")) daysBack = 6;
-            else if (filter.equals("Last 1 Month")) daysBack = 29;
-            else if (filter.equals("Last 1 Year")) daysBack = 364;
-        }
-
-        LocalDate start = today.minusDays(daysBack);
+        LocalDate start = today.minusDays(364);
         while (start.getDayOfWeek() != DayOfWeek.MONDAY) {
             start = start.minusDays(1);
         }
