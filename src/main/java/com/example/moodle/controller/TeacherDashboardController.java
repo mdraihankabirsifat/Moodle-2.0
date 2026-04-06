@@ -47,7 +47,7 @@ public class TeacherDashboardController {
 
     @FXML
     public void initialize() {
-        showMyCourses();
+        showMyProfile();
     }
 
     @FXML
@@ -1203,7 +1203,7 @@ public class TeacherDashboardController {
         GridPane grid = new GridPane();
         grid.setHgap(2);
         grid.setVgap(2);
-        grid.setStyle("-fx-background-color: #ddd;");
+        grid.setStyle("-fx-background-color: #0a1628;");
 
         String[] headers = {"Name", "University", "Student ID", "Email"};
         for (int c = 0; c < headers.length; c++) {
@@ -1220,7 +1220,7 @@ public class TeacherDashboardController {
             String[] vals = {u.getName(), u.getUniversity(), u.getStudentId(), u.getEmail()};
             for (int c = 0; c < vals.length; c++) {
                 Label cell = new Label(vals[c] != null ? vals[c] : "");
-                cell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: #111a2e; -fx-min-width: 150;");
+                cell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: #111a2e; -fx-text-fill: white; -fx-min-width: 150;");
                 cell.setMaxWidth(Double.MAX_VALUE);
                 grid.add(cell, c, row);
             }
@@ -1557,8 +1557,8 @@ public class TeacherDashboardController {
             String[] dr = doctors.get(r);
             for (int c = 0; c < 4 && c < dr.length; c++) {
                 Label cell = new Label(dr[c]);
-                String bg = r % 2 == 0 ? "white" : "#f8f9ff";
-                cell.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: " + bg + "; -fx-min-width: 140;");
+                String bg = r % 2 == 0 ? "#111a2e" : "#0d1b2a";
+                cell.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: " + bg + "; -fx-text-fill: white; -fx-min-width: 140;");
                 cell.setMaxWidth(Double.MAX_VALUE);
                 docGrid.add(cell, c, r + 1);
             }

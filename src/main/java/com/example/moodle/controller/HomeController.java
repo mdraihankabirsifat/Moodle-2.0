@@ -40,6 +40,8 @@ public class HomeController {
     @FXML private MenuButton themeMenuButton;
     @FXML private VBox homeContentBox;
     @FXML private VBox heroBox;
+    @FXML private MenuButton notificationMenu;
+    private int unreadNotifications = 3;
     @FXML private VBox networkPanel;
     @FXML private TextField serverAddressField;
     @FXML private Label networkStatusLabel;
@@ -65,11 +67,21 @@ public class HomeController {
             signupButton.setVisible(false); signupButton.setManaged(false);
             profileButton.setVisible(true); profileButton.setManaged(true);
             logoutButton.setVisible(true); logoutButton.setManaged(true);
+            if (notificationMenu != null) {
+                notificationMenu.setVisible(true);
+                notificationMenu.setManaged(true);
+                notificationMenu.setText("🔔 (" + unreadNotifications + ")");
+                notificationMenu.setOnShowing(ev -> {
+                    unreadNotifications = 0;
+                    notificationMenu.setText("🔔");
+                });
+            }
         } else {
             loginButton.setVisible(true); loginButton.setManaged(true);
             signupButton.setVisible(true); signupButton.setManaged(true);
             profileButton.setVisible(false); profileButton.setManaged(false);
             logoutButton.setVisible(false); logoutButton.setManaged(false);
+            if (notificationMenu != null) { notificationMenu.setVisible(false); notificationMenu.setManaged(false); }
         }
 
         // Live search
@@ -101,6 +113,7 @@ public class HomeController {
         updateThemeMenuButtonText();
 
         setupHeroAnimation();
+        setupDynamicSliding();
         setupResponsiveLayout();
 
         MessageNetworkBridge.startServer();
@@ -109,6 +122,22 @@ public class HomeController {
         
         renderActivityTracker();
 
+    }
+
+    private void setupDynamicSliding() {
+        if (homeContentBox != null) {
+            homeContentBox.setTranslateY(80);
+            homeContentBox.setOpacity(0);
+            
+            javafx.animation.TranslateTransition tt = new javafx.animation.TranslateTransition(Duration.millis(700), homeContentBox);
+            tt.setToY(0);
+            
+            javafx.animation.FadeTransition ft = new javafx.animation.FadeTransition(Duration.millis(700), homeContentBox);
+            ft.setToValue(1);
+            
+            javafx.animation.ParallelTransition pt = new javafx.animation.ParallelTransition(tt, ft);
+            pt.play();
+        }
     }
 
     private void setupHeroAnimation() {
@@ -313,6 +342,11 @@ public class HomeController {
         SceneManager.switchScene("about.fxml");
     }
 
+    @FXML
+    private void showHelp() {
+        SceneManager.switchScene("help.fxml");
+    }
+
     private void renderActivityTracker() {
         if (!Session.isLoggedIn() || activityTrackerPanel == null) return;
         activityTrackerPanel.setVisible(true);
@@ -373,10 +407,9 @@ public class HomeController {
     }
     
     private String getColorForCount(int count) {
-        if (count == 0) return "-fx-background-color: #161b22;";
-        if (count == 1 || count == 2) return "-fx-background-color: #0e4429;";
-        if (count == 3 || count == 4) return "-fx-background-color: #006d32;";
-        if (count >= 5 && count <= 6) return "-fx-background-color: #26a641;";
+        if (count == 0) return "-fx-background-color: #2d333b;";
+        if (count == 1 || count == 2) return "-fx-background-color: #006d32;";
+        if (count == 3 || count == 4) return "-fx-background-color: #26a641;";
         return "-fx-background-color: #39d353;";
     }
 

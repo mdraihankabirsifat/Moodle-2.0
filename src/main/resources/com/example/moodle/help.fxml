@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" 
+            fx:controller="com.example.moodle.controller.HelpController" 
+            styleClass="root">
+            
+    <top>
+        <VBox styleClass="top-bar" alignment="CENTER" spacing="10">
+            <padding>
+                <Insets top="15" bottom="15" left="30" right="30"/>
+            </padding>
+            <HBox alignment="CENTER_LEFT">
+                <Button text="← Back" onAction="#goBack" styleClass="nav-btn"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Moodle 2.0 Documentation &amp; Setup" styleClass="title-label"/>
+                <Region HBox.hgrow="ALWAYS"/>
+            </HBox>
+        </VBox>
+    </top>
+    
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <VBox spacing="30" alignment="TOP_CENTER" style="-fx-padding: 40 40 40 40;">
+                
+                <VBox spacing="15" styleClass="glass-card" maxWidth="800">
+                    <Label text="🔑 How to Login &amp; Sign Up" styleClass="section-title"/>
+                    <Label text="• Registration is quick! Click 'Sign Up' on the sidebar. Choose your profile type (Student, Teacher, or Authority)." wrapText="true"/>
+                    <Label text="• Make sure to use your organization's required identification formats, such as Student ID for enrollment verification." wrapText="true"/>
+                    <Label text="• Log in using your registered Identifier (e.g. Email for students) and password." wrapText="true"/>
+                </VBox>
+
+                <VBox spacing="15" styleClass="glass-card" maxWidth="800">
+                    <Label text="📘 Features for Students" styleClass="section-title"/>
+                    <Label text="• Search for your University through the top search bar." wrapText="true"/>
+                    <Label text="• Access 'My Campus' to view courses, pay fees, evaluate marks and manage peer groups." wrapText="true"/>
+                    <Label text="• The integrated notification system keeps you updated on assignments and classes." wrapText="true"/>
+                    <Label text="• Join medical consultation easily through the Medical Center booking integrated in the dashboard." wrapText="true"/>
+                </VBox>
+
+                <VBox spacing="15" styleClass="glass-card" maxWidth="800">
+                    <Label text="🎓 Features for Teachers" styleClass="section-title"/>
+                    <Label text="• Use 'My Campus' to manage your profile and upload assignments." wrapText="true"/>
+                    <Label text="• Evaluate student submissions dynamically in real-time." wrapText="true"/>
+                    <Label text="• Upload course slides and instructional notices to dedicated class channels." wrapText="true"/>
+                    <Label text="• Start peer-to-peer Live Chats directly with students regarding academics." wrapText="true"/>
+                </VBox>
+                
+                <VBox spacing="15" styleClass="glass-card" maxWidth="800">
+                    <Label text="🌐 Network Capabilities" styleClass="section-title"/>
+                    <Label text="• Moodle 2.0 offers synchronous P2P networking." wrapText="true"/>
+                    <Label text="• Connect via the network panel using IP Server Addresses on local subsets for cross-device experiences." wrapText="true"/>
+                </VBox>
+                
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>
