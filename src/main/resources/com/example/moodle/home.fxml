@@ -17,9 +17,18 @@
             <Button fx:id="loginButton" text="Login" styleClass="nav-btn" onAction="#goToLogin" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button fx:id="signupButton" text="Sign Up" styleClass="nav-btn" onAction="#goToSignup" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button fx:id="campusButton" text="My Campus" styleClass="nav-btn" onAction="#goToCampus" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-            <Button text="Connect" styleClass="nav-btn" onAction="#showNetworkPanel" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button text="About" styleClass="nav-btn" onAction="#showAbout" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button text="Help" styleClass="nav-btn" onAction="#showHelp" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+            <Button text="Connect" styleClass="nav-btn" onAction="#showNetworkPanel" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+            <VBox fx:id="networkPanel" spacing="8" styleClass="glass-card" visible="false" managed="false" style="-fx-padding: 10;">
+                <TextField fx:id="serverAddressField" promptText="IP (e.g. 192.168.0.42:50555)" onAction="#connectToServer"/>
+                <HBox spacing="5" alignment="CENTER">
+                    <Button fx:id="connectServerButton" text="Connect" onAction="#connectToServer" style="-fx-font-size: 11px;"/>
+                    <Button fx:id="disconnectServerButton" text="Disconnect" onAction="#disconnectFromServer" style="-fx-font-size: 11px;" styleClass="cyber-btn-danger"/>
+                </HBox>
+                <Label fx:id="localServerLabel" text="Local IP:" textFill="#00e5ff" style="-fx-font-size: 10px;" wrapText="true"/>
+                <Label fx:id="networkStatusLabel" text="Not connected" textFill="#ff3366" style="-fx-font-size: 10px;" wrapText="true"/>
+            </VBox>
             
             <Region VBox.vgrow="ALWAYS"/>
             <Button fx:id="logoutButton" text="Logout" styleClass="cyber-btn-danger" onAction="#logout" visible="false" managed="false" maxWidth="Infinity" alignment="CENTER_LEFT"/>
@@ -32,7 +41,7 @@
             <!-- TOP HEADER -->
             <top>
                 <VBox>
-                    <HBox spacing="15" alignment="CENTER" style="-fx-padding: 40 30 10 30;">
+                    <HBox spacing="15" alignment="CENTER" style="-fx-padding: 20 30 10 30;">
                         <Region HBox.hgrow="ALWAYS"/>
                         
                         <!-- SEARCH BAR -->
@@ -89,8 +98,12 @@
                         <!-- ACTIVITY TRACKER (Github-style) -->
                         <VBox fx:id="activityTrackerPanel" spacing="12" alignment="CENTER" maxWidth="840"
                               styleClass="glass-card" visible="false" managed="false">
-                            <Label fx:id="activityTrackerTitle" text="Activities in the last year"
-                                   styleClass="section-title"/>
+                            <HBox alignment="CENTER" spacing="10">
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="activityTrackerTitle" text="Activities" styleClass="section-title"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <ComboBox fx:id="activityRangeFilter" promptText="1 Year" styleClass="custom-combo"/>
+                            </HBox>
                             <HBox alignment="CENTER" spacing="10">
                                 <VBox fx:id="activityDaysLabels" spacing="4" alignment="TOP_RIGHT"/>
                                 <!-- The grid container -->
@@ -106,21 +119,7 @@
                             </HBox>
                         </VBox>
 
-                        <!-- NETWORK MESSAGING CONNECT -->
-                        <VBox fx:id="networkPanel" spacing="10" maxWidth="840" styleClass="glass-card"
-                              visible="false" managed="false">
-                            <Label text="Network Messaging" styleClass="section-title"/>
-                            <Label text="To chat across laptops, enter the other laptop server address and connect." wrapText="true"/>
-
-                            <HBox spacing="10" alignment="CENTER_LEFT">
-                                <TextField fx:id="serverAddressField" promptText="Server address (example: 192.168.0.42:50555)" HBox.hgrow="ALWAYS" onAction="#connectToServer"/>
-                                <Button fx:id="connectServerButton" text="Connect" onAction="#connectToServer"/>
-                                <Button fx:id="disconnectServerButton" text="Disconnect" onAction="#disconnectFromServer" styleClass="cyber-btn-danger"/>
-                            </HBox>
-
-                            <Label fx:id="localServerLabel" text="Local IP:" wrapText="true"/>
-                            <Label fx:id="networkStatusLabel" text="Not connected" wrapText="true"/>
-                        </VBox>
+                        <!-- NETWORK MESSAGING (MOVED TO SIDEBAR) -->
 
                         <!-- LATEST NEWS -->
                         <VBox spacing="16" styleClass="news-wall" alignment="CENTER">

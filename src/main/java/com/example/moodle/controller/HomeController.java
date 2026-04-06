@@ -8,6 +8,7 @@ import com.example.moodle.service.DataStore;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.ComboBox;
 
 
 import com.example.moodle.service.MessageNetworkBridge;
@@ -41,6 +42,7 @@ public class HomeController {
     @FXML private VBox homeContentBox;
     @FXML private VBox heroBox;
     @FXML private MenuButton notificationMenu;
+    @FXML private ComboBox<String> activityRangeFilter;
     @FXML private VBox networkPanel;
     @FXML private TextField serverAddressField;
     @FXML private Label networkStatusLabel;
@@ -137,6 +139,12 @@ public class HomeController {
 
         setNetworkPanelVisible(false);
         refreshNetworkPanel();
+        
+        if (activityRangeFilter != null) {
+            activityRangeFilter.getItems().addAll("Last 7 Days", "Last 1 Month", "Last 1 Year");
+            activityRangeFilter.setValue("Last 1 Year");
+            activityRangeFilter.setOnAction(e -> renderActivityTracker());
+        }
         
         renderActivityTracker();
 
@@ -393,7 +401,16 @@ public class HomeController {
         
         activityGridContainer.getChildren().clear();
         LocalDate today = LocalDate.now();
-        LocalDate start = today.minusDays(364);
+        
+        int daysBack = 364;
+        if (activityRangeFilter != null && activityRangeFilter.getValue() != null) {
+            String filter = activityRangeFilter.getValue();
+            if (filter.equals("Last 7 Days")) daysBack = 6;
+            else if (filter.equals("Last 1 Month")) daysBack = 29;
+            else if (filter.equals("Last 1 Year")) daysBack = 364;
+        }
+
+        LocalDate start = today.minusDays(daysBack);
         while (start.getDayOfWeek() != DayOfWeek.MONDAY) {
             start = start.minusDays(1);
         }
