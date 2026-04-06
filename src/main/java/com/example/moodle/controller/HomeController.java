@@ -1,6 +1,14 @@
 package com.example.moodle.controller;
 
 import java.util.List;
+import java.time.LocalDate;
+import java.time.DayOfWeek;
+import java.util.Map;
+import com.example.moodle.service.DataStore;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.control.Tooltip;
+
 
 import com.example.moodle.service.MessageNetworkBridge;
 import com.example.moodle.util.SceneManager;
@@ -40,6 +48,11 @@ public class HomeController {
     @FXML private Button disconnectServerButton;
 
     private Timeline heroGradientTimeline;
+    @FXML private VBox activityTrackerPanel;
+    @FXML private Label activityTrackerTitle;
+    @FXML private VBox activityDaysLabels;
+    @FXML private HBox activityGridContainer;
+
 
     @FXML
     public void initialize() {
@@ -91,6 +104,9 @@ public class HomeController {
         MessageNetworkBridge.startServer();
         setNetworkPanelVisible(false);
         refreshNetworkPanel();
+        
+        renderActivityTracker();
+
     }
 
     private void setupHeroAnimation() {
@@ -294,4 +310,72 @@ public class HomeController {
     private void showAbout() {
         SceneManager.switchScene("about.fxml");
     }
+
+    private void renderActivityTracker() {
+        if (!Session.isLoggedIn() || activityTrackerPanel == null) return;
+        activityTrackerPanel.setVisible(true);
+        activityTrackerPanel.setManaged(true);
+        
+        String myId = Session.getIdentifier();
+        Map<LocalDate, Integer> counts = DataStore.getActivityCounts(myId);
+        
+        int total = 0;
+        for (int c : counts.values()) total += c;
+        activityTrackerTitle.setText(total + " contributions in the last year");
+        
+        activityDaysLabels.getChildren().clear();
+        String[] days = {"Mon", "", "Wed", "", "Fri", "", ""};
+        for (int i = 0; i < days.length; i++) {
+            Label l = new Label(days[i]);
+            l.setStyle("-fx-text-fill: #8b949e; -fx-font-size: 10px;");
+            l.setMinHeight(12);
+            l.setMaxHeight(12);
+            activityDaysLabels.getChildren().add(l);
+        }
+        
+        activityGridContainer.getChildren().clear();
+        LocalDate today = LocalDate.now();
+        LocalDate start = today.minusDays(364);
+        while (start.getDayOfWeek() != DayOfWeek.MONDAY) {
+            start = start.minusDays(1);
+        }
+        
+        LocalDate current = start;
+        while (!current.isAfter(today)) {
+            VBox weekCol = new VBox(4);
+            for (int i = 0; i < 7; i++) {
+                if (current.isAfter(today)) {
+                    // Fill remaining empty cells so that alignment doesn't break
+                    Region emptyCell = new Region();
+                    emptyCell.setMinSize(12, 12);
+                    emptyCell.setMaxSize(12, 12);
+                    weekCol.getChildren().add(emptyCell);
+                    current = current.plusDays(1);
+                    continue;
+                }
+                
+                Region cell = new Region();
+                cell.setMinSize(12, 12);
+                cell.setMaxSize(12, 12);
+                int count = counts.getOrDefault(current, 0);
+                cell.setStyle("-fx-background-radius: 2; " + getColorForCount(count));
+                
+                Tooltip t = new Tooltip(count + " activities on " + current);
+                Tooltip.install(cell, t);
+                
+                weekCol.getChildren().add(cell);
+                current = current.plusDays(1);
+            }
+            activityGridContainer.getChildren().add(weekCol);
+        }
+    }
+    
+    private String getColorForCount(int count) {
+        if (count == 0) return "-fx-background-color: #161b22;";
+        if (count == 1 || count == 2) return "-fx-background-color: #0e4429;";
+        if (count == 3 || count == 4) return "-fx-background-color: #006d32;";
+        if (count >= 5 && count <= 6) return "-fx-background-color: #26a641;";
+        return "-fx-background-color: #39d353;";
+    }
+
 }

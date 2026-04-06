@@ -38,6 +38,7 @@ public class DataStore {
     private static final String HALLS_FILE = "hall_data.txt";
     private static final String HALL_REQUESTS_FILE = "hall_room_requests.txt";
     private static final String HALL_ALLOCATIONS_FILE = "hall_allocations.txt";
+    private static final String ACTIVITY_FILE = "student_activity.txt";
     private static final Object MESSAGE_LOCK = new Object();
 
     static {
@@ -391,6 +392,7 @@ public class DataStore {
     // Format: authorId|authorName|content|timestamp
 
     public static void addCommunityPost(String authorId, String authorName, String content) {
+        logActivity(authorId, "community");
         addCommunityPost(authorId, authorName, content, "");
     }
 
@@ -994,5 +996,28 @@ public class DataStore {
             lines.remove(postIndex);
             FileStore.saveLines(COMMUNITY_FILE, lines);
         }
+    }
+
+    // ==================== ACTIVITY TRACKER ====================
+    public static void logActivity(String userId, String type) {
+        if (userId == null || userId.isEmpty()) return;
+        String dateStr = java.time.LocalDate.now().toString();
+        FileStore.appendLine(ACTIVITY_FILE, userId + "|" + dateStr + "|" + type);
+    }
+
+    public static java.util.Map<java.time.LocalDate, Integer> getActivityCounts(String userId) {
+        java.util.Map<java.time.LocalDate, Integer> counts = new java.util.HashMap<>();
+        for (String line : FileStore.loadLines(ACTIVITY_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 2 && p[0].equals(userId)) {
+                try {
+                    java.time.LocalDate date = java.time.LocalDate.parse(p[1]);
+                    counts.put(date, counts.getOrDefault(date, 0) + 1);
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+        }
+        return counts;
     }
 }

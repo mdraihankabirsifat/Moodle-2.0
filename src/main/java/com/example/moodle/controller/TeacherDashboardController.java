@@ -613,8 +613,7 @@ public class TeacherDashboardController {
         setScrollContent(box);
     }
 
-    // ===================== MESSAGES (Messenger Style) =====================
-
+    // ===================== MESSAGES =====================
     @FXML
     private void showMessages() {
         VBox box = new VBox(12);
@@ -625,7 +624,6 @@ public class TeacherDashboardController {
 
         String myId = teacherEmail();
 
-        // Start a conversation by entering an ID/email.
         HBox composeRow = new HBox(10);
         composeRow.setAlignment(Pos.CENTER_LEFT);
         TextField newChatField = new TextField();
@@ -633,12 +631,49 @@ public class TeacherDashboardController {
         HBox.setHgrow(newChatField, Priority.ALWAYS);
         Button newChatBtn = new Button("\uD83D\uDCAC Open Chat");
         newChatBtn.setStyle("-fx-background-color: #0d2a4a; -fx-text-fill: white; -fx-background-radius: 8;");
-        Button groupChatBtn = new Button("\uD83D\uDC65 Group Chat");
+        
+        Button groupChatBtn = new Button("\uD83D\uDC65 Join/Create Group");
         groupChatBtn.setStyle("-fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-background-radius: 8;");
-        groupChatBtn.setOnAction(e -> showGroupChat());
+        
         composeRow.getChildren().addAll(newChatField, newChatBtn, groupChatBtn);
 
-        // Left: conversation list
+        VBox managePanel = new VBox(10);
+        managePanel.setStyle("-fx-padding: 12; -fx-background-color: #0a1628; -fx-background-radius: 10;");
+        managePanel.setVisible(false);
+        managePanel.setManaged(false);
+
+        Label createTitle = new Label("Create New Group");
+        createTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+
+        TextField groupNameField = new TextField();
+        groupNameField.setPromptText("Group Name (e.g. CSE101 Study Group)");
+        TextField groupPasswordField = new TextField();
+        groupPasswordField.setPromptText("Group Password (optional)");
+        TextField membersField = new TextField();
+        membersField.setPromptText("Members (comma separated emails/IDs)");
+
+        Label createMsg = new Label();
+        Button createBtn = new Button("Create Group");
+        createBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+
+        Label searchTitle = new Label("Search & Join Group");
+        searchTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+
+        TextField searchField = new TextField();
+        searchField.setPromptText("Search group name...");
+        Button searchBtn = new Button("Search");
+        VBox searchResults = new VBox(6);
+        Label joinMsg = new Label();
+
+        HBox searchRow = new HBox(10, searchField, searchBtn);
+        HBox.setHgrow(searchField, Priority.ALWAYS);
+        searchRow.setAlignment(Pos.CENTER_LEFT);
+
+        managePanel.getChildren().addAll(
+                createTitle, groupNameField, groupPasswordField, membersField, createBtn, createMsg,
+                new Separator(), searchTitle, searchRow, searchResults, joinMsg
+        );
+
         VBox convList = new VBox(8);
         convList.setStyle("-fx-padding: 8;");
         ScrollPane convScroll = new ScrollPane(convList);
@@ -646,8 +681,11 @@ public class TeacherDashboardController {
         convScroll.setPrefWidth(300);
         convScroll.setMinWidth(260);
         convScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
+        
+        VBox leftPane = new VBox(10, convScroll);
+        leftPane.setPrefWidth(300);
+        leftPane.setMinWidth(260);
 
-        // Right: active chat panel
         Label chatTitle = new Label("Select a conversation");
         chatTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
@@ -678,11 +716,96 @@ public class TeacherDashboardController {
         chatPane.setStyle("-fx-background-color: #111a2e; -fx-background-radius: 12; -fx-padding: 10;");
         HBox.setHgrow(chatPane, Priority.ALWAYS);
 
-        HBox mainRow = new HBox(12, convScroll, chatPane);
+        HBox mainRow = new HBox(12, leftPane, chatPane);
         HBox.setHgrow(mainRow, Priority.ALWAYS);
 
         final String[] activePartner = {null};
+        final boolean[] isGroupChat = {false};
         final Runnable[] refreshConversationsRef = new Runnable[1];
+
+        groupChatBtn.setOnAction(e -> {
+            boolean show = !managePanel.isVisible();
+            managePanel.setVisible(show);
+            managePanel.setManaged(show);
+        });
+        
+        java.util.function.Consumer<String> openChat = partnerRaw -> {
+            String partner = DataStore.canonicalMessageId(partnerRaw);
+            if (partner.isEmpty()) return;
+            activePartner[0] = partner;
+            isGroupChat[0] = false;
+        };
+        
+        java.util.function.Consumer<String> openGroup = groupName -> {
+            if (groupName == null || groupName.isBlank()) return;
+            activePartner[0] = groupName;
+            isGroupChat[0] = true;
+        };
+
+        createBtn.setOnAction(e -> {
+            String gName = groupNameField.getText().trim();
+            String gPass = groupPasswordField.getText().trim();
+            String members = membersField.getText().trim();
+            if (gName.isEmpty()) {
+                createMsg.setStyle("-fx-text-fill: #ff3366;");
+                createMsg.setText("Enter a group name.");
+                return;
+            }
+            String memberList = members.isEmpty() ? myId : myId + "," + members;
+            DataStore.createGroup(gName, myId, gPass, memberList);
+            createMsg.setStyle("-fx-text-fill: #00ff88;");
+            createMsg.setText("Group '" + gName + "' created! \u2705");
+            groupNameField.clear();
+            groupPasswordField.clear();
+            membersField.clear();
+            openGroup.accept(gName);
+            if (refreshConversationsRef[0] != null) refreshConversationsRef[0].run();
+        });
+
+        searchBtn.setOnAction(e -> {
+            searchResults.getChildren().clear();
+            String query = searchField.getText().trim();
+            if (query.isEmpty()) return;
+
+            List<String[]> found = DataStore.searchGroups(query);
+            if (found.isEmpty()) {
+                searchResults.getChildren().add(new Label("No groups found."));
+            } else {
+                for (String[] g : found) {
+                    HBox row = new HBox(10);
+                    row.setAlignment(Pos.CENTER_LEFT);
+                    row.setStyle("-fx-padding: 8; -fx-background-color: #111a2e; -fx-background-radius: 6;");
+
+                    Label gLabel = new Label("\uD83D\uDC65 " + g[0] + " (by " + g[1] + ")"
+                            + (g[2].isEmpty() ? "" : " \uD83D\uDD12"));
+                    gLabel.setStyle("-fx-font-weight: bold;");
+                    HBox.setHgrow(gLabel, Priority.ALWAYS);
+
+                    TextField passField = new TextField();
+                    passField.setPromptText("Password");
+                    passField.setPrefWidth(120);
+                    passField.setVisible(!g[2].isEmpty());
+                    passField.setManaged(!g[2].isEmpty());
+
+                    Button joinBtn = new Button("Join");
+                    joinBtn.setOnAction(ev -> {
+                        boolean ok = DataStore.joinGroup(g[0], passField.getText().trim(), myId);
+                        if (ok) {
+                            joinMsg.setStyle("-fx-text-fill: #00ff88;");
+                            joinMsg.setText("Joined '" + g[0] + "'!");
+                            openGroup.accept(g[0]);
+                            if (refreshConversationsRef[0] != null) refreshConversationsRef[0].run();
+                        } else {
+                            joinMsg.setStyle("-fx-text-fill: #ff3366;");
+                            joinMsg.setText("Wrong password for '" + g[0] + "'.");
+                        }
+                    });
+
+                    row.getChildren().addAll(gLabel, passField, joinBtn);
+                    searchResults.getChildren().add(row);
+                }
+            }
+        });
 
         Runnable refreshChat = () -> {
             chatMessages.getChildren().clear();
@@ -692,66 +815,106 @@ public class TeacherDashboardController {
                 chatTitle.setText("Select a conversation");
                 chatInput.setDisable(true);
                 sendBtn.setDisable(true);
-                Label hint = new Label("Choose a chat from the left, or start one above.");
+                Label hint = new Label("Choose a chat or group from the left, or start one above.");
                 hint.setStyle("-fx-text-fill: #6a7a8e; -fx-padding: 20;");
                 chatMessages.getChildren().add(hint);
                 return;
             }
 
-            chatTitle.setText("\uD83D\uDCAC Chat with " + activePartner[0]);
             chatInput.setDisable(false);
             sendBtn.setDisable(false);
 
-            List<Message> allMsgs = DataStore.getMessagesFor(myId);
-            List<Message> filtered = new java.util.ArrayList<>();
-            for (Message m : allMsgs) {
-                boolean between = (DataStore.isSameMessagingUser(m.getFrom(), myId)
-                        && DataStore.isSameMessagingUser(m.getTo(), activePartner[0]))
-                        || (DataStore.isSameMessagingUser(m.getFrom(), activePartner[0])
-                        && DataStore.isSameMessagingUser(m.getTo(), myId));
-                if (between) {
-                    filtered.add(m);
-                }
-            }
-
-            for (Message m : filtered) {
-                boolean isMine = DataStore.isSameMessagingUser(m.getFrom(), myId);
-                HBox bubble = new HBox();
-                bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
-
-                VBox msgBox = new VBox(2);
-                msgBox.setMaxWidth(320);
-                msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
-                        + (isMine
-                        ? "-fx-background-color: #0d2a4a;"
-                        : "-fx-background-color: #111a2e; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 14;"));
-
-                Label content = new Label(m.getContent());
-                content.setWrapText(true);
-                content.setStyle(isMine
-                        ? "-fx-text-fill: #00e5ff; -fx-font-size: 13px;"
-                        : "-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
-
-                Label ts = new Label(m.getTimestamp());
-                ts.setStyle("-fx-font-size: 10px; "
-                        + (isMine ? "-fx-text-fill: rgba(0,229,255,0.5);" : "-fx-text-fill: #4a5a6e;"));
-
-                msgBox.getChildren().addAll(content, ts);
-
-                Region spacer = new Region();
-                HBox.setHgrow(spacer, Priority.ALWAYS);
-                if (isMine) {
-                    bubble.getChildren().addAll(spacer, msgBox);
+            if (isGroupChat[0]) {
+                chatTitle.setText("\uD83D\uDC65 Chat " + activePartner[0]);
+                List<String[]> msgs = DataStore.getGroupMessages(activePartner[0]);
+                if (msgs.isEmpty()) {
+                    Label noMsg = new Label("No messages yet. Start the conversation!");
+                    noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
+                    chatMessages.getChildren().add(noMsg);
                 } else {
-                    bubble.getChildren().addAll(msgBox, spacer);
-                }
-                chatMessages.getChildren().add(bubble);
-            }
+                    for (String[] m : msgs) {
+                        boolean isMine = m[1].equals(myId);
+                        HBox bubble = new HBox();
+                        bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
 
-            if (chatMessages.getChildren().isEmpty()) {
-                Label noMsg = new Label("No messages yet. Start the conversation!");
-                noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
-                chatMessages.getChildren().add(noMsg);
+                        VBox msgBox = new VBox(2);
+                        msgBox.setMaxWidth(320);
+                        msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
+                                + (isMine
+                                ? "-fx-background-color: #0d2a4a;"
+                                : "-fx-background-color: #111a2e; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 14;"));
+
+                        Label sender = new Label(isMine ? "You" : m[2]);
+                        sender.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; "
+                                + (isMine ? "-fx-text-fill: rgba(0,229,255,0.6);" : "-fx-text-fill: #00e5ff;"));
+
+                        Label content = new Label(m[3]);
+                        content.setWrapText(true);
+                        content.setStyle(isMine ? "-fx-text-fill: #00e5ff; -fx-font-size: 13px;" : "-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
+                        Label ts = new Label(m[4]);
+                        ts.setStyle("-fx-font-size: 10px; " + (isMine ? "-fx-text-fill: rgba(0,229,255,0.5);" : "-fx-text-fill: #4a5a6e;"));
+
+                        msgBox.getChildren().addAll(sender, content, ts);
+                        Region spacer = new Region();
+                        HBox.setHgrow(spacer, Priority.ALWAYS);
+                        if (isMine) bubble.getChildren().addAll(spacer, msgBox);
+                        else bubble.getChildren().addAll(msgBox, spacer);
+                        chatMessages.getChildren().add(bubble);
+                    }
+                }
+            } else {
+                chatTitle.setText("\uD83D\uDCAC Chat with " + activePartner[0]);
+                List<Message> allMsgs = DataStore.getMessagesFor(myId);
+                List<Message> filtered = new java.util.ArrayList<>();
+                for (Message m : allMsgs) {
+                    boolean between = (DataStore.isSameMessagingUser(m.getFrom(), myId)
+                            && DataStore.isSameMessagingUser(m.getTo(), activePartner[0]))
+                            || (DataStore.isSameMessagingUser(m.getFrom(), activePartner[0])
+                            && DataStore.isSameMessagingUser(m.getTo(), myId));
+                    if (between) {
+                        filtered.add(m);
+                    }
+                }
+
+                for (Message m : filtered) {
+                    boolean isMine = DataStore.isSameMessagingUser(m.getFrom(), myId);
+                    HBox bubble = new HBox();
+                    bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+                    VBox msgBox = new VBox(2);
+                    msgBox.setMaxWidth(320);
+                    msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
+                            + (isMine
+                            ? "-fx-background-color: #0d2a4a;"
+                            : "-fx-background-color: #111a2e; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 14;"));
+
+                    Label content = new Label(m.getContent());
+                    content.setWrapText(true);
+                    content.setStyle(isMine
+                            ? "-fx-text-fill: #00e5ff; -fx-font-size: 13px;"
+                            : "-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
+
+                    Label ts = new Label(m.getTimestamp());
+                    ts.setStyle("-fx-font-size: 10px; "
+                            + (isMine ? "-fx-text-fill: rgba(0,229,255,0.5);" : "-fx-text-fill: #4a5a6e;"));
+
+                    msgBox.getChildren().addAll(content, ts);
+
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+                    if (isMine) {
+                        bubble.getChildren().addAll(spacer, msgBox);
+                    } else {
+                        bubble.getChildren().addAll(msgBox, spacer);
+                    }
+                    chatMessages.getChildren().add(bubble);
+                }
+
+                if (chatMessages.getChildren().isEmpty()) {
+                    Label noMsg = new Label("No messages yet. Start the conversation!");
+                    noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
+                    chatMessages.getChildren().add(noMsg);
+                }
             }
 
             chatScroll.applyCss();
@@ -759,23 +922,14 @@ public class TeacherDashboardController {
             chatScroll.setVvalue(1.0);
         };
 
-        java.util.function.Consumer<String> openChat = partnerRaw -> {
-            String partner = DataStore.canonicalMessageId(partnerRaw);
-            if (partner.isEmpty()) {
-                return;
-            }
-            activePartner[0] = partner;
-            refreshChat.run();
-            if (refreshConversationsRef[0] != null) {
-                refreshConversationsRef[0].run();
-            }
-        };
-
         newChatBtn.setOnAction(e -> {
             String to = DataStore.canonicalMessageId(newChatField.getText().trim());
             if (!to.isEmpty()) {
-                openChat.accept(to);
+                activePartner[0] = to;
+                isGroupChat[0] = false;
                 newChatField.clear();
+                refreshChat.run();
+                if (refreshConversationsRef[0] != null) refreshConversationsRef[0].run();
             }
         });
         newChatField.setOnAction(e -> newChatBtn.fire());
@@ -793,8 +947,12 @@ public class TeacherDashboardController {
                 statusLabel.setText("Type a message.");
                 return;
             }
-
-            DataStore.sendMessage(myId, activePartner[0], content);
+            if (isGroupChat[0]) {
+                String senderName = Session.getName() != null ? Session.getName() : myId;
+                DataStore.addGroupMessage(activePartner[0], myId, senderName, content);
+            } else {
+                DataStore.sendMessage(myId, activePartner[0], content);
+            }
             chatInput.clear();
             statusLabel.setText("");
             refreshChat.run();
@@ -805,8 +963,51 @@ public class TeacherDashboardController {
 
         refreshConversationsRef[0] = () -> {
             convList.getChildren().clear();
-            List<Message> messages = DataStore.getMessagesFor(myId);
-
+            
+            java.util.List<String[]> groups = DataStore.getGroupsForUser(myId);
+            for (String[] g : groups) {
+                String gName = g[0];
+                HBox card = new HBox(12);
+                card.setAlignment(Pos.CENTER_LEFT);
+                card.setStyle("-fx-padding: 12; -fx-background-color: #111a2e; -fx-background-radius: 10; "
+                        + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
+                if (isGroupChat[0] && gName.equals(activePartner[0])) {
+                    card.setStyle("-fx-padding: 12; -fx-background-color: #0d1525; -fx-background-radius: 10; "
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
+                }
+                Label avatar = new Label("\uD83D\uDC65");
+                avatar.setStyle("-fx-font-size: 28px;");
+                
+                VBox info = new VBox(3);
+                HBox.setHgrow(info, Priority.ALWAYS);
+                Label nameLabel = new Label(gName);
+                nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #00e5ff;");
+                
+                java.util.List<String[]> gMsgs = DataStore.getGroupMessages(gName);
+                if (!gMsgs.isEmpty()) {
+                    String[] lastMsg = gMsgs.get(gMsgs.size() - 1);
+                    String preview = lastMsg[2] + ": " + lastMsg[3];
+                    if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
+                    Label previewLabel = new Label(preview);
+                    previewLabel.setStyle("-fx-text-fill: #7a8a9e; -fx-font-size: 12px;");
+                    info.getChildren().addAll(nameLabel, previewLabel);
+                    Label timeLabel = new Label(lastMsg[4]);
+                    timeLabel.setStyle("-fx-text-fill: #4a5a6e; -fx-font-size: 11px;");
+                    card.getChildren().addAll(avatar, info, timeLabel);
+                } else {
+                    info.getChildren().add(nameLabel);
+                    card.getChildren().addAll(avatar, info);
+                }
+                card.setOnMouseClicked(ev -> {
+                    activePartner[0] = gName;
+                    isGroupChat[0] = true;
+                    refreshChat.run();
+                    if (refreshConversationsRef[0] != null) refreshConversationsRef[0].run();
+                });
+                convList.getChildren().add(card);
+            }
+            
+            java.util.List<Message> messages = DataStore.getMessagesFor(myId);
             java.util.Map<String, Message> lastMessages = new java.util.LinkedHashMap<>();
             for (Message m : messages) {
                 boolean sentByMe = DataStore.isSameMessagingUser(m.getFrom(), myId);
@@ -815,49 +1016,55 @@ public class TeacherDashboardController {
                     lastMessages.put(partner, m);
                 }
             }
+            
+            java.util.List<java.util.Map.Entry<String, Message>> entries = new java.util.ArrayList<>(lastMessages.entrySet());
+            for (int i = entries.size() - 1; i >= 0; i--) {
+                java.util.Map.Entry<String, Message> entry = entries.get(i);
+                String partner = entry.getKey();
+                Message lastMsg = entry.getValue();
 
-            if (lastMessages.isEmpty()) {
+                HBox card = new HBox(12);
+                card.setAlignment(Pos.CENTER_LEFT);
+                card.setStyle("-fx-padding: 12; -fx-background-color: #111a2e; -fx-background-radius: 10; "
+                        + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
+
+                Label avatar = new Label("\uD83D\uDC64");
+                avatar.setStyle("-fx-font-size: 28px;");
+
+                VBox info = new VBox(3);
+                HBox.setHgrow(info, Priority.ALWAYS);
+                Label nameLabel = new Label(partner);
+                nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #00e5ff;");
+                boolean fromMe = DataStore.isSameMessagingUser(lastMsg.getFrom(), myId);
+                String preview = (fromMe ? "You: " : "") + lastMsg.getContent();
+                if (preview.length() > 50) {
+                    preview = preview.substring(0, 50) + "...";
+                }
+                Label previewLabel = new Label(preview);
+                previewLabel.setStyle("-fx-text-fill: #7a8a9e; -fx-font-size: 12px;");
+                info.getChildren().addAll(nameLabel, previewLabel);
+
+                Label timeLabel = new Label(lastMsg.getTimestamp());
+                timeLabel.setStyle("-fx-text-fill: #4a5a6e; -fx-font-size: 11px;");
+
+                if (!isGroupChat[0] && activePartner[0] != null && DataStore.isSameMessagingUser(activePartner[0], partner)) {
+                    card.setStyle("-fx-padding: 12; -fx-background-color: #0d1525; -fx-background-radius: 10; "
+                            + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
+                }
+
+                card.getChildren().addAll(avatar, info, timeLabel);
+                card.setOnMouseClicked(ev -> {
+                    activePartner[0] = partner;
+                    isGroupChat[0] = false;
+                    refreshChat.run();
+                    if (refreshConversationsRef[0] != null) refreshConversationsRef[0].run();
+                });
+                convList.getChildren().add(card);
+            }
+            if (convList.getChildren().isEmpty()) {
                 Label noMsg = new Label("No conversations yet. Start one above!");
                 noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
                 convList.getChildren().add(noMsg);
-            } else {
-                List<java.util.Map.Entry<String, Message>> entries = new java.util.ArrayList<>(lastMessages.entrySet());
-                for (int i = entries.size() - 1; i >= 0; i--) {
-                    java.util.Map.Entry<String, Message> entry = entries.get(i);
-                    String partner = entry.getKey();
-                    Message lastMsg = entry.getValue();
-
-                    HBox card = new HBox(12);
-                    card.setAlignment(Pos.CENTER_LEFT);
-                    card.setStyle("-fx-padding: 12; -fx-background-color: #111a2e; -fx-background-radius: 10; "
-                            + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
-
-                    Label avatar = new Label("\uD83D\uDC64");
-                    avatar.setStyle("-fx-font-size: 28px;");
-
-                    VBox info = new VBox(3);
-                    HBox.setHgrow(info, Priority.ALWAYS);
-                    Label nameLabel = new Label(partner);
-                    nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #00e5ff;");
-                    boolean fromMe = DataStore.isSameMessagingUser(lastMsg.getFrom(), myId);
-                    String preview = (fromMe ? "You: " : "") + lastMsg.getContent();
-                    if (preview.length() > 50) preview = preview.substring(0, 50) + "...";
-                    Label previewLabel = new Label(preview);
-                    previewLabel.setStyle("-fx-text-fill: #7a8a9e; -fx-font-size: 12px;");
-                    info.getChildren().addAll(nameLabel, previewLabel);
-
-                    Label timeLabel = new Label(lastMsg.getTimestamp());
-                    timeLabel.setStyle("-fx-text-fill: #4a5a6e; -fx-font-size: 11px;");
-
-                    if (activePartner[0] != null && DataStore.isSameMessagingUser(activePartner[0], partner)) {
-                        card.setStyle("-fx-padding: 12; -fx-background-color: #0d1525; -fx-background-radius: 10; "
-                                + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.08), 6, 0, 0, 2); -fx-cursor: hand;");
-                    }
-
-                    card.getChildren().addAll(avatar, info, timeLabel);
-                    card.setOnMouseClicked(ev -> openChat.accept(partner));
-                    convList.getChildren().add(card);
-                }
             }
         };
 
@@ -867,16 +1074,19 @@ public class TeacherDashboardController {
         Label liveHint = new Label("\uD83D\uDFE2 Messages auto-refresh every 3 seconds");
         liveHint.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
 
-        box.getChildren().addAll(title, composeRow, new Separator(), mainRow, liveHint);
+        box.getChildren().addAll(title, composeRow, managePanel, new Separator(), mainRow, liveHint);
         setScrollContent(box);
-
+        
+        if (panelRefreshTimeline != null) panelRefreshTimeline.stop();
         panelRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
             refreshConversationsRef[0].run();
             refreshChat.run();
         }));
         panelRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
         panelRefreshTimeline.play();
+
     }
+
 
     private void showTeacherDirectChat(String recipientId) {
         if (chatRefreshTimeline != null) chatRefreshTimeline.stop();
@@ -979,336 +1189,6 @@ public class TeacherDashboardController {
         chatRefreshTimeline.play();
     }
 
-    private void showGroupChat() {
-        VBox box = new VBox(12);
-        box.setPadding(new Insets(10));
-
-        Label title = new Label("\uD83D\uDC65 Group Chat");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
-
-        String myId = teacherEmail();
-
-        final String[] activeGroup = {null};
-        final Runnable[] refreshGroupsRef = new Runnable[1];
-        final Runnable[] refreshChatRef = new Runnable[1];
-
-        java.util.function.Consumer<String> openGroup = groupName -> {
-            if (groupName == null || groupName.isBlank()) return;
-            activeGroup[0] = groupName;
-            if (refreshChatRef[0] != null) refreshChatRef[0].run();
-            if (refreshGroupsRef[0] != null) refreshGroupsRef[0].run();
-        };
-
-        Label groupsTitle = new Label("Your Groups");
-        groupsTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-
-        VBox groupList = new VBox(8);
-        groupList.setStyle("-fx-padding: 8;");
-
-        ScrollPane groupScroll = new ScrollPane(groupList);
-        groupScroll.setFitToWidth(true);
-        groupScroll.setPrefWidth(300);
-        groupScroll.setMinWidth(260);
-        groupScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
-
-        VBox leftPane = new VBox(8, groupsTitle, groupScroll);
-        leftPane.setPrefWidth(300);
-        leftPane.setMinWidth(260);
-
-        Label activeGroupTitle = new Label("Select a group");
-        activeGroupTitle.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
-
-        Button manageBtn = new Button("Join/Create Group");
-        manageBtn.setStyle("-fx-font-size: 11px; -fx-padding: 6 10 6 10; -fx-background-radius: 8;");
-
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-        HBox rightHeader = new HBox(10, activeGroupTitle, headerSpacer, manageBtn);
-        rightHeader.setAlignment(Pos.CENTER_LEFT);
-
-        VBox managePanel = new VBox(10);
-        managePanel.setStyle("-fx-padding: 12; -fx-background-color: #0a1628; -fx-background-radius: 10;");
-        managePanel.setVisible(false);
-        managePanel.setManaged(false);
-
-        Label createTitle = new Label("Create New Group");
-        createTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-
-        TextField groupNameField = new TextField();
-        groupNameField.setPromptText("Group Name (e.g. CSE101 Study Group)");
-        TextField groupPasswordField = new TextField();
-        groupPasswordField.setPromptText("Group Password (optional)");
-        TextField membersField = new TextField();
-        membersField.setPromptText("Members (comma separated emails/IDs)");
-
-        Label createMsg = new Label();
-        Button createBtn = new Button("Create Group");
-        createBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
-
-        Label searchTitle = new Label("Search & Join Group");
-        searchTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-
-        TextField searchField = new TextField();
-        searchField.setPromptText("Search group name...");
-        Button searchBtn = new Button("Search");
-        VBox searchResults = new VBox(6);
-        Label joinMsg = new Label();
-
-        HBox searchRow = new HBox(10, searchField, searchBtn);
-        HBox.setHgrow(searchField, Priority.ALWAYS);
-        searchRow.setAlignment(Pos.CENTER_LEFT);
-
-        managePanel.getChildren().addAll(
-                createTitle, groupNameField, groupPasswordField, membersField, createBtn, createMsg,
-                new Separator(), searchTitle, searchRow, searchResults, joinMsg
-        );
-
-        VBox chatMessages = new VBox(8);
-        chatMessages.setStyle("-fx-padding: 10;");
-
-        ScrollPane chatScroll = new ScrollPane(chatMessages);
-        chatScroll.setFitToWidth(true);
-        chatScroll.setPrefHeight(360);
-        chatScroll.setStyle("-fx-background-color: #0a1628; -fx-background-radius: 10;");
-
-        TextArea chatInput = new TextArea();
-        chatInput.setPromptText("Type a message...");
-        chatInput.setPrefRowCount(2);
-        chatInput.setDisable(true);
-        HBox.setHgrow(chatInput, Priority.ALWAYS);
-
-        Button sendBtn = new Button("Send \u27A1");
-        sendBtn.setDisable(true);
-        sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; "
-                + "-fx-background-radius: 20; -fx-padding: 10 20 10 20;");
-
-        Label chatStatus = new Label();
-        HBox inputRow = new HBox(10, chatInput, sendBtn);
-        inputRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox rightPane = new VBox(10, rightHeader, managePanel, chatScroll, inputRow, chatStatus);
-        rightPane.setStyle("-fx-background-color: #111a2e; -fx-background-radius: 12; -fx-padding: 10;");
-        HBox.setHgrow(rightPane, Priority.ALWAYS);
-
-        HBox mainRow = new HBox(12, leftPane, rightPane);
-        HBox.setHgrow(mainRow, Priority.ALWAYS);
-
-        manageBtn.setOnAction(e -> {
-            boolean show = !managePanel.isVisible();
-            managePanel.setVisible(show);
-            managePanel.setManaged(show);
-        });
-
-        createBtn.setOnAction(e -> {
-            String gName = groupNameField.getText().trim();
-            String gPass = groupPasswordField.getText().trim();
-            String members = membersField.getText().trim();
-            if (gName.isEmpty()) {
-                createMsg.setStyle("-fx-text-fill: #ff3366;");
-                createMsg.setText("Enter a group name.");
-                return;
-            }
-            String memberList = members.isEmpty() ? myId : myId + "," + members;
-            DataStore.createGroup(gName, myId, gPass, memberList);
-            createMsg.setStyle("-fx-text-fill: #00ff88;");
-            createMsg.setText("Group '" + gName + "' created! \u2705");
-            groupNameField.clear();
-            groupPasswordField.clear();
-            membersField.clear();
-            openGroup.accept(gName);
-        });
-
-        searchBtn.setOnAction(e -> {
-            searchResults.getChildren().clear();
-            String query = searchField.getText().trim();
-            if (query.isEmpty()) return;
-
-            List<String[]> found = DataStore.searchGroups(query);
-            if (found.isEmpty()) {
-                searchResults.getChildren().add(new Label("No groups found."));
-            } else {
-                for (String[] g : found) {
-                    HBox row = new HBox(10);
-                    row.setAlignment(Pos.CENTER_LEFT);
-                    row.setStyle("-fx-padding: 8; -fx-background-color: #111a2e; -fx-background-radius: 6;");
-
-                    Label gLabel = new Label("\uD83D\uDC65 " + g[0] + " (by " + g[1] + ")"
-                            + (g[2].isEmpty() ? "" : " \uD83D\uDD12"));
-                    gLabel.setStyle("-fx-font-weight: bold;");
-                    HBox.setHgrow(gLabel, Priority.ALWAYS);
-
-                    TextField passField = new TextField();
-                    passField.setPromptText("Password");
-                    passField.setPrefWidth(120);
-                    passField.setVisible(!g[2].isEmpty());
-                    passField.setManaged(!g[2].isEmpty());
-
-                    Button joinBtn = new Button("Join");
-                    joinBtn.setOnAction(ev -> {
-                        boolean ok = DataStore.joinGroup(g[0], passField.getText().trim(), myId);
-                        if (ok) {
-                            joinMsg.setStyle("-fx-text-fill: #00ff88;");
-                            joinMsg.setText("Joined '" + g[0] + "'!");
-                            openGroup.accept(g[0]);
-                        } else {
-                            joinMsg.setStyle("-fx-text-fill: #ff3366;");
-                            joinMsg.setText("Wrong password for '" + g[0] + "'.");
-                        }
-                    });
-
-                    row.getChildren().addAll(gLabel, passField, joinBtn);
-                    searchResults.getChildren().add(row);
-                }
-            }
-        });
-
-        refreshGroupsRef[0] = () -> {
-            groupList.getChildren().clear();
-            List<String[]> groups = DataStore.getGroupsForUser(myId);
-
-            if (groups.isEmpty()) {
-                activeGroup[0] = null;
-                Label noGroup = new Label("No groups yet. Use Join/Create Group.");
-                noGroup.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
-                groupList.getChildren().add(noGroup);
-                return;
-            }
-
-            boolean activeExists = false;
-            for (String[] g : groups) {
-                String gName = g[0];
-                if (gName.equals(activeGroup[0])) activeExists = true;
-
-                HBox card = new HBox(10);
-                card.setAlignment(Pos.CENTER_LEFT);
-                card.setStyle("-fx-padding: 10; -fx-background-color: #111a2e; -fx-background-radius: 10; "
-                        + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.06), 5, 0, 0, 1); -fx-cursor: hand;");
-
-                if (gName.equals(activeGroup[0])) {
-                    card.setStyle("-fx-padding: 10; -fx-background-color: #0d1525; -fx-background-radius: 10; "
-                            + "-fx-effect: dropshadow(gaussian, rgba(0,229,255,0.06), 5, 0, 0, 1); -fx-cursor: hand;");
-                }
-
-                Label icon = new Label("\uD83D\uDC65");
-                icon.setStyle("-fx-font-size: 18px;");
-
-                Label name = new Label(gName + (g[2].isEmpty() ? "" : " \uD83D\uDD12"));
-                name.setStyle("-fx-font-weight: bold; -fx-text-fill: #00e5ff;");
-
-                card.getChildren().addAll(icon, name);
-                card.setOnMouseClicked(ev -> openGroup.accept(gName));
-                groupList.getChildren().add(card);
-            }
-
-            if (!activeExists) {
-                activeGroup[0] = null;
-            }
-        };
-
-        refreshChatRef[0] = () -> {
-            chatMessages.getChildren().clear();
-
-            if (activeGroup[0] == null || activeGroup[0].isEmpty()) {
-                activeGroupTitle.setText("Select a group");
-                chatInput.setDisable(true);
-                sendBtn.setDisable(true);
-                Label hint = new Label("Pick a group from the left to start chatting.");
-                hint.setStyle("-fx-text-fill: #6a7a8e; -fx-padding: 20;");
-                chatMessages.getChildren().add(hint);
-                return;
-            }
-
-            activeGroupTitle.setText("\uD83D\uDC65 " + activeGroup[0]);
-            chatInput.setDisable(false);
-            sendBtn.setDisable(false);
-
-            List<String[]> msgs = DataStore.getGroupMessages(activeGroup[0]);
-            if (msgs.isEmpty()) {
-                Label noMsg = new Label("No messages yet. Start the conversation!");
-                noMsg.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 20;");
-                chatMessages.getChildren().add(noMsg);
-            } else {
-                for (String[] m : msgs) {
-                    boolean isMine = m[1].equals(myId);
-                    HBox bubble = new HBox();
-                    bubble.setAlignment(isMine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
-
-                    VBox msgBox = new VBox(2);
-                    msgBox.setMaxWidth(320);
-                    msgBox.setStyle("-fx-padding: 10 14 10 14; -fx-background-radius: 14; "
-                            + (isMine
-                            ? "-fx-background-color: #0d2a4a;"
-                            : "-fx-background-color: #111a2e; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 14;"));
-
-                    Label sender = new Label(isMine ? "You" : m[2]);
-                    sender.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; "
-                            + (isMine ? "-fx-text-fill: rgba(0,229,255,0.6);" : "-fx-text-fill: #00e5ff;"));
-
-                    Label content = new Label(m[3]);
-                    content.setWrapText(true);
-                    content.setStyle(isMine
-                            ? "-fx-text-fill: #00e5ff; -fx-font-size: 13px;"
-                            : "-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
-
-                    Label ts = new Label(m[4]);
-                    ts.setStyle("-fx-font-size: 10px; "
-                            + (isMine ? "-fx-text-fill: rgba(0,229,255,0.5);" : "-fx-text-fill: #4a5a6e;"));
-
-                    msgBox.getChildren().addAll(sender, content, ts);
-
-                    Region spacer = new Region();
-                    HBox.setHgrow(spacer, Priority.ALWAYS);
-                    if (isMine) {
-                        bubble.getChildren().addAll(spacer, msgBox);
-                    } else {
-                        bubble.getChildren().addAll(msgBox, spacer);
-                    }
-                    chatMessages.getChildren().add(bubble);
-                }
-            }
-
-            chatScroll.applyCss();
-            chatScroll.layout();
-            chatScroll.setVvalue(1.0);
-        };
-
-        sendBtn.setOnAction(e -> {
-            String content = chatInput.getText().trim();
-            if (activeGroup[0] == null || activeGroup[0].isEmpty()) {
-                chatStatus.setStyle("-fx-text-fill: #ff3366;");
-                chatStatus.setText("Select a group first.");
-                return;
-            }
-            if (content.isEmpty()) {
-                chatStatus.setStyle("-fx-text-fill: #ff3366;");
-                chatStatus.setText("Type a message.");
-                return;
-            }
-
-            String senderName = Session.getName() != null ? Session.getName() : myId;
-            DataStore.addGroupMessage(activeGroup[0], myId, senderName, content);
-            chatInput.clear();
-            chatStatus.setText("");
-            refreshChatRef[0].run();
-            refreshGroupsRef[0].run();
-        });
-
-        refreshGroupsRef[0].run();
-        refreshChatRef[0].run();
-
-        Label liveHint = new Label("\uD83D\uDFE2 Groups and chat auto-refresh every 3 seconds");
-        liveHint.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
-
-        box.getChildren().addAll(title, mainRow, liveHint);
-        setScrollContent(box);
-
-        panelRefreshTimeline = new Timeline(new KeyFrame(Duration.seconds(3), e -> {
-            refreshGroupsRef[0].run();
-            refreshChatRef[0].run();
-        }));
-        panelRefreshTimeline.setCycleCount(Timeline.INDEFINITE);
-        panelRefreshTimeline.play();
-    }
 
     // ===================== VIEW STUDENTS =====================
 

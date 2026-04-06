@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Stack;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -91,7 +93,7 @@ public class SceneManager {
         if (stage.getScene() != null && stage.getScene().getRoot() != null && !fxml.equals("splash.fxml")) {
             Parent oldRoot = stage.getScene().getRoot();
             stage.getScene().setFill(javafx.scene.paint.Color.valueOf("#0a1628"));
-            FadeTransition fadeOut = new FadeTransition(Duration.millis(150), oldRoot);
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(50), oldRoot);
             fadeOut.setFromValue(oldRoot.getOpacity());
             fadeOut.setToValue(0.0);
             fadeOut.setOnFinished(e -> executeSceneSwitch(fxml, stage));
@@ -155,10 +157,16 @@ public class SceneManager {
                 stage.setMaximized(true);
             }
 
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), root);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(150), root);
             fadeIn.setFromValue(0);
             fadeIn.setToValue(1);
-            fadeIn.play();
+
+            TranslateTransition slideIn = new TranslateTransition(Duration.millis(250), root);
+            slideIn.setFromY(20);
+            slideIn.setToY(0);
+
+            ParallelTransition pt = new ParallelTransition(fadeIn, slideIn);
+            pt.play();
 
         } catch (Exception e) {
             e.printStackTrace();
