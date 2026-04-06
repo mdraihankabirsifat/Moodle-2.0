@@ -61,15 +61,15 @@ public class HomeController {
         campusButton.setVisible(true);
 
         if (Session.isLoggedIn()) {
-            loginButton.setVisible(false);
-            signupButton.setVisible(false);
-            profileButton.setVisible(true);
-            logoutButton.setVisible(true);
+            loginButton.setVisible(false); loginButton.setManaged(false);
+            signupButton.setVisible(false); signupButton.setManaged(false);
+            profileButton.setVisible(true); profileButton.setManaged(true);
+            logoutButton.setVisible(true); logoutButton.setManaged(true);
         } else {
-            loginButton.setVisible(true);
-            signupButton.setVisible(true);
-            profileButton.setVisible(false);
-            logoutButton.setVisible(false);
+            loginButton.setVisible(true); loginButton.setManaged(true);
+            signupButton.setVisible(true); signupButton.setManaged(true);
+            profileButton.setVisible(false); profileButton.setManaged(false);
+            logoutButton.setVisible(false); logoutButton.setManaged(false);
         }
 
         // Live search
@@ -77,6 +77,7 @@ public class HomeController {
             searchResults.getChildren().clear();
             if (newVal.trim().isEmpty()) {
                 searchResults.setVisible(false);
+                searchResults.setManaged(false);
                 return;
             }
             List<String> matches = UniversityDatabase.search(newVal.trim());
@@ -94,6 +95,7 @@ public class HomeController {
                 }
             }
             searchResults.setVisible(true);
+            searchResults.setManaged(true);
         });
 
         updateThemeMenuButtonText();
