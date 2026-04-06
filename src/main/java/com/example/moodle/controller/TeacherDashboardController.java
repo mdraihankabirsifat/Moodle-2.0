@@ -130,7 +130,7 @@ public class TeacherDashboardController {
         Label desigLabel = new Label("Designation: " + (Session.getDesignation() != null ? Session.getDesignation() : "N/A"));
         desigLabel.setStyle("-fx-font-size: 14px;");
         Label typeLabel = new Label("Type: " + (Session.getTeacherType() != null ? Session.getTeacherType() : "N/A"));
-        typeLabel.setStyle("-fx-font-size: 14px;");git a
+        typeLabel.setStyle("-fx-font-size: 14px;");
         Label emailLabel = new Label("Identifier: " + teacherEmail());
         emailLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7a8a9e;");
 
