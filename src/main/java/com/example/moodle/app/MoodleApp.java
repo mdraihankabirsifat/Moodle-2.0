@@ -18,6 +18,7 @@ public class MoodleApp extends Application {
 
         stage.setTitle("Moodle 2.0");
         stage.setResizable(true);
+        stage.setMaximized(true);
         stage.show();
     }
 

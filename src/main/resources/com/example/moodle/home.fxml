@@ -21,8 +21,8 @@
                    styleClass="title-label"/>
 
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
-            <Button text="+ Connect" styleClass="nav-btn" onAction="#showNetworkPanel"/>
-            <Button text="ℹ About" styleClass="nav-btn" onAction="#showAbout"/>
+            <Button text="Connect" styleClass="nav-btn" onAction="#showNetworkPanel"/>
+            <Button text="About" styleClass="nav-btn" onAction="#showAbout"/>
 
             <Region HBox.hgrow="ALWAYS"/>
 
@@ -133,11 +133,11 @@
                  </VBox>
 
             <!-- LATEST NEWS -->
-            <VBox spacing="16" maxWidth="1100" prefWidth="1100" styleClass="news-wall">
+            <VBox spacing="16" styleClass="news-wall" alignment="CENTER">
                 <Label text="🗞 Latest News"
-                       styleClass="section-title"/>
+                       styleClass="section-title" alignment="CENTER"/>
 
-                <GridPane hgap="20" vgap="20" styleClass="news-grid-wide">
+                <GridPane hgap="20" vgap="20" styleClass="news-grid-wide" alignment="CENTER">
 
                     <VBox spacing="10" styleClass="news-card-large" GridPane.columnIndex="0" GridPane.rowIndex="0">
                         <ImageView fitWidth="420" fitHeight="230" preserveRatio="false" styleClass="news-image"

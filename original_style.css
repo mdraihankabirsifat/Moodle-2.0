@@ -1,5 +1,5 @@
-/* =====================================================
-   CYBER NEON THEME — MOODLE 2.0
+﻿/* =====================================================
+   CYBER NEON THEME ΓÇö MOODLE 2.0
    Inspired by TypeRush cyberpunk UI
 ===================================================== */
 
@@ -8,7 +8,7 @@
 ===================================================== */
 
 .root {
-    -fx-font-family: "Segoe UI", "Inter", "Roboto", "Outfit", "Helvetica", sans-serif;
+    -fx-font-family: "Consolas", "JetBrains Mono", "Courier New", monospace;
 }
 
 .root.cyber-dark {

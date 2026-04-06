@@ -36,7 +36,7 @@
 
             <!-- Teacher login fields -->
             <VBox fx:id="teacherLoginFields" spacing="10" visible="false" managed="false">
-                <TextField fx:id="teacherNameField" promptText="Teacher Name"/>
+                <TextField fx:id="teacherEmailField" promptText="Teacher Email"/>
                 <PasswordField fx:id="teacherPasswordField" promptText="Password"/>
             </VBox>
 

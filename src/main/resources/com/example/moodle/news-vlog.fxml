@@ -24,15 +24,15 @@
 
     <center>
         <ScrollPane fitToWidth="true">
-            <VBox spacing="16" maxWidth="1080" alignment="TOP_CENTER" styleClass="vlog-page" style="-fx-padding: 34 28 34 28;">
-                <ImageView fx:id="vlogImage" fitWidth="1020" fitHeight="520" preserveRatio="true" smooth="true" styleClass="vlog-image"/>
+            <HBox spacing="30" maxWidth="1280" alignment="TOP_LEFT" styleClass="vlog-page" style="-fx-padding: 34 28 34 28;">
+                <ImageView fx:id="vlogImage" fitWidth="650" fitHeight="600" preserveRatio="true" smooth="true" styleClass="vlog-image"/>
 
-                <VBox spacing="12" styleClass="glass-card" maxWidth="1020">
+                <VBox spacing="12" styleClass="glass-card" maxWidth="500" HBox.hgrow="ALWAYS">
                     <Label fx:id="vlogTitle" styleClass="vlog-title" wrapText="true"/>
                     <Label fx:id="vlogSummary" styleClass="vlog-summary" wrapText="true"/>
                     <Label fx:id="vlogStory" styleClass="vlog-story" wrapText="true"/>
                 </VBox>
-            </VBox>
+            </HBox>
         </ScrollPane>
     </center>
 

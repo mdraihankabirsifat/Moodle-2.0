@@ -88,8 +88,21 @@ public class SceneManager {
         // Ensure active stage is correct before loading FXML (controllers use Session in initialize)
         activeStage = stage;
 
-        try {
+        if (stage.getScene() != null && stage.getScene().getRoot() != null && !fxml.equals("splash.fxml")) {
+            Parent oldRoot = stage.getScene().getRoot();
+            stage.getScene().setFill(javafx.scene.paint.Color.valueOf("#0a1628"));
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(150), oldRoot);
+            fadeOut.setFromValue(oldRoot.getOpacity());
+            fadeOut.setToValue(0.0);
+            fadeOut.setOnFinished(e -> executeSceneSwitch(fxml, stage));
+            fadeOut.play();
+        } else {
+            executeSceneSwitch(fxml, stage);
+        }
+    }
 
+    private static void executeSceneSwitch(String fxml, Stage stage) {
+        try {
             String path = "/com/example/moodle/" + fxml;
             URL resource = SceneManager.class.getResource(path);
 
@@ -100,8 +113,8 @@ public class SceneManager {
 
             // Preserve window dimensions and state before switching
             boolean wasMaximized = stage.isMaximized();
-            double prevWidth = stage.getWidth();
-            double prevHeight = stage.getHeight();
+            double prevWidth = Math.max(1000, stage.getWidth());
+            double prevHeight = Math.max(650, stage.getHeight());
             boolean hadScene = (stage.getScene() != null);
 
             FXMLLoader loader = new FXMLLoader(resource);
@@ -126,17 +139,15 @@ public class SceneManager {
             } else {
                 scene = new Scene(root, 1000, 650);
             }
+            scene.setFill(javafx.scene.paint.Color.valueOf("#0a1628"));
 
             // Safe CSS loading
-            URL css = SceneManager.class
-                    .getResource("/com/example/moodle/style.css");
-
+            URL css = SceneManager.class.getResource("/com/example/moodle/style.css");
             if (css != null) {
                 scene.getStylesheets().add(css.toExternalForm());
             }
 
             ThemeManager.applyTheme(scene);
-
             stage.setScene(scene);
 
             // Restore maximized state after setting the scene
@@ -144,9 +155,7 @@ public class SceneManager {
                 stage.setMaximized(true);
             }
 
-            FadeTransition fadeIn
-                    = new FadeTransition(Duration.millis(400), root);
-
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(300), root);
             fadeIn.setFromValue(0);
             fadeIn.setToValue(1);
             fadeIn.play();

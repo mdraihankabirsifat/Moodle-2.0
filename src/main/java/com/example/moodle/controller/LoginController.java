@@ -28,7 +28,7 @@ public class LoginController {
     @FXML private VBox teacherLoginFields;
 
     // Teacher fields
-    @FXML private TextField teacherNameField;
+    @FXML private TextField teacherEmailField;
     @FXML private PasswordField teacherPasswordField;
 
     @FXML
@@ -94,16 +94,16 @@ public class LoginController {
     }
 
     private void handleTeacherLogin() {
-        String name = teacherNameField.getText().trim();
+        String email = teacherEmailField.getText().trim();
         String pass = teacherPasswordField.getText().trim();
 
-        if (name.isEmpty() || pass.isEmpty()) {
+        if (email.isEmpty() || pass.isEmpty()) {
             messageLabel.setStyle("-fx-text-fill: red;");
-            messageLabel.setText("Enter teacher name and password.");
+            messageLabel.setText("Enter teacher email and password.");
             return;
         }
 
-        String[] profile = DataStore.getTeacherProfileByName(name);
+        String[] profile = DataStore.getTeacherProfileByEmail(email);
         if (profile == null) {
             messageLabel.setStyle("-fx-text-fill: red;");
             messageLabel.setText("Teacher account not found. Please sign up first.");
@@ -116,6 +116,7 @@ public class LoginController {
             return;
         }
 
+        String name = profile[0];
         String dept = profile[1];
         String designation = profile[2];
         String type = profile[3];
@@ -126,7 +127,10 @@ public class LoginController {
                 ? normalizedName + "@campus"
                 : normalizedName + "@" + normalizedDept + ".campus";
 
-        Session.login(name, dept, "", teacherId);
+        // Let's use the actual email if present, else fallback
+        String activeId = profile.length >= 6 ? profile[5] : teacherId;
+
+        Session.login(name, dept, "", activeId);
         Session.setRole("TEACHER");
         Session.setDepartment(dept);
         Session.setDesignation(designation);

@@ -390,7 +390,7 @@ public class CampusDashboardController {
         GridPane grid = new GridPane();
         grid.setHgap(2);
         grid.setVgap(2);
-        grid.setStyle("-fx-background-color: #ddd;");
+        grid.setStyle("-fx-background-color: transparent;");
 
         // Header
         String[] headers = {"Course", "Grade Point", "Letter Grade"};
@@ -478,7 +478,7 @@ public class CampusDashboardController {
         Label title = new Label("Vending Machine");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
-        Label balanceLabel = new Label("Balance: ৳" + vendingBalance);
+        Label balanceLabel = new Label("Balance: " + vendingBalance + "/-");
         balanceLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #00ff88;");
 
         String[] items = {"Coffee", "Tea", "Chips", "Chocolate", "Water", "Juice", "Sandwich", "Biscuits"};
@@ -503,7 +503,7 @@ public class CampusDashboardController {
             emoji.setStyle("-fx-font-size: 28px;");
             Label name = new Label(item);
             name.setStyle("-fx-font-weight: bold;");
-            Label priceLabel = new Label("৳" + price);
+            Label priceLabel = new Label(price + "/-");
             priceLabel.setStyle("-fx-text-fill: #0088cc;");
 
             Button buyBtn = new Button("Buy");
@@ -511,7 +511,7 @@ public class CampusDashboardController {
             buyBtn.setOnAction(e -> {
                 if (vendingBalance >= price) {
                     vendingBalance -= price;
-                    balanceLabel.setText("Balance: ৳" + vendingBalance);
+                    balanceLabel.setText("Balance: " + vendingBalance + "/-");
                     msgLabel.setStyle("-fx-text-fill: #00ff88;");
                     msgLabel.setText("Purchased " + item + "! Enjoy! 🎉");
                 } else {
@@ -525,12 +525,12 @@ public class CampusDashboardController {
         }
 
         // Recharge button
-        Button rechargeBtn = new Button("Recharge ৳500");
+        Button rechargeBtn = new Button("Recharge 500/-");
         rechargeBtn.setOnAction(e -> {
             vendingBalance += 500;
-            balanceLabel.setText("Balance: ৳" + vendingBalance);
+            balanceLabel.setText("Balance: " + vendingBalance + "/-");
             msgLabel.setStyle("-fx-text-fill: #00ff88;");
-            msgLabel.setText("Recharged ৳500 successfully!");
+            msgLabel.setText("Recharged 500/- successfully!");
         });
 
         box.getChildren().addAll(title, balanceLabel, grid, rechargeBtn, msgLabel);
@@ -894,9 +894,19 @@ public class CampusDashboardController {
         grid.setHgap(15);
         grid.setVgap(15);
 
+        List<Payment> payments = DataStore.getPayments(studentEmail);
+
         for (int i = 0; i < fees.length; i++) {
             final String type = fees[i][0];
             final int amount = Integer.parseInt(fees[i][1]);
+
+            boolean isPaid = false;
+            for (Payment p : payments) {
+                if (p.getType().equals(type)) {
+                    isPaid = true;
+                    break;
+                }
+            }
 
             VBox card = new VBox(8);
             card.setAlignment(Pos.CENTER);
@@ -907,14 +917,18 @@ public class CampusDashboardController {
             emoji.setStyle("-fx-font-size: 28px;");
             Label name = new Label(type);
             name.setStyle("-fx-font-weight: bold;");
-            Label price = new Label("\u09F3" + amount);
+            Label price = new Label(amount + "/-");
             price.setStyle("-fx-text-fill: #0088cc; -fx-font-size: 16px;");
 
-            Button payBtn = new Button("Pay Now");
+            Button payBtn = new Button(isPaid ? "Paid ✅" : "Pay Now");
+            payBtn.setDisable(isPaid);
+            if (isPaid) {
+                payBtn.setStyle("-fx-background-color: #0d1b2a; -fx-text-fill: #00ff88; -fx-opacity: 1; -fx-cursor: default;");
+            }
             payBtn.setOnAction(e -> {
                 DataStore.makePayment(studentEmail, type, amount);
                 msgLabel.setStyle("-fx-text-fill: #00ff88;");
-                msgLabel.setText(type + " - \u09F3" + amount + " paid successfully! \u2705");
+                msgLabel.setText(type + " - " + amount + "/- paid successfully! \u2705");
                 showPayment();
             });
 
@@ -929,18 +943,18 @@ public class CampusDashboardController {
         histTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(histTitle);
 
-        List<Payment> payments = DataStore.getPayments(studentEmail);
+
         if (payments.isEmpty()) {
             box.getChildren().add(new Label("No payment records."));
         } else {
             int total = 0;
             for (Payment p : payments) {
-                Label item = new Label("\u2705 " + p.getType() + " | \u09F3" + p.getAmount() + " | " + p.getDate());
+                Label item = new Label("\u2705 " + p.getType() + " | " + p.getAmount() + "/- | " + p.getDate());
                 item.setStyle("-fx-padding: 6; -fx-background-color: #0a1a12; -fx-background-radius: 6;");
                 box.getChildren().add(item);
                 total += p.getAmount();
             }
-            Label totalLabel = new Label("Total Paid: \u09F3" + total);
+            Label totalLabel = new Label("Total Paid: " + total + "/-");
             totalLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00e5ff;");
             box.getChildren().add(totalLabel);
         }
@@ -1799,17 +1813,7 @@ public class CampusDashboardController {
                     Button commentBtn = new Button("\uD83D\uDCAC Comment");
                     commentBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #5a6a7e; -fx-font-weight: 700; -fx-cursor: hand; -fx-font-size: 12px;");
 
-                    Button shareBtn = new Button("\uD83D\uDD17 Share");
-                    shareBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #5a6a7e; -fx-font-weight: 700; -fx-cursor: hand; -fx-font-size: 12px;");
-                    shareBtn.setOnAction(e -> {
-                        javafx.scene.input.Clipboard clipboard = javafx.scene.input.Clipboard.getSystemClipboard();
-                        javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
-                        cc.putString(postAuthorName + ": " + postContent);
-                        clipboard.setContent(cc);
-                        shareBtn.setText("\u2705 Copied!");
-                    });
-
-                    HBox buttonBar = new HBox(20, likeBtn, commentBtn, shareBtn);
+                    HBox buttonBar = new HBox(20, likeBtn, commentBtn);
                     buttonBar.setAlignment(Pos.CENTER_LEFT);
                     buttonBar.setStyle("-fx-padding: 4 0 4 0;");
 
@@ -1868,6 +1872,14 @@ public class CampusDashboardController {
                             + "-fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 20; "
                             + "-fx-background-radius: 20; -fx-padding: 6 12 6 12; -fx-font-size: 12px;");
                     HBox.setHgrow(commentInput, javafx.scene.layout.Priority.ALWAYS);
+
+                    // Pause refresh so text is not lost
+                    commentInput.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                        if (refreshTimeline != null) {
+                            if (isFocused) refreshTimeline.pause();
+                            else refreshTimeline.play();
+                        }
+                    });
 
                     Button sendCommentBtn = new Button("➤");
                     sendCommentBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; "
@@ -2291,8 +2303,8 @@ public class CampusDashboardController {
             String[] dr = doctors.get(r);
             for (int c = 0; c < 4 && c < dr.length; c++) {
                 Label cell = new Label(dr[c]);
-                String bg = r % 2 == 0 ? "white" : "#f8f9ff";
-                cell.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: " + bg + "; -fx-min-width: 140;");
+                String docBg = r % 2 == 0 ? "#111a2e" : "#0d1b2a";
+                cell.setStyle("-fx-padding: 8 12 8 12; -fx-background-color: " + docBg + "; -fx-min-width: 140; -fx-text-fill: #d0d8e8;");
                 cell.setMaxWidth(Double.MAX_VALUE);
                 docGrid.add(cell, c, r + 1);
             }
@@ -2343,12 +2355,12 @@ public class CampusDashboardController {
         testTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 10 0 0 0;");
 
         String[][] tests = {
-            {"Blood Test (CBC)", "\u09F3200", "Available Daily"},
-            {"Urine Test", "\u09F3150", "Available Daily"},
-            {"X-Ray", "\u09F3500", "Mon-Fri"},
-            {"ECG", "\u09F3400", "Mon, Wed, Fri"},
-            {"Eye Test", "\u09F3300", "Tue, Thu"},
-            {"Blood Sugar", "\u09F3100", "Available Daily"},};
+            {"Blood Test (CBC)", "200/-", "Available Daily"},
+            {"Urine Test", "150/-", "Available Daily"},
+            {"X-Ray", "500/-", "Mon-Fri"},
+            {"ECG", "400/-", "Mon, Wed, Fri"},
+            {"Eye Test", "300/-", "Tue, Thu"},
+            {"Blood Sugar", "100/-", "Available Daily"},};
 
         VBox testList = new VBox(6);
         for (String[] t : tests) {
@@ -2370,12 +2382,12 @@ public class CampusDashboardController {
         medTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 10 0 0 0;");
 
         String[][] meds = {
-            {"Paracetamol", "Fever / Pain", "\u09F35"},
-            {"Antacid", "Acidity", "\u09F38"},
-            {"Cetirizine", "Allergy", "\u09F36"},
-            {"ORS Packet", "Dehydration", "\u09F310"},
-            {"Bandage Roll", "First Aid", "\u09F315"},
-            {"Antiseptic Cream", "Wounds", "\u09F320"},};
+            {"Paracetamol", "Fever / Pain", "5/-"},
+            {"Antacid", "Acidity", "8/-"},
+            {"Cetirizine", "Allergy", "6/-"},
+            {"ORS Packet", "Dehydration", "10/-"},
+            {"Bandage Roll", "First Aid", "15/-"},
+            {"Antiseptic Cream", "Wounds", "20/-"},};
 
         VBox medList = new VBox(6);
         for (String[] m : meds) {

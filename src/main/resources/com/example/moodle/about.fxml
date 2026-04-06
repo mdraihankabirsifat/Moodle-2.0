@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.StackPane?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.moodle.controller.AboutController">
+
+    <!-- TOP NAV -->
+    <top>
+        <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar" style="-fx-padding: 15;">
+            <Label text="ABOUT MOODLE 2.0" styleClass="title-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
+            <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true">
+            <VBox spacing="25" alignment="CENTER" style="-fx-padding: 40;">
+                
+                <Label text="MOODLE 2.0" style="-fx-font-size: 36px; -fx-font-weight: 900; -fx-text-fill: #00e5ff; -fx-effect: dropshadow(gaussian, rgba(0,229,255,0.4), 12, 0.3, 0, 0);"/>
+                <Label text="Varsity Simulator" style="-fx-font-size: 18px; -fx-text-fill: #5a6a7e; -fx-font-weight: 600;"/>
+                <Label text="A student-friendly platform where academic tools, campus services, and communication stay connected." 
+                       wrapText="true" textAlignment="CENTER" style="-fx-text-fill: #d0d8e8; -fx-font-size: 14px; -fx-max-width: 500;"/>
+
+                <Separator style="-fx-border-color: rgba(0,229,255,0.2); -fx-max-width: 800;"/>
+
+                <!-- Single Row for Developers and Advisor -->
+                <HBox spacing="30" alignment="CENTER">
+                    
+                    <!-- Developer 1 -->
+                    <VBox alignment="CENTER" spacing="15" styleClass="glass-card" style="-fx-padding: 25;">
+                        <javafx.scene.image.ImageView fx:id="dev1Image" fitWidth="260" fitHeight="320" preserveRatio="true">
+                            <image>
+                                <javafx.scene.image.Image url="@news/sifat.jpeg" />
+                            </image>
+                            <effect>
+                                <javafx.scene.effect.DropShadow radius="16" color="#00000099" offsetY="6" />
+                            </effect>
+                        </javafx.scene.image.ImageView>
+                        <Label text="Md. Raihan Kabir Sifat" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;"/>
+                        <Label text="Developer | CSE, BUET" style="-fx-font-size: 13px; -fx-text-fill: #ffb300;"/>
+                    </VBox>
+
+                    <!-- Developer 2 -->
+                    <VBox alignment="CENTER" spacing="15" styleClass="glass-card" style="-fx-padding: 25;">
+                        <javafx.scene.image.ImageView fx:id="dev2Image" fitWidth="260" fitHeight="320" preserveRatio="true">
+                            <image>
+                                <javafx.scene.image.Image url="@news/naeem.jpeg" />
+                            </image>
+                            <effect>
+                                <javafx.scene.effect.DropShadow radius="16" color="#00000099" offsetY="6" />
+                            </effect>
+                        </javafx.scene.image.ImageView>
+                        <Label text="Khandokar Naeemul Haque" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;"/>
+                        <Label text="Developer | CSE, BUET" style="-fx-font-size: 13px; -fx-text-fill: #ffb300;"/>
+                    </VBox>
+
+                    <!-- Advisor -->
+                    <VBox alignment="CENTER" spacing="15" styleClass="glass-card" style="-fx-padding: 25;">
+                        <StackPane>
+                            <javafx.scene.image.ImageView fx:id="advisorImage" fitWidth="260" fitHeight="320" preserveRatio="true">
+                                <effect>
+                                    <javafx.scene.effect.DropShadow radius="16" color="#00000099" offsetY="6" />
+                                </effect>
+                            </javafx.scene.image.ImageView>
+                            <Label text="🎓" style="-fx-font-size: 50px;"/>
+                        </StackPane>
+                        <Label text="Md. Nurul Muttakin" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;"/>
+                        <Label text="Advisor | Lecturer, CSE, BUET" style="-fx-font-size: 13px; -fx-text-fill: #00ff88;"/>
+                    </VBox>
+
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

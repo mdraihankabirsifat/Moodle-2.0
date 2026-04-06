@@ -34,7 +34,7 @@ public class NewsVlogController {
 
             case "dhaka-medical-beds" -> applyVlog(
                     "Dhaka Medical College Hospital Expansion Plan Announced",
-                    "/com/example/moodle/news/dhaka-medical-beds.jpg",
+                    "/com/example/moodle/news/dhaka-medical-beds.png",
                     "A new government redesign will transform Dhaka Medical College Hospital into a state-of-the-art medical facility.",
                     "1. The master plan includes construction of 27 new multi-storey buildings.\n"
                         + "2. Bed capacity will rise to 5,000 so more people can receive treatment.\n"

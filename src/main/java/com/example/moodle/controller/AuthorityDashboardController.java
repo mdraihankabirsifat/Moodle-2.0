@@ -297,14 +297,14 @@ public class AuthorityDashboardController {
             totalAmount += p.getAmount();
         }
 
-        Label summary = new Label("Total Collections: \u09F3" + totalAmount
-                + " from " + payments.size() + " payments");
+        Label summary = new Label("Total Collections: " + totalAmount
+                + "/- from " + payments.size() + " payments");
         summary.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #00ff88;");
 
         GridPane grid = new GridPane();
         grid.setHgap(2);
         grid.setVgap(2);
-        grid.setStyle("-fx-background-color: #ddd;");
+        grid.setStyle("-fx-background-color: transparent;");
 
         String[] headers = {"Student", "Type", "Amount", "Date", "Status"};
         for (int c = 0; c < headers.length; c++) {
@@ -318,7 +318,7 @@ public class AuthorityDashboardController {
         int row = 1;
         for (Payment p : payments) {
             String[] vals = {p.getStudentEmail(), p.getType(),
-                "\u09F3" + p.getAmount(), p.getDate(), p.getStatus()};
+                p.getAmount() + "/-", p.getDate(), p.getStatus()};
             for (int c = 0; c < vals.length; c++) {
                 Label cell = new Label(vals[c]);
                 cell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: #111a2e; -fx-min-width: 120;");
