@@ -45,6 +45,22 @@ public final class MessageNetworkBridge {
     private static volatile String connectionStatus = "Not connected";
     private static volatile String serverStatus = "Server stopped";
 
+    public interface ConnectionListener {
+        void onConnected(String peerAddress);
+    }
+    
+    private static ConnectionListener connectionListener;
+
+    public static void setConnectionListener(ConnectionListener listener) {
+        connectionListener = listener;
+    }
+
+    private static void notifyConnection(String peerAddress) {
+        if (connectionListener != null) {
+            connectionListener.onConnected(peerAddress);
+        }
+    }
+
     private MessageNetworkBridge() {
     }
 
@@ -115,7 +131,7 @@ public final class MessageNetworkBridge {
             return false;
         }
 
-        if (!ping(target)) {
+        if (!hello(target)) {
             connectionStatus = "Unable to connect to " + formatAddress(target);
             connectedPeer = null;
             return false;
@@ -192,6 +208,19 @@ public final class MessageNetworkBridge {
                 return;
             }
 
+            if ("HELLO".equals(line)) {
+                InetAddress remoteAddress = socket.getInetAddress();
+                if (remoteAddress != null) {
+                    connectedPeer = new InetSocketAddress(remoteAddress.getHostAddress(), DEFAULT_PORT);
+                    connectionStatus = "Connected to " + formatAddress(connectedPeer) + " (auto)";
+                    notifyConnection(formatAddress(connectedPeer));
+                }
+                writer.write("WELCOME");
+                writer.newLine();
+                writer.flush();
+                return;
+            }
+
             if (!line.startsWith("MSG|")) {
                 writer.write("ERR");
                 writer.newLine();
@@ -217,6 +246,7 @@ public final class MessageNetworkBridge {
                 if (remoteAddress != null) {
                     connectedPeer = new InetSocketAddress(remoteAddress.getHostAddress(), DEFAULT_PORT);
                     connectionStatus = "Connected to " + formatAddress(connectedPeer) + " (auto)";
+                    notifyConnection(formatAddress(connectedPeer));
                 }
             }
 
@@ -273,6 +303,26 @@ public final class MessageNetworkBridge {
 
                 String pong = reader.readLine();
                 return "PONG".equals(pong);
+            }
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private static boolean hello(InetSocketAddress target) {
+        try (Socket socket = new Socket()) {
+            socket.connect(target, CONNECT_TIMEOUT_MS);
+            socket.setSoTimeout(IO_TIMEOUT_MS);
+
+            try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
+                 BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8))) {
+
+                writer.write("HELLO");
+                writer.newLine();
+                writer.flush();
+
+                String ack = reader.readLine();
+                return "WELCOME".equals(ack);
             }
         } catch (IOException e) {
             return false;

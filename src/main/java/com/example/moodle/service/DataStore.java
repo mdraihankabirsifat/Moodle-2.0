@@ -140,6 +140,7 @@ public class DataStore {
                                         String title, String content) {
         FileStore.appendLine(SUBMISSIONS_FILE,
                 studentId + "|" + courseCode + "|" + title + "|" + content + "|pending");
+        logActivity(studentId, "assignment");
     }
 
     public static List<String[]> getSubmissionsForAssignment(String courseCode, String title) {
@@ -181,6 +182,7 @@ public class DataStore {
                                 String description, String teacherEmail) {
         FileStore.appendLine(SLIDES_FILE,
                 courseCode + "|" + title + "|" + description + "|" + teacherEmail);
+        logActivity(teacherEmail, "project_upload");
     }
 
     public static List<String[]> getSlidesForCourse(String courseCode) {
@@ -217,8 +219,19 @@ public class DataStore {
         if (fromId.isEmpty() || toId.isEmpty() || safeContent.isEmpty()) return;
 
         synchronized (MESSAGE_LOCK) {
-            FileStore.appendLine(MESSAGES_FILE,
-                    fromId + "|" + toId + "|" + safeContent + "|" + safeTimestamp);
+            String newLine = fromId + "|" + toId + "|" + safeContent + "|" + safeTimestamp;
+            List<String> lines = FileStore.loadLines(MESSAGES_FILE);
+            int start = Math.max(0, lines.size() - 20); // Check last 20 messages for duplicates
+            boolean duplicate = false;
+            for (int i = start; i < lines.size(); i++) {
+                if (lines.get(i).equals(newLine)) {
+                    duplicate = true;
+                    break;
+                }
+            }
+            if (!duplicate) {
+                FileStore.appendLine(MESSAGES_FILE, newLine);
+            }
         }
     }
 
@@ -333,6 +346,7 @@ public class DataStore {
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         FileStore.appendLine(PAYMENTS_FILE,
                 studentEmail + "|" + type + "|" + amount + "|" + date + "|Paid");
+        logActivity(studentEmail, "payment");
     }
 
     public static List<Payment> getPayments(String studentEmail) {
@@ -563,6 +577,7 @@ public class DataStore {
                                        String date, String time, String reason) {
         FileStore.appendLine(HOSPITAL_FILE,
                 studentId + "|" + doctor + "|" + date + "|" + time + "|" + reason + "|Booked");
+        logActivity(studentId, "appointment");
     }
 
     public static List<String[]> getAppointmentsFor(String studentId) {

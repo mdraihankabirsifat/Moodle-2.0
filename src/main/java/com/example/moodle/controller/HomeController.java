@@ -41,7 +41,6 @@ public class HomeController {
     @FXML private VBox homeContentBox;
     @FXML private VBox heroBox;
     @FXML private MenuButton notificationMenu;
-    private int unreadNotifications = 3;
     @FXML private VBox networkPanel;
     @FXML private TextField serverAddressField;
     @FXML private Label networkStatusLabel;
@@ -70,9 +69,14 @@ public class HomeController {
             if (notificationMenu != null) {
                 notificationMenu.setVisible(true);
                 notificationMenu.setManaged(true);
-                notificationMenu.setText("🔔 (" + unreadNotifications + ")");
+                int unreadCounts = Session.getUnreadNotifications();
+                if (unreadCounts > 0) {
+                    notificationMenu.setText("🔔 (" + unreadCounts + ")");
+                } else {
+                    notificationMenu.setText("🔔");
+                }
                 notificationMenu.setOnShowing(ev -> {
-                    unreadNotifications = 0;
+                    Session.setUnreadNotifications(0);
                     notificationMenu.setText("🔔");
                 });
             }
@@ -117,6 +121,20 @@ public class HomeController {
         setupResponsiveLayout();
 
         MessageNetworkBridge.startServer();
+        MessageNetworkBridge.setConnectionListener(peerAddress -> {
+            javafx.application.Platform.runLater(() -> {
+                if (notificationMenu != null && notificationMenu.isVisible()) {
+                    int unread = Session.getUnreadNotifications() + 1;
+                    Session.setUnreadNotifications(unread);
+                    notificationMenu.setText("🔔 (" + unread + ")");
+                    javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem("P2P Connection from: " + peerAddress);
+                    notificationMenu.getItems().add(item);
+                }
+                
+                refreshNetworkPanel();
+            });
+        });
+
         setNetworkPanelVisible(false);
         refreshNetworkPanel();
         
@@ -304,6 +322,10 @@ public class HomeController {
     @FXML
     private void logout() {
         Session.logout();
+        if (notificationMenu != null) {
+            notificationMenu.setVisible(false);
+            notificationMenu.setManaged(false);
+        }
         SceneManager.switchScene("home.fxml");
     }
 

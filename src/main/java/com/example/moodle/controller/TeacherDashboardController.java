@@ -130,7 +130,7 @@ public class TeacherDashboardController {
         Label desigLabel = new Label("Designation: " + (Session.getDesignation() != null ? Session.getDesignation() : "N/A"));
         desigLabel.setStyle("-fx-font-size: 14px;");
         Label typeLabel = new Label("Type: " + (Session.getTeacherType() != null ? Session.getTeacherType() : "N/A"));
-        typeLabel.setStyle("-fx-font-size: 14px;");
+        typeLabel.setStyle("-fx-font-size: 14px;");git a
         Label emailLabel = new Label("Identifier: " + teacherEmail());
         emailLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7a8a9e;");
 
@@ -707,6 +707,15 @@ public class TeacherDashboardController {
         sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
         sendBtn.setDisable(true);
 
+        chatInput.setOnKeyPressed(ev -> {
+            if (ev.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                if (!ev.isShiftDown()) {
+                    ev.consume();
+                    sendBtn.fire();
+                }
+            }
+        });
+
         Label statusLabel = new Label();
 
         HBox inputRow = new HBox(10, chatInput, sendBtn);
@@ -1122,6 +1131,15 @@ public class TeacherDashboardController {
 
         Button sendBtn = new Button("Send \u27A1");
         sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        
+        chatInput.setOnKeyPressed(ev -> {
+            if (ev.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                if (!ev.isShiftDown()) {
+                    ev.consume();
+                    sendBtn.fire();
+                }
+            }
+        });
         Label statusLabel = new Label();
 
         Runnable refreshChat = () -> {
@@ -1280,6 +1298,15 @@ public class TeacherDashboardController {
 
         Button sendBtn = new Button("Send \u27A1");
         sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+
+        chatInput.setOnKeyPressed(ev -> {
+            if (ev.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                if (!ev.isShiftDown()) {
+                    ev.consume();
+                    sendBtn.fire();
+                }
+            }
+        });
 
         Label statusLabel = new Label();
 

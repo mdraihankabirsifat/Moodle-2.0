@@ -26,6 +26,7 @@ public class Session {
         String department;
         String designation;
         String teacherType; // "Faculty Teacher" or "Guest Teacher"
+        int unreadNotifications = 0;
     }
 
     private static SessionData current() {
@@ -67,6 +68,9 @@ public class Session {
     public static String getDesignation() { return current().designation; }
     public static void setTeacherType(String t) { current().teacherType = t; }
     public static String getTeacherType() { return current().teacherType; }
+
+    public static void setUnreadNotifications(int count) { current().unreadNotifications = count; }
+    public static int getUnreadNotifications() { return current().unreadNotifications; }
 
     public static String getCampusDashboardFxml() {
         String r = current().role;

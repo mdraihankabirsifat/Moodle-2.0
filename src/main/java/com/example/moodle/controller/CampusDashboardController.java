@@ -1055,6 +1055,15 @@ public class CampusDashboardController {
         sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
         sendBtn.setDisable(true);
 
+        chatInput.setOnKeyPressed(ev -> {
+            if (ev.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                if (!ev.isShiftDown()) {
+                    ev.consume();
+                    sendBtn.fire();
+                }
+            }
+        });
+
         Label statusLabel = new Label();
 
         HBox inputRow = new HBox(10, chatInput, sendBtn);
@@ -1521,6 +1530,15 @@ public class CampusDashboardController {
         Button sendBtn = new Button("Send \u27A1");
         sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
 
+        chatInput.setOnKeyPressed(ev -> {
+            if (ev.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                if (!ev.isShiftDown()) {
+                    ev.consume();
+                    sendBtn.fire();
+                }
+            }
+        });
+
         Label statusLabel = new Label();
 
         Runnable refreshChat = () -> {
@@ -1635,6 +1653,15 @@ public class CampusDashboardController {
 
         Button sendBtn = new Button("Send \u27A1");
         sendBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+
+        chatInput.setOnKeyPressed(ev -> {
+            if (ev.getCode() == javafx.scene.input.KeyCode.ENTER) {
+                if (!ev.isShiftDown()) {
+                    ev.consume();
+                    sendBtn.fire();
+                }
+            }
+        });
 
         Label statusLabel = new Label();
 

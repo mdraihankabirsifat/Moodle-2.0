@@ -42,6 +42,7 @@ public class UserStore {
         if (user.getRole() == null) user.setRole("STUDENT");
         cache.put(user.getEmail(), user);
         saveAll();
+        com.example.moodle.service.DataStore.logActivity(user.getEmail(), "registration");
     }
 
     public static User getUser(String email) {
