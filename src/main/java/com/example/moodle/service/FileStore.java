@@ -12,7 +12,7 @@ import java.util.List;
 public class FileStore {
 
     private static final String DATA_DIR =
-            System.getProperty("user.home") + File.separator + ".moodle_data";
+            System.getProperty("user.home") + File.separator + ".moodle_data"; //C:\Users\<you>\.moodle_data
 
     public static void ensureDir() {
         new File(DATA_DIR).mkdirs();

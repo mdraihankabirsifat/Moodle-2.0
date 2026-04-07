@@ -192,9 +192,9 @@
             </center>
         </BorderPane>
 
-        <VBox alignment="TOP_CENTER" pickOnBounds="false" mouseTransparent="true">
+        <VBox alignment="TOP_CENTER" pickOnBounds="false">
             <padding><Insets top="70"/></padding>
-            <VBox fx:id="searchResults" spacing="4" visible="false" managed="false" styleClass="search-results-panel" style="-fx-background-color: rgba(17, 26, 46, 0.95);" prefWidth="400" maxWidth="400" mouseTransparent="false" pickOnBounds="true"/>
+            <VBox fx:id="searchResults" spacing="4" visible="false" managed="false" styleClass="search-results-panel" style="-fx-background-color: rgba(17, 26, 46, 0.95);" prefWidth="400" maxWidth="400" pickOnBounds="true"/>
         </VBox>
     </StackPane>
 </center>

@@ -106,39 +106,60 @@ public class UniversityDatabase {
     }
 
     public static List<String> search(String query) {
-        String q = query.toUpperCase().trim();
-        List<String> results = new ArrayList<>();
+        String[] tokens = query.toUpperCase().trim().split("\\s+");
+        List<String> priority1 = new ArrayList<>();
+        List<String> priority2 = new ArrayList<>();
+
         for (UniversityInfo u : universities.values()) {
-            boolean match = false;
-            if (u.getName() != null && u.getName().toUpperCase().contains(q)) match = true;
-            else if (u.getShortName() != null && u.getShortName().toUpperCase().contains(q)) match = true;
-            else if (u.getLocation() != null && u.getLocation().toUpperCase().contains(q)) match = true;
-            else if (u.getPhone() != null && u.getPhone().toUpperCase().contains(q)) match = true;
-            else if (u.getEmail() != null && u.getEmail().toUpperCase().contains(q)) match = true;
-            else if (u.getWebsite() != null && u.getWebsite().toUpperCase().contains(q)) match = true;
-            else {
-                if (u.getNotices() != null) {
-                    for (String notice : u.getNotices()) {
-                        if (notice != null && notice.toUpperCase().contains(q)) {
-                            match = true;
-                            break;
+            boolean allNameMatch = true;
+            boolean allDeepMatch = true;
+
+            String uName = u.getName() != null ? u.getName().toUpperCase() : "";
+            String uAcronym = u.getShortName() != null ? u.getShortName().toUpperCase() : "";
+            String uLoc = u.getLocation() != null ? u.getLocation().toUpperCase() : "";
+
+            for (String t : tokens) {
+                boolean nameMatch = uName.contains(t) || uAcronym.contains(t);
+                if (!nameMatch) allNameMatch = false;
+
+                boolean deepMatch = nameMatch || uLoc.contains(t);
+                if (!deepMatch) {
+                    if (u.getPhone() != null && u.getPhone().toUpperCase().contains(t)) deepMatch = true;
+                    else if (u.getEmail() != null && u.getEmail().toUpperCase().contains(t)) deepMatch = true;
+                    else if (u.getWebsite() != null && u.getWebsite().toUpperCase().contains(t)) deepMatch = true;
+                    else if (u.getNotices() != null) {
+                        for (String notice : u.getNotices()) {
+                            if (notice != null && notice.toUpperCase().contains(t)) {
+                                deepMatch = true;
+                                break;
+                            }
                         }
                     }
                 }
+                if (!deepMatch) allDeepMatch = false;
             }
 
-            if (match) {
-                if (!u.getShortName().equalsIgnoreCase(u.getName())) {
-                    results.add(u.getName() + " (" + u.getShortName() + ")");
+            if (allDeepMatch) {
+                String formattedName = (!u.getShortName().equalsIgnoreCase(u.getName())) 
+                    ? u.getName() + " (" + u.getShortName() + ")" 
+                    : u.getName();
+
+                if (allNameMatch) {
+                    priority1.add(formattedName);
                 } else {
-                    results.add(u.getName());
+                    priority2.add(formattedName);
                 }
             }
         }
-        results.sort(String::compareToIgnoreCase);
-        
-        if (results.size() > 3) {
-            return results.subList(0, 3);
+
+        priority1.sort(String::compareToIgnoreCase);
+        priority2.sort(String::compareToIgnoreCase);
+
+        List<String> results = new ArrayList<>(priority1);
+        results.addAll(priority2);
+
+        if (results.size() > 8) {
+            return results.subList(0, 8);
         }
         return results;
     }

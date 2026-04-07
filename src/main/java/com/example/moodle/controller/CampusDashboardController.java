@@ -2029,7 +2029,7 @@ public class CampusDashboardController {
                         } catch (Exception ex) { /* skip */ }
                     }
 
-                    // === LIKE / COMMENT / SHARE BAR (Facebook-style) ===
+                    // === LIKE / COMMENT / SHARE BAR ===
                     Separator actionSep = new Separator();
                     actionSep.setStyle("-fx-border-color: rgba(0,229,255,0.08);");
 

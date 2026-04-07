@@ -628,7 +628,6 @@ public class DataStore {
     }
 
     // ==================== TEACHER PROFILES ====================
-    // Legacy format: name|dept|designation|type|password
     // Current format: name|dept|designation|type|password|email
 
     public static void saveTeacherProfile(String name, String dept,

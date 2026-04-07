@@ -123,6 +123,21 @@ public class HomeController {
             searchResults.setManaged(true);
         });
 
+        searchField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal) {
+                // Use runLater to let any button click process first
+                javafx.application.Platform.runLater(() -> {
+                    if (!searchResults.isHover()) {
+                        searchResults.setVisible(false);
+                        searchResults.setManaged(false);
+                    }
+                });
+            } else if (!searchField.getText().trim().isEmpty()) {
+                searchResults.setVisible(true);
+                searchResults.setManaged(true);
+            }
+        });
+
         updateThemeMenuButtonText();
 
         setupHeroAnimation();
