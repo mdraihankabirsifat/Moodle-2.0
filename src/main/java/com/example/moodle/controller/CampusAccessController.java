@@ -28,6 +28,7 @@ public class CampusAccessController {
     @FXML private PasswordField staffPassField;
     @FXML private Label messageLabel;
     @FXML private Label hintLabel;
+    @FXML private Label initialPassLabel;
 
     @FXML
     public void initialize() {
@@ -44,6 +45,8 @@ public class CampusAccessController {
             boolean isTeacher = (newVal == teacherRadio);
             studentFields.setVisible(isStudent);
             studentFields.setManaged(isStudent);
+            initialPassLabel.setVisible(isStudent);
+            initialPassLabel.setManaged(isStudent);
             staffFields.setVisible(!isStudent);
             staffFields.setManaged(!isStudent);
             staffEmailField.setVisible(isTeacher);
@@ -53,9 +56,11 @@ public class CampusAccessController {
             }
             messageLabel.setText("");
             if (newVal == teacherRadio) {
-                hintLabel.setText("Use your teacher email and password.");
+                hintLabel.setText(" Use your teacher email. Default campus pass: teacher123");
             } else if (newVal == authorityRadio) {
-                hintLabel.setText("Hint: admin2024");
+                // admin pass- "admin123". Multiple admins from multiple universities.
+                // They control their university individually.
+                hintLabel.setText("Hint: admin123");
             }
         });
     }
@@ -125,7 +130,7 @@ public class CampusAccessController {
         String pass = staffPassField.getText().trim();
 
         if (email.isEmpty() || pass.isEmpty()) {
-            showError("Enter teacher email and password.");
+            showError("Enter teacher email and campus password.");
             return;
         }
 
@@ -135,8 +140,14 @@ public class CampusAccessController {
             return;
         }
 
-        if (!profile[4].equals(pass)) {
-            showError("Invalid password.");
+        // Campus access password is separate from signup/login password.
+        // Default campus password is "teacher123", provided by authority.
+        // Teachers can change it from their MyProfile section in the Teacher Dashboard.
+        String campusPass = DataStore.getCampusPassword(email);
+        String expectedCampusPass = (campusPass != null) ? campusPass : "teacher123";
+
+        if (!expectedCampusPass.equals(pass)) {
+            showError("Invalid campus password.");
             return;
         }
 
@@ -158,8 +169,11 @@ public class CampusAccessController {
     }
 
     private void verifyAuthority() {
+        // admin pass- "admin123"
+        // Multiple admins from multiple universities control their university individually.
+        // They have access to edit the University_page.
         String pass = staffPassField.getText().trim();
-        if ("admin2024".equals(pass)) {
+        if ("admin123".equals(pass)) {
             Session.login("Admin", "Campus", "", "admin@campus");
             Session.setCampusVerified(true);
             Session.setRole("AUTHORITY");

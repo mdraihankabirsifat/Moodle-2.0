@@ -154,25 +154,18 @@ public class TeacherDashboardController {
                 passMsg.setText("Fill both fields.");
                 return;
             }
-            String[] profile = DataStore.getTeacherProfile(Session.getName(),
-                    Session.getDepartment() != null ? Session.getDepartment() : "");
-            String expected = (profile != null) ? profile[4] : "teacher2026";
-            if (!expected.equals(current)) {
+            // Campus access password is separate from login password.
+            // Default campus password is "teacher123", provided by authority.
+            String storedPass = DataStore.getCampusPassword(Session.getIdentifier());
+            String expectedPass = (storedPass != null) ? storedPass : "teacher123";
+            if (!expectedPass.equals(current)) {
                 passMsg.setStyle("-fx-text-fill: #ff3366;");
-                passMsg.setText("Current password is incorrect.");
+                passMsg.setText("Current campus password is incorrect.");
                 return;
             }
-            if (profile != null) {
-                DataStore.saveTeacherProfile(profile[0], profile[1], profile[2], profile[3], newPass);
-            } else {
-                DataStore.saveTeacherProfile(Session.getName(),
-                        Session.getDepartment() != null ? Session.getDepartment() : "",
-                        Session.getDesignation() != null ? Session.getDesignation() : "",
-                        Session.getTeacherType() != null ? Session.getTeacherType() : "Faculty Teacher",
-                        newPass);
-            }
+            DataStore.setCampusPassword(Session.getIdentifier(), newPass);
             passMsg.setStyle("-fx-text-fill: #00ff88;");
-            passMsg.setText("Password changed! \u2705");
+            passMsg.setText("Campus password changed! \u2705");
             currentPassField.clear();
             newPassField.clear();
         });
@@ -559,8 +552,14 @@ public class TeacherDashboardController {
         VBox box = new VBox(15);
         box.setPadding(new Insets(10));
 
-        Label title = new Label("Post Course Notice");
+        Label title = new Label("Course Notices");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        // --- POST NOTICE SECTION ---
+        VBox postBox = new VBox(10);
+        postBox.setStyle("-fx-padding: 15; -fx-background-color: #111a2e; -fx-background-radius: 10; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 10;");
+        Label postTitle = new Label("Post New Notice");
+        postTitle.setStyle("-fx-font-weight: bold; -fx-text-fill: #ffb300;");
 
         ComboBox<String> courseBox = new ComboBox<>();
         courseBox.setPromptText("Select Course");
@@ -571,45 +570,164 @@ public class TeacherDashboardController {
 
         TextArea noticeField = new TextArea();
         noticeField.setPromptText("Notice Content");
-        noticeField.setPrefRowCount(3);
+        noticeField.setPrefRowCount(2);
+
+        final String[] pdfPath = {""};
+        Label pdfLabel = new Label("No PDF selected");
+        pdfLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
+        Button pdfBtn = new Button("\uD83D\uDCC4 Attach PDF");
+        pdfBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #ffb300; -fx-text-fill: white; -fx-background-radius: 6;");
+        pdfBtn.setOnAction(e -> {
+            javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+            fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            java.io.File file = fc.showOpenDialog(contentArea.getScene().getWindow());
+            if (file != null) {
+                pdfPath[0] = file.getAbsolutePath();
+                pdfLabel.setText("\u2705 " + file.getName());
+                pdfLabel.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
+            }
+        });
+        HBox pdfRow = new HBox(10, pdfBtn, pdfLabel);
+        pdfRow.setAlignment(Pos.CENTER_LEFT);
 
         Label msgLabel = new Label();
         Button postBtn = new Button("Post Notice");
+        postBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-weight: bold;");
         postBtn.setOnAction(e -> {
             String sel = courseBox.getValue();
             String content = noticeField.getText().trim();
-            if (sel == null || content.isEmpty()) {
+            if (sel == null || (content.isEmpty() && pdfPath[0].isEmpty())) {
                 msgLabel.setStyle("-fx-text-fill: #ff3366;");
-                msgLabel.setText("Select course and enter notice.");
+                msgLabel.setText("Select course and enter notice content or attach PDF.");
             } else {
                 String code = sel.split(" - ")[0];
-                DataStore.addCourseNotice(code, content, teacherEmail());
+                if (!pdfPath[0].isEmpty()) {
+                    content += " [PDF:" + pdfPath[0] + "]";
+                }
+                DataStore.addCourseNotice(code, content, Session.getIdentifier());
                 msgLabel.setStyle("-fx-text-fill: #00ff88;");
                 msgLabel.setText("Notice posted!");
                 noticeField.clear();
                 showNotices();
             }
         });
+        postBox.getChildren().addAll(postTitle, courseBox, noticeField, pdfRow, postBtn, msgLabel);
 
-        box.getChildren().addAll(title, courseBox, noticeField, postBtn,
-                msgLabel, new Separator());
+        // --- VIEW NOTICES SECTION (SPLIT LAYOUT) ---
+        Label listTitle = new Label("All Notices");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 18px;");
 
-        // Show existing notices
-        Label listTitle = new Label("Posted Notices:");
-        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
-        box.getChildren().add(listTitle);
+        HBox splitLayout = new HBox(15);
+        
+        VBox listCol = new VBox(10);
+        listCol.setPrefWidth(350);
+        listCol.setMinWidth(300);
+        ScrollPane listScroll = new ScrollPane(listCol);
+        listScroll.setFitToWidth(true);
+        listScroll.setStyle("-fx-background-color: transparent;");
+        listScroll.setPrefHeight(400);
+
+        VBox detailCol = new VBox(15);
+        HBox.setHgrow(detailCol, Priority.ALWAYS);
+        detailCol.setStyle("-fx-padding: 20; -fx-background-color: #111a2e; -fx-background-radius: 10; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 10;");
+        
+        Label defaultDetailL = new Label("Select a notice to view details.");
+        defaultDetailL.setStyle("-fx-text-fill: #8a9ab0; -fx-font-size: 15px;");
+        detailCol.getChildren().add(defaultDetailL);
 
         List<String[]> notices = DataStore.getAllNotices();
         if (notices.isEmpty()) {
-            box.getChildren().add(new Label("No notices posted yet."));
+            listCol.getChildren().add(new Label("No notices posted yet."));
         } else {
-            for (String[] n : notices) {
-                Label item = new Label("\uD83D\uDCCC [" + n[0] + "] " + n[1] + " (" + n[3] + ")");
-                item.setStyle("-fx-padding: 8; -fx-background-color: #1a1a0a; -fx-background-radius: 6;");
-                item.setWrapText(true);
-                box.getChildren().add(item);
+            for (int i = notices.size() - 1; i >= 0; i--) {
+                String[] n = notices.get(i);
+                
+                VBox card = new VBox(8);
+                card.setStyle("-fx-padding: 15; -fx-background-color: #1a1a0a; "
+                        + "-fx-background-radius: 10; -fx-border-color: #ffe082; -fx-border-radius: 10; -fx-cursor: hand;");
+                
+                Label courseL = new Label("[" + n[0] + "]");
+                courseL.setStyle("-fx-font-weight: bold; -fx-text-fill: #ffb300;");
+                
+                String content = n[1];
+                String pdfFileStr = "";
+                if (content.contains("[PDF:")) {
+                     int idx = content.indexOf("[PDF:");
+                     int end = content.indexOf("]", idx);
+                     if (end != -1) {
+                         pdfFileStr = content.substring(idx + 5, end);
+                         content = content.substring(0, idx) + content.substring(end + 1);
+                     }
+                }
+                
+                Label contentL = new Label(content.trim());
+                contentL.setWrapText(true);
+                // Truncate for list view
+                String previewText = content.trim();
+                if (previewText.length() > 60) previewText = previewText.substring(0, 60) + "...";
+                contentL.setText(previewText);
+                contentL.setStyle("-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
+                
+                Label dateL = new Label("By " + n[2] + " on " + n[3]);
+                dateL.setStyle("-fx-text-fill: #4a5a6e; -fx-font-size: 11px;");
+                
+                if (!pdfFileStr.isEmpty()) {
+                    Label pdfIcon = new Label("\uD83D\uDCC4 Contains PDF");
+                    pdfIcon.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
+                    card.getChildren().addAll(courseL, contentL, dateL, pdfIcon);
+                } else {
+                    card.getChildren().addAll(courseL, contentL, dateL);
+                }
+
+                final String fullContent = content.trim();
+                final String fp = pdfFileStr;
+                final String cTitle = n[0];
+                final String cDate = dateL.getText();
+                
+                card.setOnMouseClicked(e -> {
+                    detailCol.getChildren().clear();
+                    
+                    Label detTitle = new Label("[" + cTitle + "] Notice Details");
+                    detTitle.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+                    detTitle.setWrapText(true);
+                    
+                    Label detDate = new Label(cDate);
+                    detDate.setStyle("-fx-text-fill: #8a9ab0; -fx-font-size: 12px;");
+                    
+                    Label detBody = new Label(fullContent);
+                    detBody.setWrapText(true);
+                    detBody.setStyle("-fx-font-size: 15px; -fx-text-fill: #d0d8e8; -fx-padding: 10 0 10 0;");
+                    
+                    detailCol.getChildren().addAll(detTitle, detDate, new Separator(), detBody);
+                    
+                    if (fp != null && !fp.isEmpty()) {
+                        VBox pdfBox = new VBox(10);
+                        pdfBox.setStyle("-fx-padding: 20; -fx-background-color: #0d1b2a; -fx-background-radius: 10; -fx-border-color: #ffb300; -fx-border-radius: 10;");
+                        
+                        Label l = new Label("\uD83D\uDCC4 Attached PDF Document");
+                        l.setStyle("-fx-font-weight: bold; -fx-text-fill: #ffb300;");
+                        
+                        Button openBtn = new Button("Open PDF");
+                        openBtn.setStyle("-fx-background-color: #ffb300; -fx-text-fill: #111a2e; -fx-font-weight: bold; -fx-cursor: hand;");
+                        openBtn.setOnAction(ev -> {
+                            try {
+                                java.awt.Desktop.getDesktop().open(new File(fp));
+                            } catch (Exception ex) {
+                                System.err.println("Could not open PDF: " + ex.getMessage());
+                            }
+                        });
+                        pdfBox.getChildren().addAll(l, openBtn);
+                        detailCol.getChildren().add(pdfBox);
+                    }
+                });
+                
+                listCol.getChildren().add(card);
             }
         }
+
+        splitLayout.getChildren().addAll(listScroll, detailCol);
+
+        box.getChildren().addAll(title, postBox, new Separator(), listTitle, splitLayout);
         setScrollContent(box);
     }
 

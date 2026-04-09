@@ -10,9 +10,9 @@
     <top>
         <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar" style="-fx-padding: 15;">
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
-            <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+            <Button text="Admin Control" styleClass="nav-btn" onAction="#goToCampus"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="Authority Dashboard"
+            <Label text="Admin Control"
                    styleClass="title-label"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="🔲 New Window" onAction="#openNewWindow"
@@ -35,10 +35,6 @@
 
                 <Button text="Student Database"
                         onAction="#showStudentDatabase"
-                        maxWidth="Infinity"/>
-
-                <Button text="Edit Student"
-                        onAction="#showEditStudent"
                         maxWidth="Infinity"/>
 
                 <Label text="MANAGEMENT" styleClass="nav-section-label" style="-fx-padding: 10 0 0 0;"/>
@@ -79,6 +75,40 @@
 
                 <Button text="👥 Manage Users"
                         onAction="#showManageUsers"
+                        maxWidth="Infinity"/>
+
+                <Label text="UNIVERSITY PAGE" styleClass="nav-section-label" style="-fx-padding: 10 0 0 0;"/>
+
+                <Button text="📋 Manage Faculty"
+                        onAction="#showManageFaculty"
+                        maxWidth="Infinity"/>
+
+                <Button text="🎓 Manage Alumni"
+                        onAction="#showManageAlumni"
+                        maxWidth="Infinity"/>
+
+                <Button text="📢 University Notices"
+                        onAction="#showUniversityNotices"
+                        maxWidth="Infinity"/>
+
+                <Button text="💼 Job Notices"
+                        onAction="#showJobNotices"
+                        maxWidth="Infinity"/>
+
+                <Button text="👷 Staff Details"
+                        onAction="#showStaffDetails"
+                        maxWidth="Infinity"/>
+
+                <Button text="🏛 Department Details"
+                        onAction="#showDepartmentDetails"
+                        maxWidth="Infinity"/>
+
+                <Button text="🏫 Institution Details"
+                        onAction="#showInstitutionDetails"
+                        maxWidth="Infinity"/>
+
+                <Button text="⚙ Administration"
+                        onAction="#showAdministration"
                         maxWidth="Infinity"/>
 
             </VBox>

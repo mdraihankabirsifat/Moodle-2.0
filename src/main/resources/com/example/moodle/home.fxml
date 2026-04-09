@@ -18,16 +18,16 @@
             <Button fx:id="signupButton" text="Sign Up" styleClass="nav-btn" onAction="#goToSignup" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button fx:id="campusButton" text="My Campus" styleClass="nav-btn" onAction="#goToCampus" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button text="About" styleClass="nav-btn" onAction="#showAbout" maxWidth="Infinity" alignment="CENTER_LEFT"/>
-            <Button text="Help" styleClass="nav-btn" onAction="#showHelp" maxWidth="Infinity" alignment="CENTER_LEFT"/>
+            <Button text="Features" styleClass="nav-btn" onAction="#showHelp" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button fx:id="communityButton" text="Community" styleClass="nav-btn" visible="false" managed="false" onAction="#goToCommunity" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <Button text="Connect" styleClass="nav-btn" onAction="#showNetworkPanel" maxWidth="Infinity" alignment="CENTER_LEFT"/>
             <VBox fx:id="networkPanel" spacing="8" styleClass="glass-card" visible="false" managed="false" style="-fx-padding: 10;">
-                <TextField fx:id="serverAddressField" promptText="IP (e.g. 192.168.0.42:50555)" onAction="#connectToServer"/>
+                <TextField fx:id="serverAddressField" promptText="type the IP address that you want to connect" onAction="#connectToServer"/>
                 <HBox spacing="5" alignment="CENTER">
                     <Button fx:id="connectServerButton" text="Connect" onAction="#connectToServer" style="-fx-font-size: 11px;"/>
                     <Button fx:id="disconnectServerButton" text="Disconnect" onAction="#disconnectFromServer" style="-fx-font-size: 11px;" styleClass="cyber-btn-danger"/>
                 </HBox>
-                <Label fx:id="localServerLabel" text="Local IP:" textFill="#00e5ff" style="-fx-font-size: 10px;" wrapText="true"/>
+                <Label fx:id="localServerLabel" text="My IP address:" textFill="#00e5ff" style="-fx-font-size: 10px;" wrapText="true"/>
                 <Label fx:id="networkStatusLabel" text="Not connected" textFill="#ff3366" style="-fx-font-size: 10px;" wrapText="true"/>
             </VBox>
             
@@ -44,10 +44,10 @@
             <top>
                 <VBox>
                     <HBox spacing="15" alignment="CENTER" style="-fx-padding: 20 30 10 30;">
-                        <!-- Adjusted to shift search bar left -->
-                        <Region HBox.hgrow="SOMETIMES" prefWidth="80" />
+                        <!-- Equal spacers to center the search bar -->
+                        <Region HBox.hgrow="ALWAYS"/>
                         
-                        <!-- SEARCH BAR -->
+                        <!-- SEARCH BAR (centered) -->
                         <HBox spacing="8" alignment="CENTER">
                             <Label text="🔍" style="-fx-text-fill: #5a6a7e; -fx-font-size: 16px;"/>
                             <TextField fx:id="searchField" promptText="Search University..." styleClass="search-field" prefWidth="400"/>

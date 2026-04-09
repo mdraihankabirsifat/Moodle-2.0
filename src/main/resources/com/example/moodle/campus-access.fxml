@@ -48,7 +48,7 @@
                     <Label fx:id="hintLabel" text="" style="-fx-text-fill: #5a6a7e; -fx-font-size: 11px;"/>
                 </VBox>
 
-                <Label text="The initial password is provided by your university (Pass- 1234). You can change it from your Profile section." 
+                <Label fx:id="initialPassLabel" text="The initial password is provided by your university (Pass- 1234). You can change it from your Profile section." 
                        style="-fx-text-fill: #8b949e; -fx-font-size: 11px;" wrapText="true" textAlignment="CENTER" maxWidth="350"/>
 
                 <Button text="Enter Campus"

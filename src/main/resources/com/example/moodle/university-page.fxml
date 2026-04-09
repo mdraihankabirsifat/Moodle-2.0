@@ -1,36 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.example.moodle.controller.UniversityPageController">
 
-    <!-- ================= TOP NAV ================= -->
+    <!-- TOP -->
     <top>
         <HBox spacing="15" alignment="CENTER_LEFT" styleClass="top-bar" style="-fx-padding: 15;">
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
             <Button text="My Campus" styleClass="nav-btn" onAction="#goToCampus"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="University Page" styleClass="title-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
         </HBox>
     </top>
 
+    <!-- SIDEBAR -->
     <left>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
-            <VBox spacing="10" prefWidth="220" styleClass="side-nav" style="-fx-padding: 20;">
-                <Button text="About" onAction="#showAbout" maxWidth="Infinity"/>
-                <Button text="Departments" onAction="#showDepartments" maxWidth="Infinity"/>
-                <Button text="Faculty" onAction="#showFaculty" maxWidth="Infinity"/>
-                <Button text="Campus Life" onAction="#showCampusLife" maxWidth="Infinity"/>
-            </VBox>
-        </ScrollPane>
+        <VBox spacing="10" prefWidth="200" styleClass="side-nav" style="-fx-padding: 20;">
+            <Button text="📋 About" onAction="#showAbout" maxWidth="Infinity"/>
+            <Button text="🏛 Departments" onAction="#showDepartments" maxWidth="Infinity"/>
+            <Button text="🏫 Institutes" onAction="#showInstitutes" maxWidth="Infinity"/>
+            <Button text="👨‍🏫 Faculty &amp; Staff" onAction="#showFacultyStaff" maxWidth="Infinity"/>
+            <Button text="🎓 Alumni" onAction="#showAlumni" maxWidth="Infinity"/>
+            <Button text="⚙ Administration" onAction="#showAdministration" maxWidth="Infinity"/>
+        </VBox>
     </left>
 
+    <!-- DYNAMIC CONTENT -->
     <center>
         <StackPane fx:id="contentArea" style="-fx-padding: 30;"/>
     </center>
 
-    <!-- ================= BOTTOM NAV ================= -->
+    <!-- BOTTOM -->
     <bottom>
         <HBox alignment="CENTER_RIGHT" styleClass="bottom-bar" style="-fx-padding: 15;">
             <Button text="← Back" styleClass="nav-btn" onAction="#goBack"/>

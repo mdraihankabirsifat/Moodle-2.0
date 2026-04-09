@@ -20,7 +20,13 @@ public class FileStore {
 
     private static String getFilePath(String filename) {
         ensureDir();
-        return DATA_DIR + File.separator + filename;
+        String path = DATA_DIR + File.separator + filename;
+        // Support subdirectories (e.g. "admin/faculty_members.txt")
+        File parent = new File(path).getParentFile();
+        if (parent != null && !parent.exists()) {
+            parent.mkdirs();
+        }
+        return path;
     }
 
     public static List<String> loadLines(String filename) {

@@ -73,7 +73,7 @@ public class CampusDashboardController {
 
     @FXML
     public void initialize() {
-        showNotices();
+        showProfile();
     }
 
     @FXML
@@ -106,29 +106,31 @@ public class CampusDashboardController {
     private void showProfile() {
         VBox box = new VBox(15);
         box.setPadding(new Insets(10));
-        box.setAlignment(Pos.TOP_CENTER);
 
         Label title = new Label("\uD83D\uDC64 My Profile");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
+        // Photo section
         StackPane photoArea = new StackPane();
-        photoArea.setMinSize(120, 120);
-        photoArea.setMaxSize(120, 120);
+        photoArea.setStyle("-fx-min-width: 120; -fx-min-height: 120; -fx-background-color: #0a1628; -fx-background-radius: 60;");
 
-        String photoUrl = DataStore.getProfilePhoto(Session.getIdentifier());
-        if (photoUrl != null && !photoUrl.isEmpty()) {
+        String photoPath = DataStore.getProfilePhoto(Session.getIdentifier());
+        if (photoPath != null && !photoPath.isEmpty()) {
             try {
-                ImageView iv = new ImageView(new Image(photoUrl, 120, 120, true, true));
-                iv.setFitWidth(120); iv.setFitHeight(120);
+                ImageView iv = new ImageView(new Image(photoPath, 120, 120, true, true));
+                iv.setFitWidth(120);
+                iv.setFitHeight(120);
                 Circle clip = new Circle(60, 60, 60);
                 iv.setClip(clip);
                 photoArea.getChildren().add(iv);
             } catch (Exception ex) {
-                Label ph = new Label("\uD83D\uDC64"); ph.setStyle("-fx-font-size: 50px;");
+                Label ph = new Label("\uD83D\uDC64");
+                ph.setStyle("-fx-font-size: 50px;");
                 photoArea.getChildren().add(ph);
             }
         } else {
-            Label ph = new Label("\uD83D\uDC64"); ph.setStyle("-fx-font-size: 50px;");
+            Label ph = new Label("\uD83D\uDC64");
+            ph.setStyle("-fx-font-size: 50px;");
             photoArea.getChildren().add(ph);
         }
 
@@ -145,29 +147,58 @@ public class CampusDashboardController {
             }
         });
 
+        // Info
         Label nameLabel = new Label("Name: " + (Session.getName() != null ? Session.getName() : "N/A"));
         nameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
-        Label roleLabel = new Label("Role: " + (Session.getRole() != null ? Session.getRole() : "N/A"));
-        roleLabel.setStyle("-fx-font-size: 14px;");
+        Label idLabel = new Label("Student ID: " + (Session.getStudentId() != null ? Session.getStudentId() : "N/A"));
+        idLabel.setStyle("-fx-font-size: 14px;");
         Label uniLabel = new Label("University: " + (Session.getUniversity() != null ? Session.getUniversity() : "N/A"));
         uniLabel.setStyle("-fx-font-size: 14px;");
+        Label deptLabel = new Label("Department: " + (Session.getDepartment() != null ? Session.getDepartment() : "N/A"));
+        deptLabel.setStyle("-fx-font-size: 14px;");
+        Label roleLabel = new Label("Role: " + (Session.getRole() != null ? Session.getRole() : "N/A"));
+        roleLabel.setStyle("-fx-font-size: 14px;");
         Label emailLabel = new Label("Identifier: " + Session.getIdentifier());
         emailLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #7a8a9e;");
 
-        String dept = Session.getDepartment();
-        Label deptLabel = new Label("Department: " + (dept != null ? dept : "N/A"));
-        deptLabel.setStyle("-fx-font-size: 14px;");
+        // Change campus password
+        Label passTitle = new Label("Change Campus Password");
+        passTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 10 0 0 0;");
 
-        VBox profileCard = new VBox(10);
-        profileCard.setMaxWidth(500);
-        profileCard.setAlignment(Pos.CENTER);
-        profileCard.setStyle("-fx-padding: 30; -fx-background-color: #111a2e; -fx-background-radius: 14; "
-                + "-fx-border-color: rgba(0,229,255,0.15); -fx-border-radius: 14;");
-        profileCard.getChildren().addAll(photoArea, uploadPhotoBtn,
-                new Separator(), nameLabel, roleLabel, uniLabel, emailLabel,
-                new Separator(), deptLabel);
+        javafx.scene.control.PasswordField currentPassField = new javafx.scene.control.PasswordField();
+        currentPassField.setPromptText("Current Campus Password");
+        javafx.scene.control.PasswordField newPassField = new javafx.scene.control.PasswordField();
+        newPassField.setPromptText("New Campus Password");
+        Label passMsg = new Label();
 
-        box.getChildren().addAll(title, profileCard);
+        Button changePassBtn = new Button("Change Password");
+        changePassBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        changePassBtn.setOnAction(e -> {
+            String current = currentPassField.getText().trim();
+            String newPass = newPassField.getText().trim();
+            if (current.isEmpty() || newPass.isEmpty()) {
+                passMsg.setStyle("-fx-text-fill: #ff3366;");
+                passMsg.setText("Fill both fields.");
+                return;
+            }
+            String studentId = Session.getStudentId();
+            String storedPass = DataStore.getCampusPassword(studentId);
+            String expectedPass = (storedPass != null) ? storedPass : "1234";
+            if (!expectedPass.equals(current)) {
+                passMsg.setStyle("-fx-text-fill: #ff3366;");
+                passMsg.setText("Current password is incorrect.");
+                return;
+            }
+            DataStore.setCampusPassword(studentId, newPass);
+            passMsg.setStyle("-fx-text-fill: #00ff88;");
+            passMsg.setText("Password changed! \u2705");
+            currentPassField.clear();
+            newPassField.clear();
+        });
+
+        box.getChildren().addAll(title, photoArea, uploadPhotoBtn,
+                new Separator(), nameLabel, idLabel, uniLabel, deptLabel, roleLabel, emailLabel,
+                new Separator(), passTitle, currentPassField, newPassField, changePassBtn, passMsg);
         setScrollContent(box);
     }
 
@@ -422,23 +453,37 @@ public class CampusDashboardController {
         HBox header = new HBox(10, title, spacer, scheduleBtn);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        javafx.scene.layout.FlowPane noticeGrid = new javafx.scene.layout.FlowPane();
-        noticeGrid.setHgap(15);
-        noticeGrid.setVgap(15);
+        // Split Layout: Left for list, Right for details
+        HBox splitLayout = new HBox(15);
+        
+        VBox listCol = new VBox(10);
+        listCol.setPrefWidth(350);
+        listCol.setMinWidth(300);
+        ScrollPane listScroll = new ScrollPane(listCol);
+        listScroll.setFitToWidth(true);
+        listScroll.setStyle("-fx-background-color: transparent;");
+        listScroll.setPrefHeight(600);
 
-        // Read notices from DataStore (posted by authority/teachers)
+        VBox detailCol = new VBox(15);
+        HBox.setHgrow(detailCol, Priority.ALWAYS);
+        detailCol.setStyle("-fx-padding: 20; -fx-background-color: #111a2e; -fx-background-radius: 10; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 10;");
+        
+        Label defaultDetailL = new Label("Select a notice to view details.");
+        defaultDetailL.setStyle("-fx-text-fill: #8a9ab0; -fx-font-size: 15px;");
+        detailCol.getChildren().add(defaultDetailL);
+
         List<String[]> dsNotices = DataStore.getAllNotices();
         if (dsNotices.isEmpty()) {
             Label noNotice = new Label("No notices posted yet.");
             noNotice.setStyle("-fx-text-fill: #5a6a7e; -fx-padding: 10;");
-            noticeGrid.getChildren().add(noNotice);
+            listCol.getChildren().add(noNotice);
         } else {
             for (int i = dsNotices.size() - 1; i >= 0; i--) {
                 String[] n = dsNotices.get(i);
                 
                 VBox card = new VBox(8);
                 card.setStyle("-fx-padding: 15; -fx-background-color: #1a1a0a; "
-                        + "-fx-background-radius: 10; -fx-border-color: #ffe082; -fx-border-radius: 10; -fx-pref-width: 280;");
+                        + "-fx-background-radius: 10; -fx-border-color: #ffe082; -fx-border-radius: 10; -fx-cursor: hand;");
                 
                 Label courseL = new Label("[" + n[0] + "]");
                 courseL.setStyle("-fx-font-weight: bold; -fx-text-fill: #ffb300;");
@@ -456,66 +501,73 @@ public class CampusDashboardController {
                 
                 Label contentL = new Label(content.trim());
                 contentL.setWrapText(true);
-                contentL.setStyle("-fx-text-fill: #d0d8e8; -fx-font-size: 14px;");
+                // Truncate for list view
+                String previewText = content.trim();
+                if (previewText.length() > 60) previewText = previewText.substring(0, 60) + "...";
+                contentL.setText(previewText);
+                contentL.setStyle("-fx-text-fill: #d0d8e8; -fx-font-size: 13px;");
                 
                 Label dateL = new Label("By " + n[2] + " on " + n[3]);
                 dateL.setStyle("-fx-text-fill: #4a5a6e; -fx-font-size: 11px;");
                 
-                card.getChildren().addAll(courseL, contentL, dateL);
-                
                 if (!pdfFile.isEmpty()) {
-                    Button viewPdfBtn = new Button("\uD83D\uDCC4 View Notice & PDF");
-                    viewPdfBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #00ff88; -fx-border-color: #00ff88; -fx-border-radius: 6; -fx-font-size: 11px;");
-                    final String fp = pdfFile;
-                    viewPdfBtn.setOnAction(e -> showNoticeDetails(contentL.getText(), fp));
-                    card.getChildren().add(viewPdfBtn);
+                    Label pdfIcon = new Label("\uD83D\uDCC4 Contains PDF");
+                    pdfIcon.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
+                    card.getChildren().addAll(courseL, contentL, dateL, pdfIcon);
+                } else {
+                    card.getChildren().addAll(courseL, contentL, dateL);
                 }
+
+                // Click action
+                final String fullContent = content.trim();
+                final String fp = pdfFile;
+                final String cTitle = n[0];
+                final String cDate = dateL.getText();
                 
-                noticeGrid.getChildren().add(card);
+                card.setOnMouseClicked(e -> {
+                    detailCol.getChildren().clear();
+                    
+                    Label detTitle = new Label("[" + cTitle + "] Notice Details");
+                    detTitle.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+                    detTitle.setWrapText(true);
+                    
+                    Label detDate = new Label(cDate);
+                    detDate.setStyle("-fx-text-fill: #8a9ab0; -fx-font-size: 12px;");
+                    
+                    Label detBody = new Label(fullContent);
+                    detBody.setWrapText(true);
+                    detBody.setStyle("-fx-font-size: 15px; -fx-text-fill: #d0d8e8; -fx-padding: 10 0 10 0;");
+                    
+                    detailCol.getChildren().addAll(detTitle, detDate, new Separator(), detBody);
+                    
+                    if (fp != null && !fp.isEmpty()) {
+                        VBox pdfBox = new VBox(10);
+                        pdfBox.setStyle("-fx-padding: 20; -fx-background-color: #0d1b2a; -fx-background-radius: 10; -fx-border-color: #ffb300; -fx-border-radius: 10;");
+                        
+                        Label l = new Label("\uD83D\uDCC4 Attached PDF Document");
+                        l.setStyle("-fx-font-weight: bold; -fx-text-fill: #ffb300;");
+                        
+                        Button openBtn = new Button("Open PDF");
+                        openBtn.setStyle("-fx-background-color: #ffb300; -fx-text-fill: #111a2e; -fx-font-weight: bold; -fx-cursor: hand;");
+                        openBtn.setOnAction(ev -> {
+                            try {
+                                java.awt.Desktop.getDesktop().open(new File(fp));
+                            } catch (Exception ex) {
+                                System.err.println("Could not open PDF: " + ex.getMessage());
+                            }
+                        });
+                        pdfBox.getChildren().addAll(l, openBtn);
+                        detailCol.getChildren().add(pdfBox);
+                    }
+                });
+                
+                listCol.getChildren().add(card);
             }
         }
 
-        box.getChildren().addAll(header, noticeGrid);
-        setScrollContent(box);
-    }
-    
-    private void showNoticeDetails(String noticeText, String pdfPath) {
-        VBox box = new VBox(15);
-        box.setPadding(new Insets(20));
+        splitLayout.getChildren().addAll(listScroll, detailCol);
 
-        Button backBtn = new Button("\u2190 Back to Notices");
-        backBtn.setStyle("-fx-background-color: #0d1b2a; -fx-text-fill: #00e5ff; -fx-border-color: rgba(0,229,255,0.3); -fx-background-radius: 8;");
-        backBtn.setOnAction(e -> showNotices());
-
-        Label title = new Label("Notice Details");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
-        
-        Label contentL = new Label(noticeText);
-        contentL.setWrapText(true);
-        contentL.setStyle("-fx-font-size: 15px; -fx-text-fill: #d0d8e8;");
-        
-        box.getChildren().addAll(backBtn, title, new Separator(), contentL);
-        
-        if (pdfPath != null && !pdfPath.isEmpty()) {
-            VBox pdfBox = new VBox(10);
-            pdfBox.setStyle("-fx-padding: 20; -fx-background-color: #111a2e; -fx-background-radius: 10; -fx-border-color: #ffb300; -fx-border-radius: 10;");
-            
-            Label l = new Label("\uD83D\uDCC4 Attached PDF Document");
-            l.setStyle("-fx-font-weight: bold; -fx-text-fill: #ffb300;");
-            
-            Button openBtn = new Button("Open PDF");
-            openBtn.setStyle("-fx-background-color: #ffb300; -fx-text-fill: #111a2e; -fx-font-weight: bold;");
-            openBtn.setOnAction(e -> {
-                try {
-                    java.awt.Desktop.getDesktop().open(new File(pdfPath));
-                } catch (Exception ex) {
-                    System.err.println("Could not open PDF: " + ex.getMessage());
-                }
-            });
-            pdfBox.getChildren().addAll(l, openBtn);
-            box.getChildren().add(pdfBox);
-        }
-        
+        box.getChildren().addAll(header, splitLayout);
         setScrollContent(box);
     }
 

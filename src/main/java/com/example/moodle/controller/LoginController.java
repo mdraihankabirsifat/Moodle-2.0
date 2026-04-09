@@ -5,6 +5,8 @@ import com.example.moodle.service.DataStore;
 import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
 import com.example.moodle.util.UserStore;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -90,6 +92,10 @@ public class LoginController {
                 user.getEmail()
         );
 
+        // Push notification on login
+        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"));
+        DataStore.addNotification(user.getEmail(), "Welcome back, " + user.getName() + "! Logged in at " + time);
+
         SceneManager.switchScene("home.fxml");
     }
 
@@ -135,6 +141,10 @@ public class LoginController {
         Session.setDepartment(dept);
         Session.setDesignation(designation);
         Session.setTeacherType(type);
+
+        // Push notification on login
+        String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"));
+        DataStore.addNotification(activeId, "Welcome back, " + name + "! Logged in as Teacher at " + time);
 
         SceneManager.switchScene("home.fxml");
     }

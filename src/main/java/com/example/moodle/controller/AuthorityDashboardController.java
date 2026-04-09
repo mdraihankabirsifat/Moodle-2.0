@@ -80,6 +80,7 @@ public class AuthorityDashboardController {
         searchField.setStyle("-fx-padding: 8 16 8 16; -fx-background-radius: 20; -fx-border-radius: 20;");
 
         VBox tableBox = new VBox(2);
+        VBox editBox = new VBox(10); // Container for edit form
 
         Runnable refreshTable = () -> {
             tableBox.getChildren().clear();
@@ -87,7 +88,7 @@ public class AuthorityDashboardController {
 
             // Header row
             HBox headerRow = new HBox(2);
-            String[] headers = {"Name", "University", "Student ID", "Email", "Role"};
+            String[] headers = {"Name", "University", "Student ID", "Email", "Role", "Action"};
             for (String h : headers) {
                 Label cell = new Label(h);
                 cell.setStyle("-fx-font-weight: bold; -fx-padding: 10 16 10 16; "
@@ -98,7 +99,6 @@ public class AuthorityDashboardController {
             tableBox.getChildren().add(headerRow);
 
             List<User> users = UserStore.getAllUsers();
-            // Show newest first (reverse order)
             java.util.List<User> reversed = new java.util.ArrayList<>(users);
             java.util.Collections.reverse(reversed);
             int count = 0;
@@ -112,19 +112,84 @@ public class AuthorityDashboardController {
                     }
                 }
                 HBox row = new HBox(2);
-                String bg = count % 2 == 0 ? "white" : "#f8f9ff";
+                row.setAlignment(Pos.CENTER_LEFT);
+                String bg = count % 2 == 0 ? "#111a2e" : "#0d1b2a";
                 String[] vals = {u.getName(), u.getUniversity(), u.getStudentId(),
                     u.getEmail(), u.getRole()};
                 for (int i = 0; i < vals.length; i++) {
                     Label cell = new Label(vals[i] != null ? vals[i] : "");
                     String style = "-fx-padding: 8 16 8 16; -fx-background-color: " + bg
-                            + "; -fx-min-width: 130; -fx-pref-width: 130;";
+                            + "; -fx-min-width: 130; -fx-pref-width: 130; -fx-text-fill: #e6edf3;";
                     if (i == 0) {
-                        style += " -fx-font-weight: bold; -fx-text-fill: #00e5ff;"; // Name column bold
-
-                                        }cell.setStyle(style);
+                        style += " -fx-font-weight: bold; -fx-text-fill: #00e5ff;";
+                    }
+                    cell.setStyle(style);
                     row.getChildren().add(cell);
                 }
+
+                // Add Edit Button
+                Button editBtn = new Button("Edit");
+                editBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-size: 11px;");
+                editBtn.setOnAction(e -> {
+                    editBox.getChildren().clear();
+                    Label editTitle = new Label("Editing: " + u.getName());
+                    editTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #00ff88;");
+
+                    TextField nameF = new TextField(u.getName());
+                    nameF.setPromptText("Name");
+                    TextField uniF = new TextField(u.getUniversity());
+                    uniF.setPromptText("University");
+                    TextField idF = new TextField(u.getStudentId());
+                    idF.setPromptText("Student ID");
+                    TextField emailF = new TextField(u.getEmail());
+                    emailF.setPromptText("Email");
+                    emailF.setDisable(true); // Don't edit email
+
+                    ComboBox<String> roleBox = new ComboBox<>();
+                    roleBox.getItems().addAll("STUDENT", "TEACHER", "AUTHORITY");
+                    roleBox.setValue(u.getRole());
+                    roleBox.setMaxWidth(Double.MAX_VALUE);
+
+                    Button saveBtn = new Button("Save Changes");
+                    saveBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white;");
+                    Label editMsg = new Label();
+                    saveBtn.setOnAction(ev -> {
+                        u.setName(nameF.getText().trim());
+                        u.setUniversity(uniF.getText().trim());
+                        u.setStudentId(idF.getText().trim());
+                        u.setRole(roleBox.getValue());
+                        UserStore.updateUser(u);
+                        editMsg.setStyle("-fx-text-fill: #00ff88;");
+                        editMsg.setText("Saved!");
+                        // Refresh to show new data
+                        // refreshTable.run(); // Need to call it later or re-invoke. 
+                        // It's cleaner to just clear editBox and refresh search
+                        editBox.getChildren().clear();
+                        searchField.setText(searchField.getText() + " "); // trigger refresh
+                        searchField.setText(searchField.getText().trim());
+                    });
+
+                    Button cancelBtn = new Button("Cancel");
+                    cancelBtn.setOnAction(ev -> editBox.getChildren().clear());
+                    
+                    HBox btnBox = new HBox(10, saveBtn, cancelBtn);
+
+                    editBox.setStyle("-fx-padding: 15; -fx-background-color: #111a2e; -fx-border-color: #00e5ff; -fx-border-radius: 8; -fx-background-radius: 8;");
+                    editBox.getChildren().addAll(
+                            editTitle,
+                            new Label("Name:"), nameF,
+                            new Label("University:"), uniF,
+                            new Label("Student ID:"), idF,
+                            new Label("Role:"), roleBox,
+                            btnBox, editMsg
+                    );
+                });
+
+                HBox actionCell = new HBox(editBtn);
+                actionCell.setAlignment(Pos.CENTER);
+                actionCell.setStyle("-fx-padding: 8 16 8 16; -fx-background-color: " + bg + "; -fx-min-width: 130; -fx-pref-width: 130;");
+                row.getChildren().add(actionCell);
+
                 tableBox.getChildren().add(row);
                 count++;
             }
@@ -136,90 +201,7 @@ public class AuthorityDashboardController {
         Label countLabel = new Label("Total Students: " + UserStore.getAllUsers().size());
         countLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #8a9ab0;");
 
-        box.getChildren().addAll(title, countLabel, searchField, tableBox);
-        setScrollContent(box);
-    }
-
-    // ===================== EDIT STUDENT =====================
-    @FXML
-    private void showEditStudent() {
-        VBox box = new VBox(15);
-        box.setPadding(new Insets(10));
-
-        Label title = new Label("Edit Student Record");
-        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
-
-        TextField searchField = new TextField();
-        searchField.setPromptText("Enter student email to find...");
-        Button findBtn = new Button("Find Student");
-
-        VBox editBox = new VBox(10);
-        Label msgLabel = new Label();
-
-        findBtn.setOnAction(e -> {
-            editBox.getChildren().clear();
-            String email = searchField.getText().trim();
-            User user = UserStore.getUser(email);
-            if (user == null) {
-                msgLabel.setStyle("-fx-text-fill: #ff3366;");
-                msgLabel.setText("Student not found.");
-                return;
-            }
-            msgLabel.setText("");
-
-            Label editTitle = new Label("Editing: " + user.getName());
-            editTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px; -fx-text-fill: #0088cc;");
-
-            TextField nameF = new TextField(user.getName());
-            nameF.setPromptText("Name");
-            TextField uniF = new TextField(user.getUniversity());
-            uniF.setPromptText("University");
-            TextField idF = new TextField(user.getStudentId());
-            idF.setPromptText("Student ID");
-            TextField emailF = new TextField(user.getEmail());
-            emailF.setPromptText("Email");
-            emailF.setDisable(true);
-
-            ComboBox<String> roleBox = new ComboBox<>();
-            roleBox.getItems().addAll("STUDENT", "TEACHER", "AUTHORITY");
-            roleBox.setValue(user.getRole());
-            roleBox.setMaxWidth(Double.MAX_VALUE);
-
-            Button saveBtn = new Button("Save Changes");
-            Label editMsg = new Label();
-            saveBtn.setOnAction(ev -> {
-                user.setName(nameF.getText().trim());
-                user.setUniversity(uniF.getText().trim());
-                user.setStudentId(idF.getText().trim());
-                user.setRole(roleBox.getValue());
-                UserStore.updateUser(user);
-                editMsg.setStyle("-fx-text-fill: #00ff88;");
-                editMsg.setText("Student record updated successfully!");
-            });
-
-            editBox.getChildren().addAll(
-                    editTitle,
-                    new Label("Name:"), nameF,
-                    new Label("University:"), uniF,
-                    new Label("Student ID:"), idF,
-                    new Label("Email:"), emailF,
-                    new Label("Role:"), roleBox,
-                    saveBtn, editMsg
-            );
-        });
-
-        // Quick student list for reference
-        Label listTitle = new Label("Registered Students:");
-        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 0 0 0;");
-        VBox quickList = new VBox(4);
-        for (User u : UserStore.getAllUsers()) {
-            Label item = new Label(u.getEmail() + " — " + u.getName() + " (" + u.getStudentId() + ")");
-            item.setStyle("-fx-padding: 4 8 4 8; -fx-background-color: #0d1b2a; -fx-background-radius: 4;");
-            quickList.getChildren().add(item);
-        }
-
-        box.getChildren().addAll(title, searchField, findBtn, msgLabel,
-                new Separator(), editBox, new Separator(), listTitle, quickList);
+        box.getChildren().addAll(title, countLabel, searchField, editBox, tableBox);
         setScrollContent(box);
     }
 
@@ -921,6 +903,370 @@ public class AuthorityDashboardController {
         box.getChildren().addAll(title, new Separator(), studentHeader, studentList,
                 new Separator(), teacherHeader, teacherList);
 
+        setScrollContent(box);
+    }
+
+    // ===================== MANAGE FACULTY =====================
+    @FXML
+    private void showManageFaculty() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83D\uDCCB Manage Faculty Members");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField nameF = new TextField(); nameF.setPromptText("Name");
+        TextField deptF = new TextField(); deptF.setPromptText("Department");
+        TextField desigF = new TextField(); desigF.setPromptText("Designation");
+        TextField emailF = new TextField(); emailF.setPromptText("Email");
+        TextField phoneF = new TextField(); phoneF.setPromptText("Phone");
+        Label msg = new Label();
+        Button addBtn = new Button("Add Faculty");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setOnAction(e -> {
+            if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
+            DataStore.addFacultyMember(nameF.getText().trim(), deptF.getText().trim(), desigF.getText().trim(), emailF.getText().trim(), phoneF.getText().trim());
+            msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Faculty added!");
+            nameF.clear(); deptF.clear(); desigF.clear(); emailF.clear(); phoneF.clear();
+            showManageFaculty();
+        });
+
+        box.getChildren().addAll(title, nameF, deptF, desigF, emailF, phoneF, addBtn, msg, new Separator());
+
+        Label listTitle = new Label("Faculty Members:");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(listTitle);
+
+        java.util.List<String[]> faculty = DataStore.getAllFacultyMembers();
+        if (faculty.isEmpty()) { box.getChildren().add(new Label("No faculty members added.")); }
+        else {
+            for (String[] f : faculty) {
+                HBox row = new HBox(10);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setStyle("-fx-padding: 8 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+                Label info = new Label(f[0] + " | " + f[1] + " | " + f[2] + " | " + f[3] + " | " + f[4]);
+                info.setWrapText(true); info.setMaxWidth(500);
+                Button del = new Button("\u274C");
+                del.setOnAction(ev -> { DataStore.removeFacultyMember(f[0]); showManageFaculty(); });
+                row.getChildren().addAll(info, del);
+                box.getChildren().add(row);
+            }
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== MANAGE ALUMNI =====================
+    @FXML
+    private void showManageAlumni() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83C\uDF93 Manage Alumni");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField nameF = new TextField(); nameF.setPromptText("Name");
+        TextField batchF = new TextField(); batchF.setPromptText("Batch (e.g. 2020)");
+        TextField deptF = new TextField(); deptF.setPromptText("Department");
+        TextField posF = new TextField(); posF.setPromptText("Current Position");
+        Label msg = new Label();
+        Button addBtn = new Button("Add Alumni");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setOnAction(e -> {
+            if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
+            DataStore.addAlumni(nameF.getText().trim(), batchF.getText().trim(), deptF.getText().trim(), posF.getText().trim());
+            msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Alumni added!");
+            nameF.clear(); batchF.clear(); deptF.clear(); posF.clear();
+            showManageAlumni();
+        });
+
+        box.getChildren().addAll(title, nameF, batchF, deptF, posF, addBtn, msg, new Separator());
+
+        Label listTitle = new Label("Alumni Records:");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(listTitle);
+
+        java.util.List<String[]> alumni = DataStore.getAllAlumni();
+        if (alumni.isEmpty()) { box.getChildren().add(new Label("No alumni added.")); }
+        else {
+            for (String[] a : alumni) {
+                HBox row = new HBox(10);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setStyle("-fx-padding: 8 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+                Label info = new Label(a[0] + " | Batch: " + a[1] + " | " + a[2] + " | " + a[3]);
+                info.setWrapText(true); info.setMaxWidth(500);
+                Button del = new Button("\u274C");
+                del.setOnAction(ev -> { DataStore.removeAlumni(a[0]); showManageAlumni(); });
+                row.getChildren().addAll(info, del);
+                box.getChildren().add(row);
+            }
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== UNIVERSITY NOTICES =====================
+    @FXML
+    private void showUniversityNotices() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83D\uDCE2 University Notices");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField titleF = new TextField(); titleF.setPromptText("Notice Title");
+        TextArea contentF = new TextArea(); contentF.setPromptText("Notice Content"); contentF.setPrefRowCount(3);
+        Label msg = new Label();
+        Button addBtn = new Button("Post Notice");
+        addBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-weight: bold;");
+        addBtn.setOnAction(e -> {
+            if (titleF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Title required."); return; }
+            DataStore.addUniversityNotice(titleF.getText().trim(), contentF.getText().trim(), "admin");
+            msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Notice posted!");
+            titleF.clear(); contentF.clear();
+            showUniversityNotices();
+        });
+
+        box.getChildren().addAll(title, titleF, contentF, addBtn, msg, new Separator());
+
+        Label listTitle = new Label("Posted University Notices:");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(listTitle);
+
+        java.util.List<String[]> notices = DataStore.getAllUniversityNotices();
+        if (notices.isEmpty()) { box.getChildren().add(new Label("No university notices.")); }
+        else {
+            for (String[] n : notices) {
+                VBox card = new VBox(6);
+                card.setStyle("-fx-padding: 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+                Label tl = new Label(n[0]); tl.setStyle("-fx-font-weight: bold; -fx-text-fill: #ffb300;");
+                Label cl = new Label(n[1]); cl.setWrapText(true);
+                Label dl = new Label("By " + n[2] + " on " + n[3]); dl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
+                Button del = new Button("\u274C Remove");
+                del.setOnAction(ev -> { DataStore.removeUniversityNotice(n[0]); showUniversityNotices(); });
+                card.getChildren().addAll(tl, cl, dl, del);
+                box.getChildren().add(card);
+            }
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== JOB NOTICES =====================
+    @FXML
+    private void showJobNotices() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83D\uDCBC Job Notices");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField titleF = new TextField(); titleF.setPromptText("Job Title");
+        TextArea descF = new TextArea(); descF.setPromptText("Job Description"); descF.setPrefRowCount(3);
+        TextField companyF = new TextField(); companyF.setPromptText("Company / Organization");
+        TextField deadlineF = new TextField(); deadlineF.setPromptText("Application Deadline");
+        Label msg = new Label();
+        Button addBtn = new Button("Post Job Notice");
+        addBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-weight: bold;");
+        addBtn.setOnAction(e -> {
+            if (titleF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Title required."); return; }
+            DataStore.addJobNotice(titleF.getText().trim(), descF.getText().trim(), companyF.getText().trim(), deadlineF.getText().trim(), "admin");
+            msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Job notice posted!");
+            titleF.clear(); descF.clear(); companyF.clear(); deadlineF.clear();
+            showJobNotices();
+        });
+
+        box.getChildren().addAll(title, titleF, descF, companyF, deadlineF, addBtn, msg, new Separator());
+
+        Label listTitle = new Label("Posted Job Notices:");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(listTitle);
+
+        java.util.List<String[]> jobs = DataStore.getAllJobNotices();
+        if (jobs.isEmpty()) { box.getChildren().add(new Label("No job notices.")); }
+        else {
+            for (String[] j : jobs) {
+                VBox card = new VBox(6);
+                card.setStyle("-fx-padding: 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+                Label tl = new Label(j[0]); tl.setStyle("-fx-font-weight: bold; -fx-text-fill: #00ff88;");
+                Label dl = new Label(j[1]); dl.setWrapText(true);
+                Label cl = new Label("Company: " + j[2] + " | Deadline: " + j[3]);
+                cl.setStyle("-fx-text-fill: #ffb300;");
+                Label pl = new Label("By " + j[4] + " on " + j[5]); pl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
+                Button del = new Button("\u274C Remove");
+                del.setOnAction(ev -> { DataStore.removeJobNotice(j[0]); showJobNotices(); });
+                card.getChildren().addAll(tl, dl, cl, pl, del);
+                box.getChildren().add(card);
+            }
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== STAFF DETAILS =====================
+    @FXML
+    private void showStaffDetails() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83D\uDC77 Staff Details");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField nameF = new TextField(); nameF.setPromptText("Name");
+        TextField roleF = new TextField(); roleF.setPromptText("Role / Position");
+        TextField deptF = new TextField(); deptF.setPromptText("Department");
+        TextField phoneF = new TextField(); phoneF.setPromptText("Phone");
+        TextField emailF = new TextField(); emailF.setPromptText("Email");
+        Label msg = new Label();
+        Button addBtn = new Button("Add Staff");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setOnAction(e -> {
+            if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
+            DataStore.addStaffMember(nameF.getText().trim(), roleF.getText().trim(), deptF.getText().trim(), phoneF.getText().trim(), emailF.getText().trim());
+            msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Staff added!");
+            nameF.clear(); roleF.clear(); deptF.clear(); phoneF.clear(); emailF.clear();
+            showStaffDetails();
+        });
+
+        box.getChildren().addAll(title, nameF, roleF, deptF, phoneF, emailF, addBtn, msg, new Separator());
+
+        Label listTitle = new Label("Staff Members:");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(listTitle);
+
+        java.util.List<String[]> staff = DataStore.getAllStaffMembers();
+        if (staff.isEmpty()) { box.getChildren().add(new Label("No staff members.")); }
+        else {
+            for (String[] s : staff) {
+                HBox row = new HBox(10);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setStyle("-fx-padding: 8 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+                Label info = new Label(s[0] + " | " + s[1] + " | " + s[2] + " | " + s[3] + " | " + s[4]);
+                info.setWrapText(true); info.setMaxWidth(500);
+                Button del = new Button("\u274C");
+                del.setOnAction(ev -> { DataStore.removeStaffMember(s[0]); showStaffDetails(); });
+                row.getChildren().addAll(info, del);
+                box.getChildren().add(row);
+            }
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== DEPARTMENT DETAILS =====================
+    @FXML
+    private void showDepartmentDetails() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83C\uDFDB Department Details");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField nameF = new TextField(); nameF.setPromptText("Department Name");
+        TextField headF = new TextField(); headF.setPromptText("Head of Department");
+        TextField countF = new TextField(); countF.setPromptText("Total Faculty");
+        TextArea descF = new TextArea(); descF.setPromptText("Description"); descF.setPrefRowCount(2);
+        Label msg = new Label();
+        Button addBtn = new Button("Add Department");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setOnAction(e -> {
+            if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
+            DataStore.addDepartment(nameF.getText().trim(), headF.getText().trim(), countF.getText().trim(), descF.getText().trim());
+            msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Department added!");
+            nameF.clear(); headF.clear(); countF.clear(); descF.clear();
+            showDepartmentDetails();
+        });
+
+        box.getChildren().addAll(title, nameF, headF, countF, descF, addBtn, msg, new Separator());
+
+        Label listTitle = new Label("Departments:");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(listTitle);
+
+        java.util.List<String[]> depts = DataStore.getAllDepartments();
+        if (depts.isEmpty()) { box.getChildren().add(new Label("No departments added.")); }
+        else {
+            for (String[] d : depts) {
+                VBox card = new VBox(4);
+                card.setStyle("-fx-padding: 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+                Label nl = new Label(d[0]); nl.setStyle("-fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+                Label hl = new Label("Head: " + d[1] + " | Faculty: " + d[2]);
+                Label dl = new Label(d[3]); dl.setWrapText(true); dl.setStyle("-fx-text-fill: #8a9ab0;");
+                Button del = new Button("\u274C Remove");
+                del.setOnAction(ev -> { DataStore.removeDepartment(d[0]); showDepartmentDetails(); });
+                card.getChildren().addAll(nl, hl, dl, del);
+                box.getChildren().add(card);
+            }
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== INSTITUTION DETAILS =====================
+    @FXML
+    private void showInstitutionDetails() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83C\uDFEB Institution Details");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        String[] keys = {"Institution Name", "Address", "Phone", "Email", "Website", "Established", "Vice Chancellor", "Motto"};
+        Label msg = new Label();
+
+        for (String key : keys) {
+            HBox row = new HBox(10);
+            row.setAlignment(Pos.CENTER_LEFT);
+            Label lbl = new Label(key + ":"); lbl.setMinWidth(140); lbl.setStyle("-fx-font-weight: bold;");
+            TextField val = new TextField(DataStore.getInstitutionDetail(key));
+            val.setPromptText(key);
+            val.setPrefWidth(400);
+            Button saveBtn = new Button("Save");
+            saveBtn.setStyle("-fx-background-color: #0d2a4a; -fx-text-fill: white; -fx-background-radius: 6;");
+            saveBtn.setOnAction(e -> {
+                DataStore.setInstitutionDetail(key, val.getText().trim());
+                msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText(key + " saved! \u2705");
+            });
+            row.getChildren().addAll(lbl, val, saveBtn);
+            box.getChildren().add(row);
+        }
+
+        box.getChildren().add(msg);
+        setScrollContent(box);
+    }
+
+    // ===================== ADMINISTRATION =====================
+    @FXML
+    private void showAdministration() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\u2699 Administration");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField nameF = new TextField(); nameF.setPromptText("Name");
+        TextField posF = new TextField(); posF.setPromptText("Position");
+        TextField deptF = new TextField(); deptF.setPromptText("Department");
+        TextField phoneF = new TextField(); phoneF.setPromptText("Phone");
+        TextField emailF = new TextField(); emailF.setPromptText("Email");
+        Label msg = new Label();
+        Button addBtn = new Button("Add Administration Member");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setOnAction(e -> {
+            if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
+            DataStore.addAdministration(nameF.getText().trim(), posF.getText().trim(), deptF.getText().trim(), phoneF.getText().trim(), emailF.getText().trim());
+            msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Administration member added!");
+            nameF.clear(); posF.clear(); deptF.clear(); phoneF.clear(); emailF.clear();
+            showAdministration();
+        });
+
+        box.getChildren().addAll(title, nameF, posF, deptF, phoneF, emailF, addBtn, msg, new Separator());
+
+        Label listTitle = new Label("Administration Members:");
+        listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        box.getChildren().add(listTitle);
+
+        java.util.List<String[]> admins = DataStore.getAllAdministration();
+        if (admins.isEmpty()) { box.getChildren().add(new Label("No administration members.")); }
+        else {
+            for (String[] a : admins) {
+                HBox row = new HBox(10);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setStyle("-fx-padding: 8 12; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+                Label info = new Label(a[0] + " | " + a[1] + " | " + a[2] + " | " + a[3] + " | " + a[4]);
+                info.setWrapText(true); info.setMaxWidth(500);
+                Button del = new Button("\u274C");
+                del.setOnAction(ev -> { DataStore.removeAdministration(a[0]); showAdministration(); });
+                row.getChildren().addAll(info, del);
+                box.getChildren().add(row);
+            }
+        }
         setScrollContent(box);
     }
 

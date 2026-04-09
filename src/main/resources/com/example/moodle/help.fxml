@@ -16,7 +16,7 @@
             <HBox alignment="CENTER_LEFT">
                 <Button text="← Back" onAction="#goBack" styleClass="nav-btn" style="-fx-font-size: 13px; -fx-padding: 8 15 8 15;"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Label text="Unimate Documentation &amp; Setup" styleClass="title-label"/>
+                <Label text="Platform Features &amp; Documentation" styleClass="title-label"/>
                 <Region HBox.hgrow="ALWAYS"/>
             </HBox>
         </VBox>
@@ -27,32 +27,48 @@
             <VBox spacing="30" alignment="TOP_CENTER" style="-fx-padding: 40 40 40 40;">
                 
                 <VBox spacing="15" styleClass="glass-card" maxWidth="800">
-                    <Label text="🔑 How to Login &amp; Sign Up" styleClass="section-title"/>
-                    <Label text="• Registration is quick! Click 'Sign Up' on the sidebar. Choose your profile type (Student, Teacher, or Authority)." wrapText="true"/>
-                    <Label text="• Make sure to use your organization's required identification formats, such as Student ID for enrollment verification." wrapText="true"/>
-                    <Label text="• Log in using your registered Identifier (e.g. Email for students) and password." wrapText="true"/>
+                    <Label text="🔒 Advanced Authentication System" styleClass="section-title"/>
+                    <Label text="• Multi-role registration (Student, Teacher, Authority) with dynamic dashboards." wrapText="true"/>
+                    <Label text="• Dedicated Campus Access module with separate passwords for security." wrapText="true"/>
+                    <Label text="• Profile management with circular photo uploads and credential updates." wrapText="true"/>
+                    <Label text="• Real-time Push Notifications upon successful login." wrapText="true"/>
                 </VBox>
 
                 <VBox spacing="15" styleClass="glass-card" maxWidth="800">
-                    <Label text="📘 Features for Students" styleClass="section-title"/>
-                    <Label text="• Search for your University through the top search bar." wrapText="true"/>
-                    <Label text="• Access 'My Campus' to view courses, pay fees, evaluate marks and manage peer groups." wrapText="true"/>
-                    <Label text="• The integrated notification system keeps you updated on assignments and classes." wrapText="true"/>
-                    <Label text="• Join medical consultation easily through the Medical Center booking integrated in the dashboard." wrapText="true"/>
+                    <Label text="📘 Student MyCampus Dashboard" styleClass="section-title"/>
+                    <Label text="• Split-view Internal Notices reader with inline PDF attachment viewing." wrapText="true"/>
+                    <Label text="• Comprehensive Gradesheet viewing tracking course completion." wrapText="true"/>
+                    <Label text="• Personal Schedule management and Activity Tracking log." wrapText="true"/>
+                    <Label text="• Secure Fee Payment interface." wrapText="true"/>
                 </VBox>
 
                 <VBox spacing="15" styleClass="glass-card" maxWidth="800">
-                    <Label text="🎓 Features for Teachers" styleClass="section-title"/>
-                    <Label text="• Use 'My Campus' to manage your profile and upload assignments." wrapText="true"/>
-                    <Label text="• Evaluate student submissions dynamically in real-time." wrapText="true"/>
-                    <Label text="• Upload course slides and instructional notices to dedicated class channels." wrapText="true"/>
-                    <Label text="• Start peer-to-peer Live Chats directly with students regarding academics." wrapText="true"/>
+                    <Label text="🎓 Teacher Portal" styleClass="section-title"/>
+                    <Label text="• Course Notice Publisher with PDF attachment support." wrapText="true"/>
+                    <Label text="• Profile details tracking Name, Department, and Designation." wrapText="true"/>
+                    <Label text="• Direct messaging and group study creation interface." wrapText="true"/>
+                    <Label text="• Distinct campus password management." wrapText="true"/>
                 </VBox>
                 
                 <VBox spacing="15" styleClass="glass-card" maxWidth="800">
-                    <Label text="🌐 Network Capabilities" styleClass="section-title"/>
-                    <Label text="• Unimate offers synchronous P2P networking." wrapText="true"/>
-                    <Label text="• Connect via the network panel using IP Server Addresses on local subsets for cross-device experiences." wrapText="true"/>
+                    <Label text="⚙️ Admin Control Panel" styleClass="section-title"/>
+                    <Label text="• Student Database with real-time fast-filtering and inline editing." wrapText="true"/>
+                    <Label text="• Comprehensive Data Management: Add/remove Faculty, Staff, and Alumni." wrapText="true"/>
+                    <Label text="• Notice Management: Post global Job and University notices." wrapText="true"/>
+                    <Label text="• Manage Institution Details: Address, VC, Moto, and structure." wrapText="true"/>
+                    <Label text="• Subfolder-based data storage (`~/.moodle_data/admin`) for cleaner file trees." wrapText="true"/>
+                </VBox>
+
+                <VBox spacing="15" styleClass="glass-card" maxWidth="800">
+                    <Label text="🏛 Dynamic University Page" styleClass="section-title"/>
+                    <Label text="• Interactive sidebar covering About, Departments, Institutes, Faculty, Alumni, and Administration." wrapText="true"/>
+                    <Label text="• Pulls live data from the Admin database rendering comprehensive university pages instantly." wrapText="true"/>
+                </VBox>
+
+                <VBox spacing="15" styleClass="glass-card" maxWidth="800">
+                    <Label text="🌐 Peer-to-Peer Networking" styleClass="section-title"/>
+                    <Label text="• Local IP Server Socket integrations for connecting directly with peers." wrapText="true"/>
+                    <Label text="• Network status toggle straight from the top bar." wrapText="true"/>
                 </VBox>
                 
             </VBox>
