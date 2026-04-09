@@ -39,7 +39,70 @@ public class DataStore {
     private static final String HALL_REQUESTS_FILE = "hall_room_requests.txt";
     private static final String HALL_ALLOCATIONS_FILE = "hall_allocations.txt";
     private static final String ACTIVITY_FILE = "student_activity.txt";
+    private static final String NOTIFICATIONS_FILE = "notifications.txt";
     private static final Object MESSAGE_LOCK = new Object();
+
+    // ==================== NOTIFICATIONS ====================
+
+    public static void addNotification(String userId, String message) {
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        FileStore.appendLine(NOTIFICATIONS_FILE, userId + "|" + message + "|" + ts + "|false");
+    }
+
+    public static List<String[]> getNotificationsFor(String userId) {
+        List<String[]> list = new ArrayList<>();
+        for (String line : FileStore.loadLines(NOTIFICATIONS_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 4 && p[0].equals(userId)) {
+                list.add(p);
+            }
+        }
+        java.util.Collections.reverse(list);
+        return list;
+    }
+
+    public static int getUnreadNotificationCount(String userId) {
+        int count = 0;
+        for (String line : FileStore.loadLines(NOTIFICATIONS_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 4 && p[0].equals(userId) && p[3].equals("false")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static void markNotificationsAsRead(String userId) {
+        List<String> lines = FileStore.loadLines(NOTIFICATIONS_FILE);
+        boolean changed = false;
+        for (int i = 0; i < lines.size(); i++) {
+            String[] p = lines.get(i).split("\\|", -1);
+            if (p.length >= 4 && p[0].equals(userId) && p[3].equals("false")) {
+                lines.set(i, p[0] + "|" + p[1] + "|" + p[2] + "|true");
+                changed = true;
+            }
+        }
+        if (changed) {
+            FileStore.saveLines(NOTIFICATIONS_FILE, lines);
+        }
+    }
+
+    private static String getBatchForCourse(String courseCode) {
+        for (Course c : getAllCourses()) {
+            if (c.getCode().equals(courseCode)) return c.getBatch();
+        }
+        return "";
+    }
+
+    private static void notifyStudentsInBatch(String batch, String message) {
+        if (batch == null || batch.isEmpty()) return;
+        for (User u : UserStore.getAllUsers()) {
+            if (u.getStudentId() != null && u.getStudentId().startsWith(batch)) {
+                String id = (u.getEmail() != null && !u.getEmail().isEmpty()) ? u.getEmail() : u.getStudentId();
+                addNotification(id, message);
+            }
+        }
+    }
 
     static {
         seedDefaults();
@@ -112,6 +175,8 @@ public class DataStore {
     public static void addAssignment(Assignment a) {
         FileStore.appendLine(ASSIGNMENTS_FILE,
                 a.getCourseCode() + "|" + a.getTitle() + "|" + a.getDescription() + "|" + a.getTeacherEmail());
+        String batch = getBatchForCourse(a.getCourseCode());
+        notifyStudentsInBatch(batch, "New Assignment in " + a.getCourseCode() + ": " + a.getTitle());
     }
 
     public static List<Assignment> getAssignmentsForCourse(String courseCode) {
@@ -183,6 +248,8 @@ public class DataStore {
         FileStore.appendLine(SLIDES_FILE,
                 courseCode + "|" + title + "|" + description + "|" + teacherEmail);
         logActivity(teacherEmail, "project_upload");
+        String batch = getBatchForCourse(courseCode);
+        notifyStudentsInBatch(batch, "New Slide in " + courseCode + ": " + title);
     }
 
     public static List<String[]> getSlidesForCourse(String courseCode) {
@@ -559,6 +626,13 @@ public class DataStore {
         } else {
             FileStore.appendLine(GRADES_FILE, studentId + "|" + courseCode + "|" + gradePoint);
         }
+        
+        String idToNotify = studentId;
+        User u = UserStore.getUserByStudentId(studentId);
+        if (u != null && u.getEmail() != null && !u.getEmail().isEmpty()) {
+            idToNotify = u.getEmail();
+        }
+        addNotification(idToNotify, "New grade posted for " + courseCode + ": " + gradePoint);
     }
 
     public static List<String[]> getGradesForStudent(String studentId) {

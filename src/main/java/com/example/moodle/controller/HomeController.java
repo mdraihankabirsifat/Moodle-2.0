@@ -75,13 +75,26 @@ public class HomeController {
             if (notificationMenu != null) {
                 notificationMenu.setVisible(true);
                 notificationMenu.setManaged(true);
-                int unreadCounts = Session.getUnreadNotifications();
+                int unreadCounts = DataStore.getUnreadNotificationCount(Session.getIdentifier());
+                Session.setUnreadNotifications(unreadCounts);
                 if (unreadCounts > 0) {
                     notificationMenu.setText("🔔 (" + unreadCounts + ")");
                 } else {
                     notificationMenu.setText("🔔");
                 }
+                
+                notificationMenu.getItems().clear();
+                List<String[]> notifs = DataStore.getNotificationsFor(Session.getIdentifier());
+                for (String[] notif : notifs) {
+                    javafx.scene.control.MenuItem item = new javafx.scene.control.MenuItem((notif[3].equals("false") ? "New: " : "") + notif[1]);
+                    notificationMenu.getItems().add(item);
+                }
+                if (notifs.isEmpty()) {
+                    notificationMenu.getItems().add(new javafx.scene.control.MenuItem("No notifications"));
+                }
+                
                 notificationMenu.setOnShowing(ev -> {
+                    DataStore.markNotificationsAsRead(Session.getIdentifier());
                     Session.setUnreadNotifications(0);
                     notificationMenu.setText("🔔");
                 });

@@ -15,38 +15,19 @@
         </HBox>
     </top>
 
-    <center>
-        <ScrollPane fitToWidth="true">
-            <VBox fx:id="contentBox" spacing="30" alignment="TOP_CENTER">
-                <padding>
-                    <Insets top="40" bottom="40" left="60" right="60"/>
-                </padding>
-
-                <!-- University Name -->
-                <Label fx:id="uniNameLabel" styleClass="title-label" wrapText="true"/>
-
-                <!-- Notices Section -->
-                <VBox spacing="12" maxWidth="700" styleClass="card" alignment="TOP_LEFT">
-                    <Label text="📢  Global Notices" styleClass="section-title"/>
-                    <VBox fx:id="noticesBox" spacing="8"/>
-                </VBox>
-
-                <!-- Contact Section -->
-                <VBox spacing="12" maxWidth="700" styleClass="card" alignment="TOP_LEFT">
-                    <Label text="📞  Contact Information" styleClass="section-title"/>
-                    <Label fx:id="phoneLabel"/>
-                    <Label fx:id="emailLabel"/>
-                    <Label fx:id="websiteLabel"/>
-                </VBox>
-
-                <!-- Location Section -->
-                <VBox spacing="12" maxWidth="700" styleClass="card" alignment="TOP_LEFT">
-                    <Label text="📍  Location" styleClass="section-title"/>
-                    <Label fx:id="locationLabel" wrapText="true"/>
-                </VBox>
-
+    <left>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
+            <VBox spacing="10" prefWidth="220" styleClass="side-nav" style="-fx-padding: 20;">
+                <Button text="About" onAction="#showAbout" maxWidth="Infinity"/>
+                <Button text="Departments" onAction="#showDepartments" maxWidth="Infinity"/>
+                <Button text="Faculty" onAction="#showFaculty" maxWidth="Infinity"/>
+                <Button text="Campus Life" onAction="#showCampusLife" maxWidth="Infinity"/>
             </VBox>
         </ScrollPane>
+    </left>
+
+    <center>
+        <StackPane fx:id="contentArea" style="-fx-padding: 30;"/>
     </center>
 
     <!-- ================= BOTTOM NAV ================= -->

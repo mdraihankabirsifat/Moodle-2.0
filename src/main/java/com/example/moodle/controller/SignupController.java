@@ -32,6 +32,9 @@ public class SignupController {
     private PasswordField passwordField;
 
     @FXML
+    private PasswordField confirmPasswordField;
+
+    @FXML
     private RadioButton studentSignupRadio;
 
     @FXML
@@ -69,6 +72,9 @@ public class SignupController {
 
     @FXML
     private PasswordField teacherPasswordField;
+
+    @FXML
+    private PasswordField teacherConfirmPasswordField;
 
     @FXML
     private Label messageLabel;
@@ -131,11 +137,18 @@ public class SignupController {
         String id = idField.getText().trim();
         String email = emailField.getText().trim();
         String password = passwordField.getText().trim();
+        String confirmPassword = confirmPasswordField.getText().trim();
 
         if (name.isEmpty() || university == null || id.isEmpty()
-                || email.isEmpty() || password.isEmpty()) {
+                || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             messageLabel.setStyle("-fx-text-fill: #ff3366;");
             messageLabel.setText("Please fill all fields.");
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            messageLabel.setStyle("-fx-text-fill: #ff3366;");
+            messageLabel.setText("Passwords do not match.");
             return;
         }
 
@@ -178,11 +191,18 @@ public class SignupController {
             type = "Faculty Teacher";
         }
         String password = teacherPasswordField.getText().trim();
+        String confirmPassword = teacherConfirmPasswordField.getText().trim();
 
         if (name.isEmpty() || email.isEmpty() || dept.isEmpty()
-                || designation.isEmpty() || password.isEmpty()) {
+                || designation.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             messageLabel.setStyle("-fx-text-fill: #ff3366;");
             messageLabel.setText("Please fill all fields.");
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            messageLabel.setStyle("-fx-text-fill: #ff3366;");
+            messageLabel.setText("Passwords do not match.");
             return;
         }
 

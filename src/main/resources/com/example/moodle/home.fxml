@@ -44,7 +44,8 @@
             <top>
                 <VBox>
                     <HBox spacing="15" alignment="CENTER" style="-fx-padding: 20 30 10 30;">
-                        <Region HBox.hgrow="ALWAYS"/>
+                        <!-- Adjusted to shift search bar left -->
+                        <Region HBox.hgrow="SOMETIMES" prefWidth="80" />
                         
                         <!-- SEARCH BAR -->
                         <HBox spacing="8" alignment="CENTER">
@@ -192,8 +193,8 @@
             </center>
         </BorderPane>
 
-        <VBox alignment="TOP_CENTER" pickOnBounds="false">
-            <padding><Insets top="70"/></padding>
+        <!-- Shifted left by adding right padding to keep it aligned with search bar -->
+        <VBox alignment="TOP_CENTER" pickOnBounds="false" style="-fx-padding: 70 80 0 0;">
             <VBox fx:id="searchResults" spacing="4" visible="false" managed="false" styleClass="search-results-panel" style="-fx-background-color: rgba(17, 26, 46, 0.95);" prefWidth="400" maxWidth="400" pickOnBounds="true"/>
         </VBox>
     </StackPane>

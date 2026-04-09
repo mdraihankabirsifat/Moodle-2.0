@@ -50,6 +50,8 @@
 
                     <PasswordField fx:id="passwordField"
                                    promptText="Password"/>
+                    <PasswordField fx:id="confirmPasswordField"
+                                   promptText="Confirm Password"/>
                 </VBox>
 
                 <VBox fx:id="teacherSignupFields" spacing="10" visible="false" managed="false">
@@ -77,6 +79,8 @@
 
                     <PasswordField fx:id="teacherPasswordField"
                                    promptText="Password"/>
+                    <PasswordField fx:id="teacherConfirmPasswordField"
+                                   promptText="Confirm Password"/>
                 </VBox>
 
                 <Button text="Sign Up"

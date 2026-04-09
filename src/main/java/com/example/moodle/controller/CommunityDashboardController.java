@@ -81,11 +81,30 @@ public class CommunityDashboardController {
         postArea.setWrapText(true);
 
         Label postMsg = new Label();
+        
+        final String[] photoPath = {""};
+        Button photoBtn = new Button("\uD83D\uDCF7 Add Photo");
+        photoBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #00ff88; "
+                + "-fx-border-color: #00ff88; -fx-border-radius: 8; -fx-background-radius: 8;");
+        Label photoNameLabel = new Label();
+        photoNameLabel.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
+        
+        photoBtn.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg", "*.gif"));
+            java.io.File file = fc.showOpenDialog(contentArea.getScene().getWindow());
+            if (file != null) {
+                photoPath[0] = file.toURI().toString();
+                photoNameLabel.setText("\u2705 " + file.getName());
+            }
+        });
+
         Button postBtn = new Button("\uD83D\uDCE8 Post");
         postBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-weight: 900; "
                 + "-fx-background-radius: 8; -fx-padding: 8 24 8 24; -fx-cursor: hand; -fx-font-size: 13px;");
 
-        HBox actionRow = new HBox(12, new Region(), postBtn, postMsg);
+        HBox actionRow = new HBox(12, photoBtn, photoNameLabel, new Region(), postBtn, postMsg);
+        HBox.setHgrow(actionRow.getChildren().get(2), Priority.ALWAYS);
         actionRow.setAlignment(Pos.CENTER_RIGHT);
 
         formBox.getChildren().addAll(topRow, postArea, actionRow);
@@ -149,11 +168,36 @@ public class CommunityDashboardController {
                         header.getChildren().add(msgBtn);
                     }
 
-                    Label contentLabel = new Label(postContent);
+                    VBox contentBox = new VBox(8);
+                    Label contentLabel = new Label();
                     contentLabel.setWrapText(true);
                     contentLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #d0d8e8;");
+                    
+                    String pText = postContent;
+                    if (pText.contains("[IMG:")) {
+                        int idx = pText.indexOf("[IMG:");
+                        int end = pText.indexOf("]", idx);
+                        if (end != -1) {
+                            String path = pText.substring(idx + 5, end);
+                            pText = pText.substring(0, idx) + pText.substring(end + 1);
+                            contentLabel.setText(pText.trim());
+                            contentBox.getChildren().add(contentLabel);
+                            try {
+                                ImageView iv = new ImageView(new Image(path, false));
+                                iv.setFitWidth(400);
+                                iv.setPreserveRatio(true);
+                                contentBox.getChildren().add(iv);
+                            } catch (Exception ex) { }
+                        } else {
+                            contentLabel.setText(pText);
+                            contentBox.getChildren().add(contentLabel);
+                        }
+                    } else {
+                        contentLabel.setText(pText);
+                        contentBox.getChildren().add(contentLabel);
+                    }
 
-                    postCard.getChildren().addAll(header, contentLabel);
+                    postCard.getChildren().addAll(header, contentBox);
                     feed.getChildren().add(postCard);
                 }
             }
@@ -161,15 +205,21 @@ public class CommunityDashboardController {
 
         postBtn.setOnAction(e -> {
             String text = postArea.getText();
-            if (text == null || text.trim().isEmpty()) {
+            if ((text == null || text.trim().isEmpty()) && photoPath[0].isEmpty()) {
                 postMsg.setStyle("-fx-text-fill: #ff3366;");
-                postMsg.setText("Write something first.");
+                postMsg.setText("Write something or add a photo.");
                 return;
+            }
+            String content = (text != null ? text.trim() : "");
+            if (!photoPath[0].isEmpty()) {
+                content += "\n[IMG:" + photoPath[0] + "]";
             }
             String id = Session.getIdentifier();
             String name = Session.getName() != null ? Session.getName() : id;
-            DataStore.addCommunityPost(id, name, text.trim());
+            DataStore.addCommunityPost(id, name, content);
             postArea.clear();
+            photoPath[0] = "";
+            photoNameLabel.setText("");
             postMsg.setText("");
             refreshFeed.run();
         });

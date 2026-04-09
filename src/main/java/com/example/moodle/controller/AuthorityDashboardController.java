@@ -244,15 +244,37 @@ public class AuthorityDashboardController {
         }
         courseBox.setValue("GENERAL");
 
+        final String[] pdfPath = {""};
+        Label pdfLabel = new Label("No PDF selected");
+        pdfLabel.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
+        Button pdfBtn = new Button("\uD83D\uDCC4 Attach PDF");
+        pdfBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #ffb300; -fx-text-fill: white; -fx-background-radius: 6;");
+        pdfBtn.setOnAction(e -> {
+            javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
+            fc.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            java.io.File file = fc.showOpenDialog(contentArea.getScene().getWindow());
+            if (file != null) {
+                pdfPath[0] = file.getAbsolutePath();
+                pdfLabel.setText("\u2705 " + file.getName());
+                pdfLabel.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
+            }
+        });
+        HBox pdfRow = new HBox(10, pdfBtn, pdfLabel);
+        pdfRow.setAlignment(Pos.CENTER_LEFT);
+
         Label msgLabel = new Label();
         Button postBtn = new Button("Post Notice");
+        postBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-weight: bold;");
         postBtn.setOnAction(e -> {
             String content = noticeArea.getText().trim();
             String course = courseBox.getValue();
-            if (content.isEmpty()) {
+            if (content.isEmpty() && pdfPath[0].isEmpty()) {
                 msgLabel.setStyle("-fx-text-fill: #ff3366;");
-                msgLabel.setText("Enter notice content.");
+                msgLabel.setText("Enter notice content or attach PDF.");
             } else {
+                if (!pdfPath[0].isEmpty()) {
+                    content += " [PDF:" + pdfPath[0] + "]";
+                }
                 DataStore.addCourseNotice(course, content, "authority");
                 msgLabel.setStyle("-fx-text-fill: #00ff88;");
                 msgLabel.setText("Notice posted!");
@@ -261,7 +283,7 @@ public class AuthorityDashboardController {
             }
         });
 
-        box.getChildren().addAll(title, courseBox, noticeArea, postBtn,
+        box.getChildren().addAll(title, courseBox, noticeArea, pdfRow, postBtn,
                 msgLabel, new Separator());
 
         Label listTitle = new Label("All Notices:");

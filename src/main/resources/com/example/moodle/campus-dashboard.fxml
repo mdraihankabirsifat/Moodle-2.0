@@ -31,6 +31,10 @@
                         styleClass="side-nav"
                   style="-fx-padding: 20;">
 
+                <Button text="My Profile"
+                        onAction="#showProfile"
+                        maxWidth="Infinity"/>
+
                 <Button text="Internal Notices"
                         onAction="#showNotices"
                         maxWidth="Infinity"/>
