@@ -164,12 +164,26 @@ public class UniversityDatabase {
         return results;
     }
 
-    public static UniversityInfo getUniversity(String searchName) {
+    public static String extractShortName(String input) {
+        if (input == null || input.trim().isEmpty()) return "global";
+        String s = input.trim();
+        // Case 1: Already an acronym we know?
         for (UniversityInfo u : universities.values()) {
-            String matchStr = u.getShortName().equalsIgnoreCase(u.getName()) ? 
-                     u.getName() : u.getName() + " (" + u.getShortName() + ")";
-            if (matchStr.equalsIgnoreCase(searchName)) return u;
-            if (u.getShortName().equalsIgnoreCase(searchName) || u.getName().equalsIgnoreCase(searchName)) return u;
+            if (u.getShortName().equalsIgnoreCase(s) || u.getName().equalsIgnoreCase(s)) return u.getShortName();
+        }
+        // Case 2: Contains acronym in parentheses like "Full Name (ACR)"?
+        if (s.contains("(") && s.endsWith(")")) {
+            int start = s.lastIndexOf("(") + 1;
+            return s.substring(start, s.length() - 1).trim();
+        }
+        // Fallback: cleanup
+        return s.replaceAll("[^a-zA-Z0-9]", "_");
+    }
+
+    public static UniversityInfo getUniversity(String searchName) {
+        String shortName = extractShortName(searchName);
+        for (UniversityInfo u : universities.values()) {
+            if (u.getShortName().equalsIgnoreCase(shortName)) return u;
         }
         return null;
     }

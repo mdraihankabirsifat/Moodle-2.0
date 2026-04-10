@@ -23,6 +23,9 @@ public class SignupController {
     private ComboBox<String> universityBox;
 
     @FXML
+    private ComboBox<String> teacherUniBox;
+
+    @FXML
     private TextField idField;
 
     @FXML
@@ -83,13 +86,8 @@ public class SignupController {
     public void initialize() {
 
         // Populate university list
-        universityBox.getItems().addAll(
-                "BUET",
-                "Dhaka Medical College",
-                "BAU",
-                "DU",
-                "RUET"
-        );
+        universityBox.getItems().addAll(com.example.moodle.util.UniversityDatabase.getAllSearchableNames());
+        teacherUniBox.getItems().addAll(com.example.moodle.util.UniversityDatabase.getAllSearchableNames());
 
         signupRoleGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
             boolean isStudent = (newVal == studentSignupRadio);
@@ -179,6 +177,7 @@ public class SignupController {
     private void handleTeacherSignup() {
 
         String name = teacherNameField.getText().trim();
+        String uni = teacherUniBox.getValue();
         String email = teacherEmailField.getText().trim().toLowerCase();
         String dept = teacherDeptField.getText().trim();
         String designation = teacherDesignationField.getText().trim();
@@ -193,10 +192,10 @@ public class SignupController {
         String password = teacherPasswordField.getText().trim();
         String confirmPassword = teacherConfirmPasswordField.getText().trim();
 
-        if (name.isEmpty() || email.isEmpty() || dept.isEmpty()
+        if (name.isEmpty() || uni == null || email.isEmpty() || dept.isEmpty()
                 || designation.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             messageLabel.setStyle("-fx-text-fill: #ff3366;");
-            messageLabel.setText("Please fill all fields.");
+            messageLabel.setText("Please fill all fields (University required).");
             return;
         }
 
@@ -218,7 +217,7 @@ public class SignupController {
             return;
         }
 
-        DataStore.saveTeacherProfile(name, dept, designation, type, password, email);
+        DataStore.saveTeacherProfile(name, dept, designation, type, password, email, uni);
 
         messageLabel.setStyle("-fx-text-fill: #00ff88;");
         messageLabel.setText("Teacher account created! Please login.");

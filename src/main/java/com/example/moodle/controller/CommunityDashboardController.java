@@ -148,7 +148,7 @@ public class CommunityDashboardController {
                     HBox.setHgrow(spacer, Priority.ALWAYS);
                     header.getChildren().addAll(avatar, nameTime, spacer);
 
-                    if (postAuthorId.equals(currentUser)) {
+                    if (postAuthorId.equals(currentUser) || "AUTHORITY".equals(Session.getRole())) {
                         Button deleteBtn = new Button("\uD83D\uDDD1");
                         deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff3366; "
                                 + "-fx-cursor: hand; -fx-font-size: 14px;");

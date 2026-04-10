@@ -101,6 +101,13 @@ public class CampusDashboardController {
         SceneManager.goBack();
     }
 
+    private String getResolvedUniversityName() {
+        String u = Session.getUniversity();
+        if (u == null || u.isEmpty()) return "global";
+        com.example.moodle.model.UniversityInfo info = com.example.moodle.util.UniversityDatabase.getUniversity(u);
+        return info != null ? info.getShortName() : u;
+    }
+
     // ===================== MY PROFILE =====================
     @FXML
     private void showProfile() {
@@ -298,7 +305,7 @@ public class CampusDashboardController {
         Label subTitle = new Label("Available Halls:");
         subTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
 
-        List<String[]> halls = DataStore.getAllHallRooms();
+        List<String[]> halls = DataStore.getAllHallRooms(getResolvedUniversityName());
 
         VBox hallList = new VBox(10);
         Label msgLabel = new Label();
@@ -312,7 +319,7 @@ public class CampusDashboardController {
                 final String roomNum = h.length > 1 ? h[1] : "Room";
                 String capacity = h.length > 2 ? h[2] : "?";
                 int occupancy = DataStore.getHallRoomOccupancy(hallName, roomNum);
-                boolean hasCapacity = DataStore.hasHallCapacity(hallName, roomNum);
+                boolean hasCapacity = DataStore.hasHallCapacity(getResolvedUniversityName(), hallName, roomNum);
                 boolean pending = DataStore.hasPendingHallRequest(myId, hallName, roomNum);
                 boolean alreadyAllocated = allocation != null
                         && allocation[1].equals(hallName)
@@ -822,7 +829,7 @@ public class CampusDashboardController {
         Label title = new Label("Games & Sports");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
-        List<String[]> games = DataStore.getAllGames();
+        List<String[]> games = DataStore.getAllGames(getResolvedUniversityName());
         Label msgLabel = new Label();
 
         if (games.isEmpty()) {
@@ -2389,7 +2396,7 @@ public class CampusDashboardController {
         Label docTitle = new Label("Available Doctors");
         docTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00e5ff;");
 
-        List<String[]> doctors = DataStore.getAllDoctors();
+        List<String[]> doctors = DataStore.getAllDoctors(getResolvedUniversityName());
 
         GridPane docGrid = new GridPane();
         docGrid.setHgap(2);

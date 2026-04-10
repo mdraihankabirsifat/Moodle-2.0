@@ -58,6 +58,9 @@
                     <TextField fx:id="teacherNameField"
                                promptText="Teacher Name"/>
 
+                    <ComboBox fx:id="teacherUniBox"
+                              promptText="Select University"/>
+
                     <TextField fx:id="teacherEmailField"
                                promptText="Teacher Email"/>
 

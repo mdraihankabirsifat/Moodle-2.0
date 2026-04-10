@@ -12,7 +12,7 @@
             <Button text="⌂ Home" styleClass="nav-btn" onAction="#goHome"/>
             <Button text="Admin Control" styleClass="nav-btn" onAction="#goToCampus"/>
             <Region HBox.hgrow="ALWAYS"/>
-            <Label text="Admin Control"
+            <Label fx:id="uniNameLabel" text="Admin Control"
                    styleClass="title-label"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Button text="🔲 New Window" onAction="#openNewWindow"
@@ -89,6 +89,14 @@
 
                 <Button text="📢 University Notices"
                         onAction="#showUniversityNotices"
+                        maxWidth="Infinity"/>
+
+                <Button text="📰 Latest News"
+                        onAction="#showManageNews"
+                        maxWidth="Infinity"/>
+
+                <Button text="📅 Upcoming Events"
+                        onAction="#showManageEvents"
                         maxWidth="Infinity"/>
 
                 <Button text="💼 Job Notices"

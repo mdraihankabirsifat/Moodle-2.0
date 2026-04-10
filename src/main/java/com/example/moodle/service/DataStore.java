@@ -146,17 +146,40 @@ public class DataStore {
     public static void addCourse(Course c) {
         FileStore.appendLine(COURSES_FILE,
                 c.getCode() + "|" + c.getName() + "|" + c.getTeacherEmail() + "|"
-                        + c.getSemester() + "|" + c.getTeacherName() + "|" + c.getBatch());
+                        + c.getSemester() + "|" + c.getTeacherName() + "|" + c.getBatch() + "|" + c.getUniversity());
     }
 
     public static List<Course> getAllCourses() {
         List<Course> list = new ArrayList<>();
         for (String line : FileStore.loadLines(COURSES_FILE)) {
             String[] p = line.split("\\|", -1);
-            if (p.length >= 6) {
+            if (p.length >= 7) {
+                list.add(new Course(p[0], p[1], p[2], p[3], p[4], p[5], p[6]));
+            } else if (p.length >= 6) {
                 list.add(new Course(p[0], p[1], p[2], p[3], p[4], p[5]));
             } else if (p.length >= 4) {
                 list.add(new Course(p[0], p[1], p[2], p[3]));
+            }
+        }
+        return list;
+    }
+
+    public static List<Payment> getAllPayments() {
+        List<Payment> list = new ArrayList<>();
+        for (String line : FileStore.loadLines(PAYMENTS_FILE)) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 5) {
+                try {
+                    list.add(new Payment(p[0], p[1], Integer.parseInt(p[2]), p[3], p[4]));
+                } catch (NumberFormatException e) {
+                    System.err.println("Skipping malformed payment record: " + line);
+                }
+            } else if (p.length >= 4) {
+                 try {
+                    list.add(new Payment(p[0], p[1], Integer.parseInt(p[2]), p[3], "Paid"));
+                } catch (NumberFormatException e) {
+                    // ignore
+                }
             }
         }
         return list;
@@ -423,20 +446,11 @@ public class DataStore {
             if (p.length >= 5 && p[0].equals(studentEmail)) {
                 try {
                     list.add(new Payment(p[0], p[1], Integer.parseInt(p[2]), p[3], p[4]));
-                } catch (NumberFormatException ignored) { }
-            }
-        }
-        return list;
-    }
-
-    public static List<Payment> getAllPayments() {
-        List<Payment> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(PAYMENTS_FILE)) {
-            String[] p = line.split("\\|", -1);
-            if (p.length >= 5) {
+                } catch (Exception e) {}
+            } else if (p.length >= 4 && p[0].equals(studentEmail)) {
                 try {
-                    list.add(new Payment(p[0], p[1], Integer.parseInt(p[2]), p[3], p[4]));
-                } catch (NumberFormatException ignored) { }
+                    list.add(new Payment(p[0], p[1], Integer.parseInt(p[2]), p[3], "Paid"));
+                } catch (Exception e) {}
             }
         }
         return list;
@@ -711,14 +725,13 @@ public class DataStore {
         if (existing != null && existing.length >= 6) {
             email = existing[5];
         }
-        saveTeacherProfile(name, dept, designation, type, password, email);
+        saveTeacherProfile(name, dept, designation, type, password, email, "global");
     }
 
-    public static void saveTeacherProfile(String name, String dept,
-                                          String designation, String type,
-                                          String password, String email) {
+    public static void saveTeacherProfile(String name, String dept, String designation, String type, String password, String email, String university) {
         List<String> lines = FileStore.loadLines(TEACHER_PROFILES_FILE);
         String normalizedEmail = email == null ? "" : email.trim().toLowerCase();
+        String u = (university == null || university.isEmpty()) ? "global" : university;
         boolean found = false;
         for (int i = 0; i < lines.size(); i++) {
             String[] p = lines.get(i).split("\\|", -1);
@@ -726,11 +739,12 @@ public class DataStore {
 
             String existingEmail = p.length >= 6 ? p[5].trim().toLowerCase() : "";
             boolean sameByEmail = !normalizedEmail.isEmpty() && existingEmail.equals(normalizedEmail);
-            boolean sameByNameDept = p[0].equals(name) && p[1].equals(dept);
+            // If we have university isolation, name+dept is no longer enough to identify unique teacher globally
+            boolean sameByDetails = p[0].equals(name) && p[1].equals(dept) && (p.length < 7 || p[6].equals(u));
 
-            if (sameByEmail || sameByNameDept) {
+            if (sameByEmail || sameByDetails) {
                 lines.set(i, name + "|" + dept + "|" + designation + "|" + type + "|"
-                        + password + "|" + normalizedEmail);
+                        + password + "|" + normalizedEmail + "|" + u);
                 found = true;
                 break;
             }
@@ -740,7 +754,7 @@ public class DataStore {
         } else {
             FileStore.appendLine(TEACHER_PROFILES_FILE,
                     name + "|" + dept + "|" + designation + "|" + type + "|"
-                            + password + "|" + normalizedEmail);
+                            + password + "|" + normalizedEmail + "|" + u);
         }
     }
 
@@ -762,18 +776,30 @@ public class DataStore {
     }
 
     public static String[] getTeacherProfileByEmail(String email) {
-        String lookup = email == null ? "" : email.trim().toLowerCase();
-        if (lookup.isEmpty()) return null;
-
+        if (email == null) return null;
+        String lookup = email.trim().toLowerCase();
         for (String line : FileStore.loadLines(TEACHER_PROFILES_FILE)) {
             String[] p = line.split("\\|", -1);
             if (p.length < 5) continue;
 
-            if (p.length >= 6 && p[5].trim().equalsIgnoreCase(lookup)) return p;
+            if (p.length >= 6 && p[5].trim().equalsIgnoreCase(lookup)) {
+                if (p.length < 7) {
+                    String[] expanded = new String[7];
+                    System.arraycopy(p, 0, expanded, 0, p.length);
+                    expanded[6] = "global";
+                    return expanded;
+                }
+                return p;
+            }
 
             // Backward compatibility for older 5-field rows.
             String legacyId = buildLegacyTeacherId(p[0], p[1]);
-            if (!legacyId.isEmpty() && legacyId.equalsIgnoreCase(lookup)) return p;
+            if (!legacyId.isEmpty() && legacyId.equalsIgnoreCase(lookup)) {
+                String[] expanded = new String[7];
+                System.arraycopy(p, 0, expanded, 0, Math.min(p.length, 7));
+                for(int i = p.length; i < 7; i++) expanded[i] = "global";
+                return expanded;
+            }
         }
         return null;
     }
@@ -826,70 +852,70 @@ public class DataStore {
     // ==================== ADMIN-MANAGED: GAMES ====================
     // Format: sport|emoji|schedule|venue
 
-    public static void addGame(String sport, String emoji, String schedule, String venue) {
-        FileStore.appendLine(GAMES_FILE, sport + "|" + emoji + "|" + schedule + "|" + venue);
+    public static void addGame(String uni, String sport, String emoji, String schedule, String venue) {
+        FileStore.appendLine(getAdminFile(uni, "games.txt"), sport + "|" + emoji + "|" + schedule + "|" + venue);
     }
 
-    public static List<String[]> getAllGames() {
+    public static List<String[]> getAllGames(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(GAMES_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "games.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 4) list.add(p);
         }
         return list;
     }
 
-    public static void removeGame(String sport) {
-        List<String> lines = FileStore.loadLines(GAMES_FILE);
+    public static void removeGame(String uni, String sport) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "games.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(sport));
-        FileStore.saveLines(GAMES_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "games.txt"), lines);
     }
 
     // ==================== ADMIN-MANAGED: HOSPITAL DOCTORS ====================
     // Format: name|specialization|availableDays|hours
 
-    public static void addDoctor(String name, String spec, String days, String hours) {
-        FileStore.appendLine(DOCTORS_FILE, name + "|" + spec + "|" + days + "|" + hours);
+    public static void addDoctor(String uni, String name, String spec, String days, String hours) {
+        FileStore.appendLine(getAdminFile(uni, "doctors.txt"), name + "|" + spec + "|" + days + "|" + hours);
     }
 
-    public static List<String[]> getAllDoctors() {
+    public static List<String[]> getAllDoctors(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(DOCTORS_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "doctors.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 4) list.add(p);
         }
         return list;
     }
 
-    public static void removeDoctor(String name) {
-        List<String> lines = FileStore.loadLines(DOCTORS_FILE);
+    public static void removeDoctor(String uni, String name) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "doctors.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(name));
-        FileStore.saveLines(DOCTORS_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "doctors.txt"), lines);
     }
 
     // ==================== ADMIN-MANAGED: HALL ROOMS ====================
     // Format: hallName|roomNumber|capacity
 
-    public static void addHallRoom(String hallName, String room, String capacity) {
-        FileStore.appendLine(HALLS_FILE, hallName + "|" + room + "|" + capacity);
+    public static void addHallRoom(String uni, String hallName, String room, String capacity) {
+        FileStore.appendLine(getAdminFile(uni, "halls.txt"), hallName + "|" + room + "|" + capacity);
     }
 
-    public static List<String[]> getAllHallRooms() {
+    public static List<String[]> getAllHallRooms(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(HALLS_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "halls.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 3) list.add(p);
         }
         return list;
     }
 
-    public static void removeHallRoom(String hallName, String room) {
-        List<String> lines = FileStore.loadLines(HALLS_FILE);
+    public static void removeHallRoom(String uni, String hallName, String room) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "halls.txt"));
         lines.removeIf(l -> {
             String[] p = l.split("\\|", -1);
             return p.length >= 2 && p[0].equals(hallName) && p[1].equals(room);
         });
-        FileStore.saveLines(HALLS_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "halls.txt"), lines);
     }
 
     // ==================== HALL REQUESTS / ALLOCATIONS ====================
@@ -999,9 +1025,9 @@ public class DataStore {
         return count;
     }
 
-    public static boolean hasHallCapacity(String hallName, String room) {
+    public static boolean hasHallCapacity(String uni, String hallName, String room) {
         int capacity = -1;
-        for (String[] h : getAllHallRooms()) {
+        for (String[] h : getAllHallRooms(uni)) {
             if (h.length >= 2 && h[0].equals(hallName) && h[1].equals(room)) {
                 if (h.length >= 3) {
                     try {
@@ -1111,155 +1137,152 @@ public class DataStore {
 
     // ==================== ADMIN MANAGEMENT DATA ====================
     // All admin data files stored in admin/ subfolder
+    // All admin data files stored in admin/<university>/ subfolders
 
-    private static final String ADMIN_FACULTY_FILE = "admin/faculty_members.txt";
-    private static final String ADMIN_ALUMNI_FILE = "admin/alumni_data.txt";
-    private static final String ADMIN_UNI_NOTICES_FILE = "admin/university_notices.txt";
-    private static final String ADMIN_JOB_NOTICES_FILE = "admin/job_notices.txt";
-    private static final String ADMIN_STAFF_FILE = "admin/staff_data.txt";
-    private static final String ADMIN_DEPT_FILE = "admin/department_data.txt";
-    private static final String ADMIN_INSTITUTION_FILE = "admin/institution_details.txt";
-    private static final String ADMIN_ADMINISTRATION_FILE = "admin/administration_data.txt";
+    private static String getAdminFile(String uni, String filename) {
+        String u = (uni == null || uni.trim().isEmpty()) ? "global" : uni.trim().replaceAll("[^a-zA-Z0-9.-]", "_");
+        return "admin/" + u + "/" + filename;
+    }
 
     // --- Faculty Members ---
     // Format: name|department|designation|email|phone
 
-    public static void addFacultyMember(String name, String dept, String designation, String email, String phone) {
-        FileStore.appendLine(ADMIN_FACULTY_FILE, name + "|" + dept + "|" + designation + "|" + email + "|" + phone);
+    public static void addFacultyMember(String uni, String name, String dept, String designation, String email, String phone) {
+        FileStore.appendLine(getAdminFile(uni, "faculty_members.txt"), name + "|" + dept + "|" + designation + "|" + email + "|" + phone);
     }
 
-    public static List<String[]> getAllFacultyMembers() {
+    public static List<String[]> getAllFacultyMembers(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(ADMIN_FACULTY_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "faculty_members.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 5) list.add(p);
         }
         return list;
     }
 
-    public static void removeFacultyMember(String name) {
-        List<String> lines = FileStore.loadLines(ADMIN_FACULTY_FILE);
+    public static void removeFacultyMember(String uni, String name) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "faculty_members.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(name));
-        FileStore.saveLines(ADMIN_FACULTY_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "faculty_members.txt"), lines);
     }
 
     // --- Alumni ---
     // Format: name|batch|department|currentPosition
 
-    public static void addAlumni(String name, String batch, String dept, String currentPosition) {
-        FileStore.appendLine(ADMIN_ALUMNI_FILE, name + "|" + batch + "|" + dept + "|" + currentPosition);
+    public static void addAlumni(String uni, String name, String batch, String dept, String currentPosition) {
+        FileStore.appendLine(getAdminFile(uni, "alumni_data.txt"), name + "|" + batch + "|" + dept + "|" + currentPosition);
     }
 
-    public static List<String[]> getAllAlumni() {
+    public static List<String[]> getAllAlumni(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(ADMIN_ALUMNI_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "alumni_data.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 4) list.add(p);
         }
         return list;
     }
 
-    public static void removeAlumni(String name) {
-        List<String> lines = FileStore.loadLines(ADMIN_ALUMNI_FILE);
+    public static void removeAlumni(String uni, String name) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "alumni_data.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(name));
-        FileStore.saveLines(ADMIN_ALUMNI_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "alumni_data.txt"), lines);
     }
 
     // --- University Notices ---
     // Format: title|content|postedBy|date
 
-    public static void addUniversityNotice(String titleText, String content, String postedBy) {
+    public static void addUniversityNotice(String uni, String titleText, String content, String postedBy) {
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        FileStore.appendLine(ADMIN_UNI_NOTICES_FILE, titleText + "|" + content + "|" + postedBy + "|" + ts);
+        FileStore.appendLine(getAdminFile(uni, "university_notices.txt"), titleText + "|" + content + "|" + postedBy + "|" + ts);
     }
 
-    public static List<String[]> getAllUniversityNotices() {
+    public static List<String[]> getAllUniversityNotices(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(ADMIN_UNI_NOTICES_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "university_notices.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 4) list.add(p);
         }
         return list;
     }
 
-    public static void removeUniversityNotice(String titleText) {
-        List<String> lines = FileStore.loadLines(ADMIN_UNI_NOTICES_FILE);
+    public static void removeUniversityNotice(String uni, String titleText) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "university_notices.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(titleText));
-        FileStore.saveLines(ADMIN_UNI_NOTICES_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "university_notices.txt"), lines);
     }
 
     // --- Job Notices ---
     // Format: title|description|company|deadline|postedBy|date
 
-    public static void addJobNotice(String titleText, String description, String company, String deadline, String postedBy) {
+    public static void addJobNotice(String uni, String titleText, String description, String company, String deadline, String postedBy) {
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        FileStore.appendLine(ADMIN_JOB_NOTICES_FILE, titleText + "|" + description + "|" + company + "|" + deadline + "|" + postedBy + "|" + ts);
+        FileStore.appendLine(getAdminFile(uni, "job_notices.txt"), titleText + "|" + description + "|" + company + "|" + deadline + "|" + postedBy + "|" + ts);
     }
 
-    public static List<String[]> getAllJobNotices() {
+    public static List<String[]> getAllJobNotices(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(ADMIN_JOB_NOTICES_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "job_notices.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 6) list.add(p);
         }
         return list;
     }
 
-    public static void removeJobNotice(String titleText) {
-        List<String> lines = FileStore.loadLines(ADMIN_JOB_NOTICES_FILE);
+    public static void removeJobNotice(String uni, String titleText) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "job_notices.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(titleText));
-        FileStore.saveLines(ADMIN_JOB_NOTICES_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "job_notices.txt"), lines);
     }
 
     // --- Staff Details ---
     // Format: name|role|department|phone|email
 
-    public static void addStaffMember(String name, String role, String dept, String phone, String email) {
-        FileStore.appendLine(ADMIN_STAFF_FILE, name + "|" + role + "|" + dept + "|" + phone + "|" + email);
+    public static void addStaffMember(String uni, String name, String role, String dept, String phone, String email) {
+        FileStore.appendLine(getAdminFile(uni, "staff_data.txt"), name + "|" + role + "|" + dept + "|" + phone + "|" + email);
     }
 
-    public static List<String[]> getAllStaffMembers() {
+    public static List<String[]> getAllStaffMembers(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(ADMIN_STAFF_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "staff_data.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 5) list.add(p);
         }
         return list;
     }
 
-    public static void removeStaffMember(String name) {
-        List<String> lines = FileStore.loadLines(ADMIN_STAFF_FILE);
+    public static void removeStaffMember(String uni, String name) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "staff_data.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(name));
-        FileStore.saveLines(ADMIN_STAFF_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "staff_data.txt"), lines);
     }
 
     // --- Department Details ---
     // Format: name|headOfDept|totalFaculty|description
 
-    public static void addDepartment(String name, String head, String totalFaculty, String description) {
-        FileStore.appendLine(ADMIN_DEPT_FILE, name + "|" + head + "|" + totalFaculty + "|" + description);
+    public static void addDepartment(String uni, String name, String head, String totalFaculty, String description) {
+        FileStore.appendLine(getAdminFile(uni, "department_data.txt"), name + "|" + head + "|" + totalFaculty + "|" + description);
     }
 
-    public static List<String[]> getAllDepartments() {
+    public static List<String[]> getAllDepartments(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(ADMIN_DEPT_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "department_data.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 4) list.add(p);
         }
         return list;
     }
 
-    public static void removeDepartment(String name) {
-        List<String> lines = FileStore.loadLines(ADMIN_DEPT_FILE);
+    public static void removeDepartment(String uni, String name) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "department_data.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(name));
-        FileStore.saveLines(ADMIN_DEPT_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "department_data.txt"), lines);
     }
 
     // --- Institution Details ---
     // Format: key|value (single key-value pairs)
 
-    public static void setInstitutionDetail(String key, String value) {
-        List<String> lines = FileStore.loadLines(ADMIN_INSTITUTION_FILE);
+    public static void setInstitutionDetail(String uni, String key, String value) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "institution_details.txt"));
         boolean found = false;
         for (int i = 0; i < lines.size(); i++) {
             String[] p = lines.get(i).split("\\|", -1);
@@ -1270,23 +1293,23 @@ public class DataStore {
             }
         }
         if (found) {
-            FileStore.saveLines(ADMIN_INSTITUTION_FILE, lines);
+            FileStore.saveLines(getAdminFile(uni, "institution_details.txt"), lines);
         } else {
-            FileStore.appendLine(ADMIN_INSTITUTION_FILE, key + "|" + value);
+            FileStore.appendLine(getAdminFile(uni, "institution_details.txt"), key + "|" + value);
         }
     }
 
-    public static String getInstitutionDetail(String key) {
-        for (String line : FileStore.loadLines(ADMIN_INSTITUTION_FILE)) {
+    public static String getInstitutionDetail(String uni, String key) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "institution_details.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 2 && p[0].equals(key)) return p[1];
         }
         return "";
     }
 
-    public static List<String[]> getAllInstitutionDetails() {
+    public static List<String[]> getAllInstitutionDetails(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(ADMIN_INSTITUTION_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "institution_details.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 2) list.add(p);
         }
@@ -1296,23 +1319,65 @@ public class DataStore {
     // --- Administration ---
     // Format: name|position|department|phone|email
 
-    public static void addAdministration(String name, String position, String dept, String phone, String email) {
-        FileStore.appendLine(ADMIN_ADMINISTRATION_FILE, name + "|" + position + "|" + dept + "|" + phone + "|" + email);
+    public static void addAdministration(String uni, String name, String position, String dept, String phone, String email) {
+        FileStore.appendLine(getAdminFile(uni, "administration_data.txt"), name + "|" + position + "|" + dept + "|" + phone + "|" + email);
     }
 
-    public static List<String[]> getAllAdministration() {
+    public static List<String[]> getAllAdministration(String uni) {
         List<String[]> list = new ArrayList<>();
-        for (String line : FileStore.loadLines(ADMIN_ADMINISTRATION_FILE)) {
+        for (String line : FileStore.loadLines(getAdminFile(uni, "administration_data.txt"))) {
             String[] p = line.split("\\|", -1);
             if (p.length >= 5) list.add(p);
         }
         return list;
     }
 
-    public static void removeAdministration(String name) {
-        List<String> lines = FileStore.loadLines(ADMIN_ADMINISTRATION_FILE);
+    public static void removeAdministration(String uni, String name) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "administration_data.txt"));
         lines.removeIf(l -> l.split("\\|", -1)[0].equals(name));
-        FileStore.saveLines(ADMIN_ADMINISTRATION_FILE, lines);
+        FileStore.saveLines(getAdminFile(uni, "administration_data.txt"), lines);
+    }
+
+    // ==================== LATEST NEWS & UPCOMING EVENTS ====================
+
+    public static void addNews(String uni, String headline, String content) {
+        String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        FileStore.appendLine(getAdminFile(uni, "news.txt"), headline + "|" + content + "|" + ts);
+    }
+
+    public static List<String[]> getAllNews(String uni) {
+        List<String[]> list = new java.util.ArrayList<>();
+        for (String line : FileStore.loadLines(getAdminFile(uni, "news.txt"))) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 3) list.add(p);
+        }
+        java.util.Collections.reverse(list);
+        return list;
+    }
+
+    public static void removeNews(String uni, String headline) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "news.txt"));
+        lines.removeIf(l -> l.split("\\|", -1)[0].equals(headline));
+        FileStore.saveLines(getAdminFile(uni, "news.txt"), lines);
+    }
+
+    public static void addEvent(String uni, String title, String date, String description) {
+        FileStore.appendLine(getAdminFile(uni, "events.txt"), title + "|" + date + "|" + description);
+    }
+
+    public static List<String[]> getAllEvents(String uni) {
+        List<String[]> list = new java.util.ArrayList<>();
+        for (String line : FileStore.loadLines(getAdminFile(uni, "events.txt"))) {
+            String[] p = line.split("\\|", -1);
+            if (p.length >= 3) list.add(p);
+        }
+        return list;
+    }
+
+    public static void removeEvent(String uni, String title) {
+        List<String> lines = FileStore.loadLines(getAdminFile(uni, "events.txt"));
+        lines.removeIf(l -> l.split("\\|", -1)[0].equals(title));
+        FileStore.saveLines(getAdminFile(uni, "events.txt"), lines);
     }
 }
 

@@ -92,9 +92,10 @@ public class LoginController {
                 user.getEmail()
         );
 
-        // Push notification on login
+        // Activity log and notification
+        DataStore.logActivity(user.getEmail(), "login");
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"));
-        DataStore.addNotification(user.getEmail(), "Welcome back, " + user.getName() + "! Logged in at " + time);
+        DataStore.addNotification(user.getEmail(), "You have successfully logged in at " + time + ". \u2705");
 
         SceneManager.switchScene("home.fxml");
     }
@@ -126,6 +127,7 @@ public class LoginController {
         String dept = profile[1];
         String designation = profile[2];
         String type = profile[3];
+        String university = profile.length >= 7 ? profile[6] : dept;
 
         String normalizedName = name.toLowerCase().replace(" ", ".");
         String normalizedDept = dept == null ? "" : dept.trim().toLowerCase().replace(" ", ".");
@@ -142,9 +144,10 @@ public class LoginController {
         Session.setDesignation(designation);
         Session.setTeacherType(type);
 
-        // Push notification on login
+        // Activity log and notification
+        DataStore.logActivity(activeId, "login");
         String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm a"));
-        DataStore.addNotification(activeId, "Welcome back, " + name + "! Logged in as Teacher at " + time);
+        DataStore.addNotification(activeId, "Logged in as Teacher at " + time + ". \u2705");
 
         SceneManager.switchScene("home.fxml");
     }

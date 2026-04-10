@@ -8,6 +8,7 @@ import com.example.moodle.model.User;
 import com.example.moodle.service.DataStore;
 import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
+import com.example.moodle.util.UniversityDatabase;
 import com.example.moodle.util.UserStore;
 
 import javafx.fxml.FXML;
@@ -22,6 +23,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -31,7 +34,14 @@ public class AuthorityDashboardController {
     private StackPane contentArea;
 
     @FXML
+    private Label uniNameLabel;
+
+    @FXML
     public void initialize() {
+        String uni = getResolvedUniversityName();
+        if (uniNameLabel != null) {
+            uniNameLabel.setText("Admin Control — " + uni);
+        }
         showStudentDatabase();
     }
 
@@ -63,6 +73,17 @@ public class AuthorityDashboardController {
     @FXML
     private void goBack() {
         SceneManager.goBack();
+    }
+
+    private String getResolvedUniversityName() {
+        String u = Session.getSelectedUniversity();
+        if (u == null || u.isEmpty()) {
+            // Fallback to login university
+            u = Session.getUniversity();
+        }
+        if (u == null || u.isEmpty()) return "global";
+        com.example.moodle.model.UniversityInfo info = com.example.moodle.util.UniversityDatabase.getUniversity(u);
+        return info != null ? info.getShortName() : u;
     }
 
     // ===================== STUDENT DATABASE =====================
@@ -99,7 +120,14 @@ public class AuthorityDashboardController {
             tableBox.getChildren().add(headerRow);
 
             List<User> users = UserStore.getAllUsers();
-            java.util.List<User> reversed = new java.util.ArrayList<>(users);
+            String currentUni = UniversityDatabase.extractShortName(getResolvedUniversityName());
+            java.util.List<User> reversed = new java.util.ArrayList<>();
+            for (User u : users) {
+                String userShort = UniversityDatabase.extractShortName(u.getUniversity());
+                if ("global".equals(currentUni) || currentUni.equalsIgnoreCase(userShort)) {
+                    reversed.add(u);
+                }
+            }
             java.util.Collections.reverse(reversed);
             int count = 0;
             for (User u : reversed) {
@@ -198,7 +226,11 @@ public class AuthorityDashboardController {
         refreshTable.run();
         searchField.textProperty().addListener((obs, o, n) -> refreshTable.run());
 
-        Label countLabel = new Label("Total Students: " + UserStore.getAllUsers().size());
+        String curUni = getResolvedUniversityName();
+        long filteredCount = UserStore.getAllUsers().stream()
+                 .filter(u -> "global".equals(curUni) || (u.getUniversity() != null && u.getUniversity().equalsIgnoreCase(curUni)))
+                 .count();
+        Label countLabel = new Label("Total Students: " + filteredCount);
         countLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #8a9ab0;");
 
         box.getChildren().addAll(title, countLabel, searchField, editBox, tableBox);
@@ -295,7 +327,25 @@ public class AuthorityDashboardController {
         Label title = new Label("Payment Overview");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
-        List<Payment> payments = DataStore.getAllPayments();
+        List<Payment> allPayments = DataStore.getAllPayments();
+        String currentUni = UniversityDatabase.extractShortName(getResolvedUniversityName());
+        List<Payment> payments = new java.util.ArrayList<>();
+        for (Payment p : allPayments) {
+            User u = UserStore.getUserByStudentId(p.getStudentEmail()); // Note: payment sometimes stores email or ID. Let's just check UserStore
+            if (u == null) {
+                // fall back to getting by email
+                for (User temp : UserStore.getAllUsers()) {
+                    if (p.getStudentEmail().equalsIgnoreCase(temp.getEmail())) {
+                        u = temp; break;
+                    }
+                }
+            }
+            String userShort = (u != null) ? UniversityDatabase.extractShortName(u.getUniversity()) : "";
+            if ("global".equals(currentUni) || currentUni.equalsIgnoreCase(userShort)) {
+                payments.add(p);
+            }
+        }
+        
         int totalAmount = 0;
         for (Payment p : payments) {
             totalAmount += p.getAmount();
@@ -364,6 +414,15 @@ public class AuthorityDashboardController {
                 msgLabel.setText("Enter a student ID.");
                 return;
             }
+            
+            User sUser = UserStore.getUserByStudentId(studentId);
+            String currentUni = getResolvedUniversityName();
+            if (sUser == null || (!"global".equals(currentUni) && (sUser.getUniversity() == null || !sUser.getUniversity().equalsIgnoreCase(currentUni)))) {
+                msgLabel.setStyle("-fx-text-fill: #ff3366;");
+                msgLabel.setText("Student not found or belongs to another university.");
+                return;
+            }
+            
             msgLabel.setText("");
 
             Label studentTitle = new Label("Grades for: " + studentId);
@@ -441,17 +500,32 @@ public class AuthorityDashboardController {
         Label title = new Label("System Overview");
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
-        int totalUsers = UserStore.getAllUsers().size();
-        int totalCourses = DataStore.getAllCourses().size();
-        int totalAssignments = DataStore.getAllAssignments().size();
-        int totalPayments = DataStore.getAllPayments().size();
+        String curUni = UniversityDatabase.extractShortName(getResolvedUniversityName());
+        long totalUsers = UserStore.getAllUsers().stream()
+                .filter(u -> "global".equals(curUni) || curUni.equalsIgnoreCase(UniversityDatabase.extractShortName(u.getUniversity())))
+                .count();
+        long totalCourses = DataStore.getAllCourses().stream()
+                .filter(c -> "global".equals(curUni) || curUni.equalsIgnoreCase(UniversityDatabase.extractShortName(c.getUniversity())))
+                .count();
+
+        List<Payment> allPayments = DataStore.getAllPayments();
+        long totalFilteredPayments = allPayments.stream().filter(p -> {
+            User u = UserStore.getUserByStudentId(p.getStudentEmail());
+            if (u == null) {
+                for (User temp : UserStore.getAllUsers()) {
+                    if (p.getStudentEmail().equalsIgnoreCase(temp.getEmail())) { u = temp; break; }
+                }
+            }
+            String userShort = (u != null) ? UniversityDatabase.extractShortName(u.getUniversity()) : "";
+            return "global".equals(curUni) || curUni.equalsIgnoreCase(userShort);
+        }).count();
+
         int totalMessages = DataStore.getTotalMessageCount();
 
         String[][] stats = {
-            {"\uD83D\uDC65", "Registered Students", String.valueOf(totalUsers)},
-            {"\uD83D\uDCDA", "Active Courses", String.valueOf(totalCourses)},
-            {"\uD83D\uDCDD", "Assignments", String.valueOf(totalAssignments)},
-            {"\uD83D\uDCB0", "Payment Records", String.valueOf(totalPayments)},
+            {"\uD83D\uDC65", "Students", String.valueOf(totalUsers)},
+            {"\uD83D\uDCDA", "Courses", String.valueOf(totalCourses)},
+            {"\uD83D\uDCB0", "Payments", String.valueOf(totalFilteredPayments)},
             {"\uD83D\uDCE8", "Messages", String.valueOf(totalMessages)},};
 
         GridPane grid = new GridPane();
@@ -499,7 +573,7 @@ public class AuthorityDashboardController {
         addBtn.setOnAction(e -> {
             String sport = sportField.getText().trim();
             if (sport.isEmpty()) { gMsg.setStyle("-fx-text-fill: #ff3366;"); gMsg.setText("Sport name required."); return; }
-            DataStore.addGame(sport, emojiField.getText().trim(), schedField.getText().trim(), venueField.getText().trim());
+            DataStore.addGame(getResolvedUniversityName(), sport, emojiField.getText().trim(), schedField.getText().trim(), venueField.getText().trim());
             gMsg.setStyle("-fx-text-fill: #00ff88;"); gMsg.setText("Added!");
             sportField.clear(); emojiField.clear(); schedField.clear(); venueField.clear();
             showManageGames();
@@ -511,7 +585,7 @@ public class AuthorityDashboardController {
         Label listLabel = new Label("Current Sports:");
         listLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listLabel);
-        List<String[]> games = DataStore.getAllGames();
+        List<String[]> games = DataStore.getAllGames(getResolvedUniversityName());
         if (games.isEmpty()) {
             box.getChildren().add(new Label("No games/sports data."));
         } else {
@@ -524,7 +598,7 @@ public class AuthorityDashboardController {
                 info.setWrapText(true);
                 info.setMaxWidth(500);
                 Button del = new Button("\u274C");
-                del.setOnAction(ev -> { DataStore.removeGame(g[0]); showManageGames(); });
+                del.setOnAction(ev -> { DataStore.removeGame(getResolvedUniversityName(), g[0]); showManageGames(); });
                 row.getChildren().addAll(info, del);
                 box.getChildren().add(row);
             }
@@ -552,7 +626,7 @@ public class AuthorityDashboardController {
         addBtn.setOnAction(e -> {
             String name = nameField.getText().trim();
             if (name.isEmpty()) { hMsg.setStyle("-fx-text-fill: #ff3366;"); hMsg.setText("Name required."); return; }
-            DataStore.addDoctor(name, specField.getText().trim(), daysField.getText().trim(), hoursField.getText().trim());
+            DataStore.addDoctor(getResolvedUniversityName(), name, specField.getText().trim(), daysField.getText().trim(), hoursField.getText().trim());
             hMsg.setStyle("-fx-text-fill: #00ff88;"); hMsg.setText("Added!");
             nameField.clear(); specField.clear(); daysField.clear(); hoursField.clear();
             showManageHospital();
@@ -563,7 +637,7 @@ public class AuthorityDashboardController {
         Label listLabel = new Label("Current Doctors:");
         listLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listLabel);
-        List<String[]> docs = DataStore.getAllDoctors();
+        List<String[]> docs = DataStore.getAllDoctors(getResolvedUniversityName());
         if (docs.isEmpty()) {
             box.getChildren().add(new Label("No doctors registered."));
         } else {
@@ -576,10 +650,99 @@ public class AuthorityDashboardController {
                 info.setWrapText(true);
                 info.setMaxWidth(500);
                 Button del = new Button("\u274C");
-                del.setOnAction(ev -> { DataStore.removeDoctor(d[0]); showManageHospital(); });
+                del.setOnAction(ev -> { DataStore.removeDoctor(getResolvedUniversityName(), d[0]); showManageHospital(); });
                 row.getChildren().addAll(info, del);
                 box.getChildren().add(row);
             }
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== MANAGE NEWS =====================
+    @FXML
+    private void showManageNews() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83D\uDCF0 Manage Latest News");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField headField = new TextField(); headField.setPromptText("Headline");
+        TextArea contentArea = new TextArea(); contentArea.setPromptText("News Content...");
+        contentArea.setPrefRowCount(3);
+        Label nMsg = new Label();
+        Button addBtn = new Button("Post News");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setOnAction(e -> {
+            String h = headField.getText().trim();
+            String c = contentArea.getText().trim();
+            if (h.isEmpty() || c.isEmpty()) { nMsg.setStyle("-fx-text-fill: #ff3366;"); nMsg.setText("Headline & content required."); return; }
+            DataStore.addNews(getResolvedUniversityName(), h, c);
+            nMsg.setStyle("-fx-text-fill: #00ff88;"); nMsg.setText("News posted!");
+            headField.clear(); contentArea.clear();
+            showManageNews();
+        });
+
+        box.getChildren().addAll(title, headField, contentArea, addBtn, nMsg, new Separator());
+
+        List<String[]> news = DataStore.getAllNews(getResolvedUniversityName());
+        for (String[] n : news) {
+            VBox row = new VBox(5);
+            row.setStyle("-fx-padding: 10; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+            HBox header = new HBox(10);
+            Label hLabel = new Label(n[0]); hLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+            Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+            Button del = new Button("\uD83D\uDDD1");
+            del.setOnAction(ev -> { DataStore.removeNews(getResolvedUniversityName(), n[0]); showManageNews(); });
+            header.getChildren().addAll(hLabel, spacer, del);
+            Label cLabel = new Label(n[1]); cLabel.setWrapText(true);
+            Label tLabel = new Label("Posted: " + n[2]); tLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #8a9ab0;");
+            row.getChildren().addAll(header, cLabel, tLabel);
+            box.getChildren().add(row);
+        }
+        setScrollContent(box);
+    }
+
+    // ===================== MANAGE EVENTS =====================
+    @FXML
+    private void showManageEvents() {
+        VBox box = new VBox(15);
+        box.setPadding(new Insets(10));
+        Label title = new Label("\uD83D\uDCC5 Manage Upcoming Events");
+        title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+
+        TextField tField = new TextField(); tField.setPromptText("Event Title");
+        TextField dField = new TextField(); dField.setPromptText("Date (e.g. Oct 15, 2025)");
+        TextArea descArea = new TextArea(); descArea.setPromptText("Description...");
+        descArea.setPrefRowCount(2);
+        Label eMsg = new Label();
+        Button addBtn = new Button("Add Event");
+        addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
+        addBtn.setOnAction(e -> {
+            String t = tField.getText().trim();
+            String d = dField.getText().trim();
+            if (t.isEmpty() || d.isEmpty()) { eMsg.setStyle("-fx-text-fill: #ff3366;"); eMsg.setText("Title & date required."); return; }
+            DataStore.addEvent(getResolvedUniversityName(), t, d, descArea.getText().trim());
+            eMsg.setStyle("-fx-text-fill: #00ff88;"); eMsg.setText("Event added!");
+            tField.clear(); dField.clear(); descArea.clear();
+            showManageEvents();
+        });
+
+        box.getChildren().addAll(title, tField, dField, descArea, addBtn, eMsg, new Separator());
+
+        List<String[]> events = DataStore.getAllEvents(getResolvedUniversityName());
+        for (String[] ev : events) {
+            VBox row = new VBox(5);
+            row.setStyle("-fx-padding: 10; -fx-background-color: #111a2e; -fx-background-radius: 8;");
+            HBox header = new HBox(10);
+            Label tLabel = new Label(ev[0]); tLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #00ff88;");
+            Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
+            Button del = new Button("\uD83D\uDDD1");
+            del.setOnAction(e -> { DataStore.removeEvent(getResolvedUniversityName(), ev[0]); showManageEvents(); });
+            header.getChildren().addAll(tLabel, spacer, del);
+            Label dLabel = new Label("\uD83D\uDCC5 " + ev[1]); dLabel.setStyle("-fx-text-fill: #8a9ab0;");
+            Label descLabel = new Label(ev.length > 2 ? ev[2] : ""); descLabel.setWrapText(true);
+            row.getChildren().addAll(header, dLabel, descLabel);
+            box.getChildren().add(row);
         }
         setScrollContent(box);
     }
@@ -604,7 +767,7 @@ public class AuthorityDashboardController {
             String hall = hallField.getText().trim();
             String room = roomField.getText().trim();
             if (hall.isEmpty() || room.isEmpty()) { rMsg.setStyle("-fx-text-fill: #ff3366;"); rMsg.setText("Hall & room required."); return; }
-            DataStore.addHallRoom(hall, room, capField.getText().trim());
+            DataStore.addHallRoom(getResolvedUniversityName(), hall, room, capField.getText().trim());
             rMsg.setStyle("-fx-text-fill: #00ff88;"); rMsg.setText("Added!");
             hallField.clear(); roomField.clear(); capField.clear();
             showManageHall();
@@ -615,7 +778,7 @@ public class AuthorityDashboardController {
         Label listLabel = new Label("Current Hall Rooms:");
         listLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listLabel);
-        List<String[]> halls = DataStore.getAllHallRooms();
+        List<String[]> halls = DataStore.getAllHallRooms(getResolvedUniversityName());
         if (halls.isEmpty()) {
             box.getChildren().add(new Label("No hall rooms defined."));
         } else {
@@ -628,7 +791,7 @@ public class AuthorityDashboardController {
                 info.setWrapText(true);
                 info.setMaxWidth(500);
                 Button del = new Button("\u274C");
-                del.setOnAction(ev -> { DataStore.removeHallRoom(h[0], h.length > 1 ? h[1] : ""); showManageHall(); });
+                del.setOnAction(ev -> { DataStore.removeHallRoom(getResolvedUniversityName(), h[0], h.length > 1 ? h[1] : ""); showManageHall(); });
                 row.getChildren().addAll(info, del);
                 box.getChildren().add(row);
             }
@@ -654,7 +817,7 @@ public class AuthorityDashboardController {
                 String ts = r[5];
 
                 int occupancy = DataStore.getHallRoomOccupancy(hall, room);
-                boolean hasCapacity = DataStore.hasHallCapacity(hall, room);
+                boolean hasCapacity = DataStore.hasHallCapacity(getResolvedUniversityName(), hall, room);
 
                 HBox row = new HBox(10);
                 row.setAlignment(Pos.CENTER_LEFT);
@@ -671,7 +834,7 @@ public class AuthorityDashboardController {
                 approveBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-background-radius: 6;");
                 approveBtn.setDisable(!hasCapacity);
                 approveBtn.setOnAction(ev -> {
-                    if (!DataStore.hasHallCapacity(hall, room)) {
+                    if (!DataStore.hasHallCapacity(getResolvedUniversityName(), hall, room)) {
                         evalMsg.setStyle("-fx-text-fill: #ff3366;");
                         evalMsg.setText("Cannot approve " + requesterId + ": room is full.");
                         return;
@@ -886,7 +1049,7 @@ public class AuthorityDashboardController {
                     return;
                 }
 
-                DataStore.saveTeacherProfile(nName, nDept, nDesig, tType, nPass, nEmail);
+                DataStore.saveTeacherProfile(nName, nDept, nDesig, tType, nPass, nEmail, getResolvedUniversityName());
 
                 tMsg.setStyle("-fx-text-fill: #00ff88; -fx-font-size: 11px;");
                 tMsg.setText("✓ Saved");
@@ -924,7 +1087,7 @@ public class AuthorityDashboardController {
         addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         addBtn.setOnAction(e -> {
             if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
-            DataStore.addFacultyMember(nameF.getText().trim(), deptF.getText().trim(), desigF.getText().trim(), emailF.getText().trim(), phoneF.getText().trim());
+            DataStore.addFacultyMember(getResolvedUniversityName(), nameF.getText().trim(), deptF.getText().trim(), desigF.getText().trim(), emailF.getText().trim(), phoneF.getText().trim());
             msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Faculty added!");
             nameF.clear(); deptF.clear(); desigF.clear(); emailF.clear(); phoneF.clear();
             showManageFaculty();
@@ -936,7 +1099,7 @@ public class AuthorityDashboardController {
         listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listTitle);
 
-        java.util.List<String[]> faculty = DataStore.getAllFacultyMembers();
+        java.util.List<String[]> faculty = DataStore.getAllFacultyMembers(getResolvedUniversityName());
         if (faculty.isEmpty()) { box.getChildren().add(new Label("No faculty members added.")); }
         else {
             for (String[] f : faculty) {
@@ -946,7 +1109,7 @@ public class AuthorityDashboardController {
                 Label info = new Label(f[0] + " | " + f[1] + " | " + f[2] + " | " + f[3] + " | " + f[4]);
                 info.setWrapText(true); info.setMaxWidth(500);
                 Button del = new Button("\u274C");
-                del.setOnAction(ev -> { DataStore.removeFacultyMember(f[0]); showManageFaculty(); });
+                del.setOnAction(ev -> { DataStore.removeFacultyMember(getResolvedUniversityName(), f[0]); showManageFaculty(); });
                 row.getChildren().addAll(info, del);
                 box.getChildren().add(row);
             }
@@ -971,7 +1134,7 @@ public class AuthorityDashboardController {
         addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         addBtn.setOnAction(e -> {
             if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
-            DataStore.addAlumni(nameF.getText().trim(), batchF.getText().trim(), deptF.getText().trim(), posF.getText().trim());
+            DataStore.addAlumni(getResolvedUniversityName(), nameF.getText().trim(), batchF.getText().trim(), deptF.getText().trim(), posF.getText().trim());
             msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Alumni added!");
             nameF.clear(); batchF.clear(); deptF.clear(); posF.clear();
             showManageAlumni();
@@ -983,7 +1146,7 @@ public class AuthorityDashboardController {
         listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listTitle);
 
-        java.util.List<String[]> alumni = DataStore.getAllAlumni();
+        java.util.List<String[]> alumni = DataStore.getAllAlumni(getResolvedUniversityName());
         if (alumni.isEmpty()) { box.getChildren().add(new Label("No alumni added.")); }
         else {
             for (String[] a : alumni) {
@@ -993,7 +1156,7 @@ public class AuthorityDashboardController {
                 Label info = new Label(a[0] + " | Batch: " + a[1] + " | " + a[2] + " | " + a[3]);
                 info.setWrapText(true); info.setMaxWidth(500);
                 Button del = new Button("\u274C");
-                del.setOnAction(ev -> { DataStore.removeAlumni(a[0]); showManageAlumni(); });
+                del.setOnAction(ev -> { DataStore.removeAlumni(getResolvedUniversityName(), a[0]); showManageAlumni(); });
                 row.getChildren().addAll(info, del);
                 box.getChildren().add(row);
             }
@@ -1016,7 +1179,7 @@ public class AuthorityDashboardController {
         addBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-weight: bold;");
         addBtn.setOnAction(e -> {
             if (titleF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Title required."); return; }
-            DataStore.addUniversityNotice(titleF.getText().trim(), contentF.getText().trim(), "admin");
+            DataStore.addUniversityNotice(getResolvedUniversityName(), titleF.getText().trim(), contentF.getText().trim(), "admin");
             msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Notice posted!");
             titleF.clear(); contentF.clear();
             showUniversityNotices();
@@ -1028,7 +1191,7 @@ public class AuthorityDashboardController {
         listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listTitle);
 
-        java.util.List<String[]> notices = DataStore.getAllUniversityNotices();
+        java.util.List<String[]> notices = DataStore.getAllUniversityNotices(getResolvedUniversityName());
         if (notices.isEmpty()) { box.getChildren().add(new Label("No university notices.")); }
         else {
             for (String[] n : notices) {
@@ -1038,7 +1201,7 @@ public class AuthorityDashboardController {
                 Label cl = new Label(n[1]); cl.setWrapText(true);
                 Label dl = new Label("By " + n[2] + " on " + n[3]); dl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
                 Button del = new Button("\u274C Remove");
-                del.setOnAction(ev -> { DataStore.removeUniversityNotice(n[0]); showUniversityNotices(); });
+                del.setOnAction(ev -> { DataStore.removeUniversityNotice(getResolvedUniversityName(), n[0]); showUniversityNotices(); });
                 card.getChildren().addAll(tl, cl, dl, del);
                 box.getChildren().add(card);
             }
@@ -1063,7 +1226,7 @@ public class AuthorityDashboardController {
         addBtn.setStyle("-fx-background-color: #00e5ff; -fx-text-fill: #0a0e1a; -fx-font-weight: bold;");
         addBtn.setOnAction(e -> {
             if (titleF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Title required."); return; }
-            DataStore.addJobNotice(titleF.getText().trim(), descF.getText().trim(), companyF.getText().trim(), deadlineF.getText().trim(), "admin");
+            DataStore.addJobNotice(getResolvedUniversityName(), titleF.getText().trim(), descF.getText().trim(), companyF.getText().trim(), deadlineF.getText().trim(), "admin");
             msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Job notice posted!");
             titleF.clear(); descF.clear(); companyF.clear(); deadlineF.clear();
             showJobNotices();
@@ -1075,7 +1238,7 @@ public class AuthorityDashboardController {
         listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listTitle);
 
-        java.util.List<String[]> jobs = DataStore.getAllJobNotices();
+        java.util.List<String[]> jobs = DataStore.getAllJobNotices(getResolvedUniversityName());
         if (jobs.isEmpty()) { box.getChildren().add(new Label("No job notices.")); }
         else {
             for (String[] j : jobs) {
@@ -1087,7 +1250,7 @@ public class AuthorityDashboardController {
                 cl.setStyle("-fx-text-fill: #ffb300;");
                 Label pl = new Label("By " + j[4] + " on " + j[5]); pl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 11px;");
                 Button del = new Button("\u274C Remove");
-                del.setOnAction(ev -> { DataStore.removeJobNotice(j[0]); showJobNotices(); });
+                del.setOnAction(ev -> { DataStore.removeJobNotice(getResolvedUniversityName(), j[0]); showJobNotices(); });
                 card.getChildren().addAll(tl, dl, cl, pl, del);
                 box.getChildren().add(card);
             }
@@ -1113,7 +1276,7 @@ public class AuthorityDashboardController {
         addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         addBtn.setOnAction(e -> {
             if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
-            DataStore.addStaffMember(nameF.getText().trim(), roleF.getText().trim(), deptF.getText().trim(), phoneF.getText().trim(), emailF.getText().trim());
+            DataStore.addStaffMember(getResolvedUniversityName(), nameF.getText().trim(), roleF.getText().trim(), deptF.getText().trim(), phoneF.getText().trim(), emailF.getText().trim());
             msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Staff added!");
             nameF.clear(); roleF.clear(); deptF.clear(); phoneF.clear(); emailF.clear();
             showStaffDetails();
@@ -1125,7 +1288,7 @@ public class AuthorityDashboardController {
         listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listTitle);
 
-        java.util.List<String[]> staff = DataStore.getAllStaffMembers();
+        java.util.List<String[]> staff = DataStore.getAllStaffMembers(getResolvedUniversityName());
         if (staff.isEmpty()) { box.getChildren().add(new Label("No staff members.")); }
         else {
             for (String[] s : staff) {
@@ -1135,7 +1298,7 @@ public class AuthorityDashboardController {
                 Label info = new Label(s[0] + " | " + s[1] + " | " + s[2] + " | " + s[3] + " | " + s[4]);
                 info.setWrapText(true); info.setMaxWidth(500);
                 Button del = new Button("\u274C");
-                del.setOnAction(ev -> { DataStore.removeStaffMember(s[0]); showStaffDetails(); });
+                del.setOnAction(ev -> { DataStore.removeStaffMember(getResolvedUniversityName(), s[0]); showStaffDetails(); });
                 row.getChildren().addAll(info, del);
                 box.getChildren().add(row);
             }
@@ -1160,7 +1323,7 @@ public class AuthorityDashboardController {
         addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         addBtn.setOnAction(e -> {
             if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
-            DataStore.addDepartment(nameF.getText().trim(), headF.getText().trim(), countF.getText().trim(), descF.getText().trim());
+            DataStore.addDepartment(getResolvedUniversityName(), nameF.getText().trim(), headF.getText().trim(), countF.getText().trim(), descF.getText().trim());
             msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Department added!");
             nameF.clear(); headF.clear(); countF.clear(); descF.clear();
             showDepartmentDetails();
@@ -1172,7 +1335,7 @@ public class AuthorityDashboardController {
         listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listTitle);
 
-        java.util.List<String[]> depts = DataStore.getAllDepartments();
+        java.util.List<String[]> depts = DataStore.getAllDepartments(getResolvedUniversityName());
         if (depts.isEmpty()) { box.getChildren().add(new Label("No departments added.")); }
         else {
             for (String[] d : depts) {
@@ -1182,7 +1345,7 @@ public class AuthorityDashboardController {
                 Label hl = new Label("Head: " + d[1] + " | Faculty: " + d[2]);
                 Label dl = new Label(d[3]); dl.setWrapText(true); dl.setStyle("-fx-text-fill: #8a9ab0;");
                 Button del = new Button("\u274C Remove");
-                del.setOnAction(ev -> { DataStore.removeDepartment(d[0]); showDepartmentDetails(); });
+                del.setOnAction(ev -> { DataStore.removeDepartment(getResolvedUniversityName(), d[0]); showDepartmentDetails(); });
                 card.getChildren().addAll(nl, hl, dl, del);
                 box.getChildren().add(card);
             }
@@ -1205,13 +1368,13 @@ public class AuthorityDashboardController {
             HBox row = new HBox(10);
             row.setAlignment(Pos.CENTER_LEFT);
             Label lbl = new Label(key + ":"); lbl.setMinWidth(140); lbl.setStyle("-fx-font-weight: bold;");
-            TextField val = new TextField(DataStore.getInstitutionDetail(key));
+            TextField val = new TextField(DataStore.getInstitutionDetail(getResolvedUniversityName(), key));
             val.setPromptText(key);
             val.setPrefWidth(400);
             Button saveBtn = new Button("Save");
             saveBtn.setStyle("-fx-background-color: #0d2a4a; -fx-text-fill: white; -fx-background-radius: 6;");
             saveBtn.setOnAction(e -> {
-                DataStore.setInstitutionDetail(key, val.getText().trim());
+                DataStore.setInstitutionDetail(getResolvedUniversityName(), key, val.getText().trim());
                 msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText(key + " saved! \u2705");
             });
             row.getChildren().addAll(lbl, val, saveBtn);
@@ -1240,7 +1403,7 @@ public class AuthorityDashboardController {
         addBtn.setStyle("-fx-background-color: transparent; -fx-border-color: #00ff88; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 8;");
         addBtn.setOnAction(e -> {
             if (nameF.getText().trim().isEmpty()) { msg.setStyle("-fx-text-fill: #ff3366;"); msg.setText("Name required."); return; }
-            DataStore.addAdministration(nameF.getText().trim(), posF.getText().trim(), deptF.getText().trim(), phoneF.getText().trim(), emailF.getText().trim());
+            DataStore.addAdministration(getResolvedUniversityName(), nameF.getText().trim(), posF.getText().trim(), deptF.getText().trim(), phoneF.getText().trim(), emailF.getText().trim());
             msg.setStyle("-fx-text-fill: #00ff88;"); msg.setText("Administration member added!");
             nameF.clear(); posF.clear(); deptF.clear(); phoneF.clear(); emailF.clear();
             showAdministration();
@@ -1252,7 +1415,7 @@ public class AuthorityDashboardController {
         listTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
         box.getChildren().add(listTitle);
 
-        java.util.List<String[]> admins = DataStore.getAllAdministration();
+        java.util.List<String[]> admins = DataStore.getAllAdministration(getResolvedUniversityName());
         if (admins.isEmpty()) { box.getChildren().add(new Label("No administration members.")); }
         else {
             for (String[] a : admins) {
@@ -1262,7 +1425,7 @@ public class AuthorityDashboardController {
                 Label info = new Label(a[0] + " | " + a[1] + " | " + a[2] + " | " + a[3] + " | " + a[4]);
                 info.setWrapText(true); info.setMaxWidth(500);
                 Button del = new Button("\u274C");
-                del.setOnAction(ev -> { DataStore.removeAdministration(a[0]); showAdministration(); });
+                del.setOnAction(ev -> { DataStore.removeAdministration(getResolvedUniversityName(), a[0]); showAdministration(); });
                 row.getChildren().addAll(info, del);
                 box.getChildren().add(row);
             }

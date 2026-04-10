@@ -4,9 +4,11 @@ import com.example.moodle.model.User;
 import com.example.moodle.service.DataStore;
 import com.example.moodle.util.SceneManager;
 import com.example.moodle.util.Session;
+import com.example.moodle.util.UniversityDatabase;
 import com.example.moodle.util.UserStore;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.RadioButton;
@@ -26,6 +28,7 @@ public class CampusAccessController {
     @FXML private PasswordField campusPassField;
     @FXML private TextField staffEmailField;
     @FXML private PasswordField staffPassField;
+    @FXML private ComboBox<String> authorityUniBox;
     @FXML private Label messageLabel;
     @FXML private Label hintLabel;
     @FXML private Label initialPassLabel;
@@ -40,9 +43,36 @@ public class CampusAccessController {
         staffEmailField.setOnAction(e -> verifyCampus());
         staffPassField.setOnAction(e -> verifyCampus());
 
+        // Populate the authority university combo box
+        authorityUniBox.setEditable(true);
+        java.util.List<String> allUnis = UniversityDatabase.getAllSearchableNames();
+        authorityUniBox.getItems().addAll(allUnis);
+        
+        authorityUniBox.getEditor().textProperty().addListener((obs, oldText, newText) -> {
+            if (newText == null || newText.equals(authorityUniBox.getValue())) return;
+            javafx.application.Platform.runLater(() -> {
+                String filter = newText.toLowerCase();
+                java.util.List<String> filtered = new java.util.ArrayList<>();
+                for (String u : allUnis) {
+                    if (u.toLowerCase().contains(filter)) {
+                        filtered.add(u);
+                    }
+                }
+                if (filtered.isEmpty()) {
+                    authorityUniBox.hide();
+                } else {
+                    authorityUniBox.getItems().setAll(filtered);
+                    if (!authorityUniBox.isShowing()) {
+                        authorityUniBox.show();
+                    }
+                }
+            });
+        });
+
         roleGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
             boolean isStudent = (newVal == studentRadio);
             boolean isTeacher = (newVal == teacherRadio);
+            boolean isAuthority = (newVal == authorityRadio);
             studentFields.setVisible(isStudent);
             studentFields.setManaged(isStudent);
             initialPassLabel.setVisible(isStudent);
@@ -51,6 +81,8 @@ public class CampusAccessController {
             staffFields.setManaged(!isStudent);
             staffEmailField.setVisible(isTeacher);
             staffEmailField.setManaged(isTeacher);
+            authorityUniBox.setVisible(isAuthority);
+            authorityUniBox.setManaged(isAuthority);
             if (!isTeacher) {
                 staffEmailField.clear();
             }
@@ -60,7 +92,7 @@ public class CampusAccessController {
             } else if (newVal == authorityRadio) {
                 // admin pass- "admin123". Multiple admins from multiple universities.
                 // They control their university individually.
-                hintLabel.setText("Hint: admin123");
+                hintLabel.setText("Select your university. Hint: admin123");
             }
         });
     }
@@ -173,10 +205,22 @@ public class CampusAccessController {
         // Multiple admins from multiple universities control their university individually.
         // They have access to edit the University_page.
         String pass = staffPassField.getText().trim();
+        String selectedUni = authorityUniBox.getValue();
+        if (selectedUni == null || selectedUni.isEmpty()) {
+            showError("Please select your university.");
+            return;
+        }
         if ("admin123".equals(pass)) {
-            Session.login("Admin", "Campus", "", "admin@campus");
+            Session.login("Admin", selectedUni, "", "admin@campus");
             Session.setCampusVerified(true);
             Session.setRole("AUTHORITY");
+            Session.setSelectedUniversity(selectedUni);
+            
+            // Activity log and notification
+            DataStore.logActivity(selectedUni + "_admin", "login");
+            String time = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("hh:mm a"));
+            DataStore.addNotification(selectedUni + "_admin", "Admin login successful at " + time + ". \u2705");
+
             SceneManager.switchScene("authority-dashboard.fxml");
         } else {
             showError("Invalid Authority Password.");

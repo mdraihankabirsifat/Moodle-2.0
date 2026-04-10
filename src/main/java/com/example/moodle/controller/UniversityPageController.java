@@ -49,11 +49,11 @@ public class UniversityPageController {
         title.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
 
         // Institution details from admin
-        String instName = DataStore.getInstitutionDetail("Institution Name");
-        String instAddress = DataStore.getInstitutionDetail("Address");
-        String instEstablished = DataStore.getInstitutionDetail("Established");
-        String instVc = DataStore.getInstitutionDetail("Vice Chancellor");
-        String instMotto = DataStore.getInstitutionDetail("Motto");
+        String instName = DataStore.getInstitutionDetail(getResolvedUniversityName(), "Institution Name");
+        String instAddress = DataStore.getInstitutionDetail(getResolvedUniversityName(), "Address");
+        String instEstablished = DataStore.getInstitutionDetail(getResolvedUniversityName(), "Established");
+        String instVc = DataStore.getInstitutionDetail(getResolvedUniversityName(), "Vice Chancellor");
+        String instMotto = DataStore.getInstitutionDetail(getResolvedUniversityName(), "Motto");
 
         VBox aboutBox = new VBox(12);
         aboutBox.setStyle("-fx-padding: 20; -fx-background-color: #111a2e; -fx-background-radius: 10; -fx-border-color: rgba(0,229,255,0.2); -fx-border-radius: 10;");
@@ -97,7 +97,8 @@ public class UniversityPageController {
         }
 
         // Also show admin-posted university notices
-        List<String[]> adminNotices = DataStore.getAllUniversityNotices();
+        // Admin-posted university notices
+        List<String[]> adminNotices = DataStore.getAllUniversityNotices(getResolvedUniversityName());
         if (!adminNotices.isEmpty()) {
             for (String[] n : adminNotices) {
                 VBox card = new VBox(4);
@@ -111,7 +112,49 @@ public class UniversityPageController {
             }
         }
 
-        box.getChildren().addAll(title, aboutBox, contactBox, locationBox, noticesBox);
+        // ============ LATEST NEWS ============
+        VBox newsBox = new VBox(12);
+        newsBox.setStyle("-fx-padding: 20; -fx-background-color: #111a2e; -fx-background-radius: 10; -fx-border-color: #00e5ff; -fx-border-radius: 10;");
+        Label newsTitle = new Label("\uD83D\uDCF0  Latest News");
+        newsTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
+        newsBox.getChildren().add(newsTitle);
+        List<String[]> news = DataStore.getAllNews(getResolvedUniversityName());
+        if (news.isEmpty()) {
+            newsBox.getChildren().add(new Label("No recent news."));
+        } else {
+            for (String[] n : news) {
+                VBox card = new VBox(4);
+                card.setStyle("-fx-padding: 8 12; -fx-background-color: #0d1b2a; -fx-background-radius: 8;");
+                Label hl = new Label(n[0]); hl.setStyle("-fx-font-weight: bold; -fx-text-fill: #00ff88;");
+                Label cl = new Label(n[1]); cl.setWrapText(true);
+                Label tl = new Label(n[2]); tl.setStyle("-fx-text-fill: #5a6a7e; -fx-font-size: 10px;");
+                card.getChildren().addAll(hl, cl, tl);
+                newsBox.getChildren().add(card);
+            }
+        }
+
+        // ============ UPCOMING EVENTS ============
+        VBox eventsBox = new VBox(12);
+        eventsBox.setStyle("-fx-padding: 20; -fx-background-color: #111a2e; -fx-background-radius: 10; -fx-border-color: #ff3366; -fx-border-radius: 10;");
+        Label eventsTitle = new Label("\uD83D\uDCC5  Upcoming Events");
+        eventsTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #ff3366;");
+        eventsBox.getChildren().add(eventsTitle);
+        List<String[]> events = DataStore.getAllEvents(getResolvedUniversityName());
+        if (events.isEmpty()) {
+            eventsBox.getChildren().add(new Label("No upcoming events."));
+        } else {
+            for (String[] e : events) {
+                VBox card = new VBox(4);
+                card.setStyle("-fx-padding: 8 12; -fx-background-color: #0d1b2a; -fx-background-radius: 8;");
+                Label tl = new Label(e[0]); tl.setStyle("-fx-font-weight: bold; -fx-text-fill: #ff3366;");
+                Label dl = new Label(e[1]); dl.setStyle("-fx-text-fill: #8a9ab0; -fx-font-weight: bold;");
+                Label desc = new Label(e.length > 2 ? e[2] : ""); desc.setWrapText(true);
+                card.getChildren().addAll(tl, dl, desc);
+                eventsBox.getChildren().add(card);
+            }
+        }
+
+        box.getChildren().addAll(title, aboutBox, newsBox, eventsBox, contactBox, locationBox, noticesBox);
         setScrollContent(box);
     }
 
@@ -123,7 +166,7 @@ public class UniversityPageController {
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
         box.getChildren().add(title);
 
-        List<String[]> depts = DataStore.getAllDepartments();
+        List<String[]> depts = DataStore.getAllDepartments(getResolvedUniversityName());
         if (depts.isEmpty()) {
             box.getChildren().add(new Label("Department information will be available here."));
         } else {
@@ -154,7 +197,7 @@ public class UniversityPageController {
         box.getChildren().add(title);
 
         // Show institution details from admin panel
-        List<String[]> details = DataStore.getAllInstitutionDetails();
+        List<String[]> details = DataStore.getAllInstitutionDetails(getResolvedUniversityName());
         if (details.isEmpty()) {
             box.getChildren().add(new Label("Institute information will be available here."));
         } else {
@@ -188,7 +231,7 @@ public class UniversityPageController {
         facTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #ffb300; -fx-padding: 10 0 4 0;");
         box.getChildren().add(facTitle);
 
-        List<String[]> faculty = DataStore.getAllFacultyMembers();
+        List<String[]> faculty = DataStore.getAllFacultyMembers(getResolvedUniversityName());
         if (faculty.isEmpty()) {
             box.getChildren().add(new Label("No faculty members listed."));
         } else {
@@ -212,7 +255,7 @@ public class UniversityPageController {
         staffTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #ffb300; -fx-padding: 10 0 4 0;");
         box.getChildren().add(staffTitle);
 
-        List<String[]> staff = DataStore.getAllStaffMembers();
+        List<String[]> staff = DataStore.getAllStaffMembers(getResolvedUniversityName());
         if (staff.isEmpty()) {
             box.getChildren().add(new Label("No staff members listed."));
         } else {
@@ -239,7 +282,7 @@ public class UniversityPageController {
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
         box.getChildren().add(title);
 
-        List<String[]> alumni = DataStore.getAllAlumni();
+        List<String[]> alumni = DataStore.getAllAlumni(getResolvedUniversityName());
         if (alumni.isEmpty()) {
             box.getChildren().add(new Label("No alumni records available."));
         } else {
@@ -266,7 +309,7 @@ public class UniversityPageController {
         title.setStyle("-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #00e5ff;");
         box.getChildren().add(title);
 
-        List<String[]> admins = DataStore.getAllAdministration();
+        List<String[]> admins = DataStore.getAllAdministration(getResolvedUniversityName());
         if (admins.isEmpty()) {
             box.getChildren().add(new Label("No administration details available."));
         } else {
@@ -303,5 +346,12 @@ public class UniversityPageController {
     @FXML
     private void goBack() {
         SceneManager.goBack();
+    }
+
+    private String getResolvedUniversityName() {
+        String uniName = Session.getSelectedUniversity();
+        if (uniName == null) return "";
+        UniversityInfo info = UniversityDatabase.getUniversity(uniName);
+        return info != null ? info.getShortName() : uniName;
     }
 }

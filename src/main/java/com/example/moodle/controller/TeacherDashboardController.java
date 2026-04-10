@@ -211,9 +211,9 @@ public class TeacherDashboardController {
                 msgLabel.setStyle("-fx-text-fill: #ff3366;");
                 msgLabel.setText("Fill code, name and semester.");
             } else {
-                DataStore.addCourse(new Course(code, name, teacherEmail(), sem, facName, batch));
+                DataStore.addCourse(new Course(code, name, teacherEmail(), sem, facName, batch, getResolvedUniversityName()));
                 msgLabel.setStyle("-fx-text-fill: #00ff88;");
-                msgLabel.setText("Course added!");
+                msgLabel.setText("Course added! \u2705");
                 codeField.clear();
                 nameField.clear();
                 semField.clear();
@@ -1686,7 +1686,7 @@ public class TeacherDashboardController {
         Label docTitle = new Label("Available Doctors");
         docTitle.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #00e5ff;");
 
-        List<String[]> doctors = DataStore.getAllDoctors();
+        List<String[]> doctors = DataStore.getAllDoctors(getResolvedUniversityName());
 
         GridPane docGrid = new GridPane();
         docGrid.setHgap(2);
@@ -1866,5 +1866,11 @@ public class TeacherDashboardController {
         scroll.setFitToWidth(true);
         scroll.setStyle("-fx-background-color: transparent;");
         contentArea.getChildren().setAll(scroll);
+    }
+    private String getResolvedUniversityName() {
+        String u = Session.getUniversity();
+        if (u == null || u.isEmpty()) return "global";
+        com.example.moodle.model.UniversityInfo info = com.example.moodle.util.UniversityDatabase.getUniversity(u);
+        return info != null ? info.getShortName() : u;
     }
 }

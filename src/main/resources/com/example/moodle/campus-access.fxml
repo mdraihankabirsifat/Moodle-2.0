@@ -44,6 +44,7 @@
                 <!-- Teacher / Authority field -->
                 <VBox fx:id="staffFields" spacing="10" visible="false" managed="false">
                     <TextField fx:id="staffEmailField" promptText="Teacher Email"/>
+                    <ComboBox fx:id="authorityUniBox" promptText="Select Your University" maxWidth="Infinity" visible="false" managed="false"/>
                     <PasswordField fx:id="staffPassField" promptText="Access Password"/>
                     <Label fx:id="hintLabel" text="" style="-fx-text-fill: #5a6a7e; -fx-font-size: 11px;"/>
                 </VBox>
