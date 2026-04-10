@@ -1,0 +1,24 @@
+#!/bin/bash
+# MacOS App Launcher Script
+# Gets the absolute path of this script within the .app bundle
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# The root of the Moodle project will be three directories up
+# from 'Moodle.app/Contents/MacOS'
+APP_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+
+# Change into the project root directory
+cd "$APP_ROOT" || exit 1
+
+# Check if Java is installed
+if ! type -p java > /dev/null; then
+    # We can display an alert box using AppleScript if java is not found
+    osascript -e 'tell app "System Events" to display dialog "Java (JDK) is not installed. Please install Java to run Moodle." buttons {"OK"} default button "OK" with title "Java Not Found" with icon stop'
+    exit 1
+fi
+
+# Ensure maven wrapper is executable
+chmod +x ./mvnw
+
+# Launch application
+./mvnw clean javafx:run
