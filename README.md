@@ -58,6 +58,17 @@ A unified, premium desktop application that simulates and manages university cam
 
 ## Project Setup & Quick Start
 
+### For Mac Users (Automated Installer)
+We provide a dedicated script that automatically clones, updates, and launches the application without needing manual setup.
+1. Download the `mac-installer.sh` script or navigate to the repository directory.
+2. Make it executable and run:
+   ```bash
+   chmod +x mac-installer.sh
+   ./mac-installer.sh
+   ```
+This will install or update the app to `~/.moodle-app-v2` and launch it automatically.
+
+### Manual Setup (All Environments)
 1. **Clone & Compile**
    ```bash
    ./mvnw clean compile        # Linux/Mac
