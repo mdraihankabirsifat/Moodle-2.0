@@ -229,5 +229,9 @@ Department of Computer Science and Engineering
 Bangladesh University of Engineering and Technology (BUET)  
 Level 2, Term 1
 
+Under the suprviosion of:  
+Md. Nurul Muttakin   
+Lecturer, CSE  
+BUET  
 
 *Rights reserved for academic showcase.*
