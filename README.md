@@ -6,6 +6,26 @@ A complete desktop platform that simulates university life in one application: s
 
 ---
 
+## Download From GitHub Release (v1.0.0)
+
+Release page:
+
+https://github.com/mdraihankabirsifat/Moodle-2.0/releases/tag/v1.0.0
+
+### Windows (prebuilt executable)
+1. Open the release link above.
+2. In **Assets**, download: `Unimate-Windows-AppImage-2026-04-10.zip`.
+3. Extract the zip file.
+4. Open the extracted folder `Unimate`.
+5. Run `Unimate.exe`.
+
+### If you want source instead of prebuilt app
+1. From the same release page, download **Source code (zip)** or **Source code (tar.gz)**.
+2. Extract it.
+3. Run with Maven using the manual setup commands below.
+
+---
+
 ## Features (Complete)
 
 ### 1. Authentication and Access Control
@@ -118,26 +138,6 @@ A complete desktop platform that simulates university life in one application: s
 | **Build Tool** | Apache Maven 3.8+ |
 | **Architecture** | MVC Pattern (Model-View-Controller) |
 | **Data Storage** | Pipe-delimited persistent files in `~/.moodle_data/` |
-
----
-
-## Download From GitHub Release (v1.0.0)
-
-Release page:
-
-https://github.com/mdraihankabirsifat/Moodle-2.0/releases/tag/v1.0.0
-
-### Windows (prebuilt executable)
-1. Open the release link above.
-2. In **Assets**, download: `Unimate-Windows-AppImage-2026-04-10.zip`.
-3. Extract the zip file.
-4. Open the extracted folder `Unimate`.
-5. Run `Unimate.exe`.
-
-### If you want source instead of prebuilt app
-1. From the same release page, download **Source code (zip)** or **Source code (tar.gz)**.
-2. Extract it.
-3. Run with Maven using the manual setup commands below.
 
 ---
 
