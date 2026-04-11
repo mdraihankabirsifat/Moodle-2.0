@@ -1,45 +1,110 @@
-# Unimate – Complete University Digital Platform
+# Unimate - Complete University Digital Platform
 
 > **L2T1 JavaFX Project** | Department of CSE, BUET
 
-A unified, premium desktop application that simulates and manages university campus life — from student enrollment and course management to P2P networking and comprehensive administrative control — all built with **JavaFX** and **FXML**.
+A complete desktop platform that simulates university life in one application: student and teacher workflows, authority administration, university information pages, community interaction, messaging, and peer-to-peer networking, built with **JavaFX** and **FXML**.
 
 ---
 
-## Features
+## Features (Complete)
 
-### 🔒 Advanced Authentication System
-- Multi-role registration (Student, Teacher, Authority) with dynamic dashboards.
-- Dedicated Campus Access module with secondary passwords for security context.
-- Profile management with circular photo uploads and credential updates.
-- Real-time Push Notifications upon successful login.
+### 1. Authentication and Access Control
+- Student signup/login with validation, duplicate-email protection, and profile session creation.
+- Teacher signup/login with university, department, designation, and type (Faculty/Guest).
+- Campus Access verification for three roles: **Student**, **Teacher**, and **Authority**.
+- Separate campus passwords for student and teacher entry (changeable from profile sections).
+- Authority login scoped by selected university.
+- Login activity logging and real-time notification creation.
 
-### 📘 Student MyCampus Dashboard
-- **Split-View Notices:** Interactive notice reader with inline PDF viewing integration.
-- **Gradesheet:** Comprehensive GPA tracking and letter grade evaluation.
-- **Schedule:** Interactive weekly timeline management algorithm logic.
-- **Community:** Embedded modules for Vending, Washing Machine, and Sports booking.
-- **Payments:** Seamless interface for paying Hall, Lab, Semester, Exam, and Library fees.
+### 2. Home and Discovery
+- Live university search with dynamic suggestions.
+- University page launcher from search results.
+- Theme switching (Dark/Light).
+- Notification bell with unread count and read-state behavior.
+- Activity heatmap tracker with range filters: **Last 7 Days**, **Last 1 Month**, **Last 1 Year**.
+- Dedicated news/vlog article routing from home cards.
+- Community and campus navigation shortcuts from the top-level home flow.
 
-### 🎓 Teacher Portal
-- **Notice Publishing:** Complete Course notice publisher with quick PDF capabilities.
-- **Assignment & Resources:** Easy interface for managing, uploading slides, and grading submission.
-- **Chat & Messaging:** Dedicated module for group and P2P connection channels.
-- **Manage Course Offerings:** Comprehensive listing of available and currently registered course spaces.
+### 3. Student Dashboard (My Campus)
+- **My Profile**: photo upload, account identity view, and campus password update.
+- **Internal Notices**: course and campus notice feed with PDF-aware content support.
+- **My Courses**:
+  - course list filtered by student batch.
+  - assignment viewing and submission.
+  - slide/resource viewing.
+  - course notice viewing.
+- **Assignment Submission**: text plus file attachment support and marks visibility.
+- **Gradesheet**: subject-wise grade points, letter grades, and CGPA summary.
+- **Schedule**: weekly class timetable grid by batch.
+- **Payment**: Hall, Exam, Semester, Library, and Lab fee payment with history and totals.
+- **Messages**:
+  - direct chat by student ID or email.
+  - group create/join (optional password).
+  - live auto-refresh conversation layout.
+- **Well Being Hub**:
+  - Hall Management (availability requests + allocation status).
+  - Games and Sports registration.
+  - Hospital module (doctor list, appointment booking, tests, medicine info, appointment list).
+  - Washing machine slot booking.
+  - Vending machine wallet, recharge, and purchase simulation.
+- **Community Feed**: post text/image content, auto-refresh feed, and direct-message shortcut from posts.
 
-### ⚙️ Admin Control Panel
-- **Student Database Engine:** Embedded real-time filterable grid view with inline CRUD capabilities.
-- **University Management Sub-sections:** Separate sub-dashboards to manage Institution Details, Alumni, Staff, Faculty, Jobs, and Global Notices.
-- **Payment Overview System:** Comprehensive tracking logs for financial reconciliation.
+### 4. Teacher Dashboard
+- **My Profile** with photo upload and campus password change.
+- **My Courses** creation and listing with semester/batch metadata.
+- **Upload Assignment** with optional file attachment.
+- **Upload Slides** with optional file attachment.
+- **Post Course Notice** with optional PDF attachment.
+- **Evaluate Submissions** with mark assignment and auto-refresh.
+- **Student List** view.
+- **Edit Schedule** by batch in grid form (add/remove class entries per slot).
+- **Hospital Access** (doctor table + appointment booking workflow).
+- **Messages** (direct + group chat layout with live refresh).
+- **Live Chat** dedicated direct messaging panel.
 
-### 🏛 Dynamic University Interface
-- **Sidebar Organization:** Clean layout wrapping About, Departments, Institutes, Faculty, Alumni, and Administration.
-- **Data-Driven Flow:** Pulls live data from the Admin database dynamically rendering pages.
-- **Live Search:** Start-page university search linking matching organizations.
+### 5. Authority Dashboard (Admin Control)
+- **Student Database** with search/filter and inline editing.
+- **Manage Notices** with optional PDF attachment.
+- **Payment Overview** reconciliation panel.
+- **Edit Gradesheet** administrative controls.
+- **System Overview** statistics panel.
+- **Campus Facilities Management**:
+  - Manage Games.
+  - Manage Hospital doctors.
+  - Manage Hall rooms, requests, and allocations.
+- **Manage Users** module.
+- **University Page Management** modules:
+  - Manage Faculty.
+  - Manage Alumni.
+  - University Notices.
+  - Latest News.
+  - Upcoming Events.
+  - Job Notices.
+  - Staff Details.
+  - Department Details.
+  - Institution Details.
+  - Administration.
 
-### 🌐 Peer-to-Peer Networking
-- Multi-threaded Java ServerSockets handle active P2P client interaction straight from the Application header.
-- Status toggle indicators visible in real-time.
+### 6. University Page and Community Module
+- University page sections: **About**, **Departments**, **Institutes**, **Faculty/Staff**, **Alumni**, **Administration**.
+- Dynamic content pulls from authority-managed records.
+- Standalone Community Dashboard with universal feed, direct chat, group chat, friend discovery, and profile panel.
+
+### 7. Messaging and Networking
+- Local persistent messaging for direct and group channels.
+- Alias-safe direct message identity matching (student ID/email support).
+- Cross-device direct messaging via peer-to-peer bridge.
+- Home network panel for:
+  - server address input.
+  - connect/disconnect controls.
+  - connection status.
+  - local IP/port hint.
+- Default bridge server port: `50555` (auto-fallback range enabled).
+
+### 8. Data and Persistence
+- File-based persistence in `~/.moodle_data/`.
+- Backward-compatible attachment markers (`[FILE:...]` and legacy `[PDF:...]`).
+- Persisted modules include users, courses, assignments, submissions, slides, notices, payments, schedule, hospital, hall, games, community posts, groups, messages, notifications, and activity history.
 
 ---
 
@@ -49,27 +114,52 @@ A unified, premium desktop application that simulates and manages university cam
 |-------|-----------|
 | **Language** | Java 25 |
 | **UI Framework** | JavaFX 21.0.6 (Controls + FXML) |
-| **System APIs** | Desktop, File I/O for PDF handling and Persistence |
+| **System APIs** | Desktop, File I/O, Local Persistence |
 | **Build Tool** | Apache Maven 3.8+ |
 | **Architecture** | MVC Pattern (Model-View-Controller) |
-| **Data Storage** | Pipe-delimited Persistent Files (`~/.moodle_data/`) |
+| **Data Storage** | Pipe-delimited persistent files in `~/.moodle_data/` |
 
 ---
 
-## Project Setup & Quick Start
+## Download From GitHub Release (v1.0.0)
 
-### For Mac Users (Automated Installer)
-We provide a dedicated script that automatically clones, updates, and launches the application without needing manual setup.
-1. Download the `mac-installer.sh` script or navigate to the repository directory.
-2. Make it executable and run:
-   ```bash
-   chmod +x mac-installer.sh
-   ./mac-installer.sh
-   ```
-This will install or update the app to `~/.moodle-app-v2` and launch it automatically.
+Release page:
+
+https://github.com/mdraihankabirsifat/Moodle-2.0/releases/tag/v1.0.0
+
+### Windows (prebuilt executable)
+1. Open the release link above.
+2. In **Assets**, download: `Unimate-Windows-AppImage-2026-04-10.zip`.
+3. Extract the zip file.
+4. Open the extracted folder `Unimate`.
+5. Run `Unimate.exe`.
+
+### If you want source instead of prebuilt app
+1. From the same release page, download **Source code (zip)** or **Source code (tar.gz)**.
+2. Extract it.
+3. Run with Maven using the manual setup commands below.
+
+---
+
+## Project Setup and Quick Start
+
+### Automated Installer Scripts
+
+#### Windows
+```bat
+windows-installer.bat
+```
+This installs/updates to `~/.moodle-app-v2` and launches via Maven.
+
+#### Mac/Linux
+```bash
+chmod +x mac-installer.sh
+./mac-installer.sh
+```
+This installs/updates to `~/.moodle-app-v2` and launches via Maven.
 
 ### Manual Setup (All Environments)
-1. **Clone & Compile**
+1. **Compile**
    ```bash
    ./mvnw clean compile        # Linux/Mac
    mvnw.cmd clean compile      # Windows
@@ -77,43 +167,67 @@ This will install or update the app to `~/.moodle-app-v2` and launch it automati
 
 2. **Run**
    ```bash
-   ./mvnw javafx:run            # Linux/Mac
-   mvnw.cmd javafx:run          # Windows
+   ./mvnw javafx:run           # Linux/Mac
+   mvnw.cmd javafx:run         # Windows
    ```
 
-3. **Try It Out**
-   - **Student Access:** Register an account, log in, go to `My Campus` and sign into Student Dashboard.
-   - **Teacher Access:** Go to My Campus logic panel → switch Role → teacher email context. (Hint default pass: `teacher123`)
-   - **Authority Access:** Switch Role → Authority. (Default pass: `admin123`)
+3. **Default Access Hints**
+   - Student campus pass (default): `1234`
+   - Teacher campus pass (default): `teacher123`
+   - Authority pass (default): `admin123`
 
 ---
 
-## Data Structure Directory
+## Data Directory Structure
 
-All configuration states and user content are synced via local txt storage parsing across instances.
-```
+All local state and content are persisted under:
+
+```text
 ~/.moodle_data/
 ├── users.txt
+├── teacher_profiles.txt
+├── campus_passwords.txt
 ├── courses.txt
-├── profile_photos/
+├── assignments.txt
+├── submissions.txt
+├── slides.txt
+├── course_notices.txt
+├── messages.txt
+├── groups.txt
+├── group_messages.txt
+├── payments.txt
+├── schedule.txt
+├── student_grades.txt
+├── hospital_doctors.txt
+├── hospital_appointments.txt
+├── hall_data.txt
+├── hall_room_requests.txt
+├── hall_allocations.txt
+├── games_data.txt
+├── community_posts.txt
 ├── notifications.txt
-└── admin/                 [NEW Authority Store]
+├── student_activity.txt
+├── profile_photos.txt
+└── admin/
     ├── staff.txt
     ├── departments.txt
     ├── alumni.txt
     ├── uni_details.txt
     └── ...
 ```
-To hard-reset system behaviors, purge the inner contents of `~/.moodle_data/`.
+
+To hard-reset behavior, clear the contents of `~/.moodle_data/`.
 
 ---
 
-## Author & Acknowledgements
+## Author and Acknowledgements
 
 **Developed By:**
-Raihan Kabir
-Department of Computer Science and Engineering
-Bangladesh University of Engineering and Technology (BUET)
-Level 2, Term 1 — 2024/2026
 
-*Rights Reserved for Academic Showcase.*
+Md. Raihan Kabir Sifat  
+Department of Computer Science and Engineering  
+Bangladesh University of Engineering and Technology (BUET)  
+Level 2, Term 1
+
+
+*Rights reserved for academic showcase.*
