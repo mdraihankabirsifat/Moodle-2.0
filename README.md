@@ -178,48 +178,6 @@ This installs/updates to `~/.moodle-app-v2` and launches via Maven.
 
 ---
 
-## Data Directory Structure
-
-All local state and content are persisted under:
-
-```text
-~/.moodle_data/
-├── users.txt
-├── teacher_profiles.txt
-├── campus_passwords.txt
-├── courses.txt
-├── assignments.txt
-├── submissions.txt
-├── slides.txt
-├── course_notices.txt
-├── messages.txt
-├── groups.txt
-├── group_messages.txt
-├── payments.txt
-├── schedule.txt
-├── student_grades.txt
-├── hospital_doctors.txt
-├── hospital_appointments.txt
-├── hall_data.txt
-├── hall_room_requests.txt
-├── hall_allocations.txt
-├── games_data.txt
-├── community_posts.txt
-├── notifications.txt
-├── student_activity.txt
-├── profile_photos.txt
-└── admin/
-    ├── staff.txt
-    ├── departments.txt
-    ├── alumni.txt
-    ├── uni_details.txt
-    └── ...
-```
-
-To hard-reset behavior, clear the contents of `~/.moodle_data/`.
-
----
-
 ## Author and Acknowledgements
 
 **Developed By:**
