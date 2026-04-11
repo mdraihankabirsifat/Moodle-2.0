@@ -14,7 +14,7 @@ https://github.com/mdraihankabirsifat/Moodle-2.0/releases/tag/v1.0.0
 
 ### Windows (prebuilt executable)
 1. Open the release link above.
-2. In **Assets**, download: `Unimate-Windows-AppImage-2026-04-10.zip`.
+2. In **Assets**, download: `Unimate-Windows-2026-04-10.zip`.
 3. Extract the zip file.
 4. Open the extracted folder `Unimate`.
 5. Run `Unimate.exe`.
